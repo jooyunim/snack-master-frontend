@@ -42,3 +42,6 @@ next-env.d.ts
 
 # editor
 .vscode/
+
+# AI assistant context (not for repo)
+CLAUDE.md
