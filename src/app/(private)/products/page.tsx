@@ -6,8 +6,8 @@ type ProductsPageProps = {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
-  const category = params.category ?? 'drink';
-  const sub = params.sub ?? (category === 'drink' ? 'soda' : undefined);
 
-  return <ProductListContent categorySlug={category} subSlug={sub} />;
+  return (
+    <ProductListContent categorySlug={params.category} subSlug={params.sub} />
+  );
 }

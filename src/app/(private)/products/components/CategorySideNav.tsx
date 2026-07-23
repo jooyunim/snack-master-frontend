@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
-import { CATEGORIES } from '@/app/(private)/products/constants/categories';
+import { useCategories } from '@/features/product/hooks/useCategories';
 
 type CategorySideNavProps = {
   className?: string;
@@ -21,8 +21,12 @@ export default function CategorySideNav({
   className = '',
 }: CategorySideNavProps) {
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get('category') ?? 'drink';
-  const activeSub = searchParams.get('sub') ?? 'soda';
+  const { data: categories } = useCategories();
+
+  const activeCategory = searchParams.get('category');
+  const activeSub = searchParams.get('sub');
+
+  if (!categories) return null;
 
   return (
     <nav
@@ -36,10 +40,10 @@ export default function CategorySideNav({
       </div>
 
       <ul className="flex w-full flex-col gap-1 max-sm:flex-row max-sm:gap-2 max-sm:overflow-x-auto max-sm:border-b max-sm:border-solid max-sm:border-gray-100 max-sm:px-6">
-        {CATEGORIES.map((category) => {
-          const hasChildren = Boolean(category.children?.length);
+        {categories.map((category) => {
+          const hasChildren = category.children.length > 0;
           const href = hasChildren
-            ? categoryHref(category.slug, category.children![0].slug)
+            ? categoryHref(category.slug, category.children[0].slug)
             : categoryHref(category.slug);
           const isExpanded = hasChildren && activeCategory === category.slug;
           const isLeafActive = !hasChildren && activeCategory === category.slug;
@@ -66,7 +70,7 @@ export default function CategorySideNav({
                       : 'font-normal max-sm:text-gray-400'
                   }`}
                 >
-                  {category.label}
+                  {category.name}
                 </span>
                 <span className="relative size-4 shrink-0 overflow-hidden max-sm:hidden">
                   <Image
@@ -79,11 +83,10 @@ export default function CategorySideNav({
               </Link>
 
               {hasChildren && isExpanded
-                ? category.children!.map((child) => {
+                ? category.children.map((child) => {
                     const childHref = categoryHref(category.slug, child.slug);
                     const isActive =
-                      activeCategory === category.slug &&
-                      activeSub === child.slug;
+                      activeCategory === category.slug && activeSub === child.slug;
 
                     return (
                       <Link
@@ -98,7 +101,7 @@ export default function CategorySideNav({
                               : 'font-normal text-gray-500 max-sm:text-gray-400'
                           }`}
                         >
-                          {child.label}
+                          {child.name}
                         </span>
                       </Link>
                     );
