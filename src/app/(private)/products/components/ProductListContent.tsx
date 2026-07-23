@@ -31,6 +31,7 @@ export default function ProductListContent({
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts({
     categoryId,
+    limit: 12, // 한 번에 가져올 상품 수
   });
 
   const products = useMemo(
