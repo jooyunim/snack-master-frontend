@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// (auth)/login, (auth)/signup 페이지가 실제로 쓰는 환경변수 이름과 맞춤
+// (sample.api.ts, purchase-request.api.ts는 아직 미완성 참고용 코드라 NEXT_PUBLIC_API_URL을 씀 — 실제 동작하는 쪽 기준으로 통일)
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
 
 export class ApiError extends Error {
   status: number;
@@ -9,8 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-// 로그인 화면이 아직 토큰 저장 방식을 정하지 않아 localStorage('accessToken')로 가정.
-// 로그인 구현 시 저장 방식이 달라지면 이 함수만 맞추면 됨.
+// 실제 로그인 구현 확인 완료: localStorage.setItem('accessToken', ...) 그대로 씀
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('accessToken');
