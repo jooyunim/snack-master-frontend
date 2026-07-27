@@ -57,6 +57,14 @@ reviews:
         - .env 파일이 PR에 포함되어 있지 않은지 확인해주세요.
         - accessToken·비밀번호가 로그나 전역 상태에 그대로 노출되지 않는지 확인해주세요.
 
+    # ─── 환경 변수 / Secret 관리 ──────────────────────────
+    - path: '.env*'
+      instructions: |
+        - 환경변수 파일이 PR에 포함되어 있지 않은지 확인해주세요.
+        - API Key, Secret Key, Token, Password 등 민감 정보가 노출되지 않았는지 확인해주세요.
+        - 실제 환경변수 값이 커밋된 경우 보안 위험으로 리뷰해주세요.
+        - `.env.example` 파일은 허용되며 실제 값 대신 예시 형태로 작성되어 있는지 확인해주세요.
+
     # ─── Next.js App Router (page / layout) ───────────────
     - path: '**/app/**/*.{ts,tsx}'
       instructions: |
