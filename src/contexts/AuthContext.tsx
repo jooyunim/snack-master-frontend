@@ -42,6 +42,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string;
     password: string;
   }) => {
+    if (!isAuthChecked) {
+      throw new Error('인증 확인 중입니다. 잠시 후 다시 시도해주세요.');
+    }
+
     const safeEmail = typeof email === 'string' ? email.trim() : '';
     const safePassword = typeof password === 'string' ? password : '';
 
@@ -59,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    if (!isAuthChecked) return;
     try {
       await logoutApi();
     } catch (error) {
