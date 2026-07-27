@@ -7,3 +7,4 @@ export const purchaseRequestKeys = {
   details: () => [...purchaseRequestKeys.all, 'detail'] as const,
   detail: (id: number) => [...purchaseRequestKeys.details(), id] as const,
 };
+
