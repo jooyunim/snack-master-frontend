@@ -74,23 +74,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const getUser = async () => {
-    try {
-      const user = await getUserApi();
-      setUser(user);
-    } catch {
-      setUser(null);
-      return null;
-    } finally {
-      setIsAuthChecked(true);
-    }
-  };
-
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
-      await getUser();
+      try {
+        const user = await getUserApi();
+        if (!cancelled) {
+          setUser(user);
+        }
+      } catch {
+        // 로그인 직후 늦게 도착한 실패가 세션을 덮어쓰지 않도록 함
+        if (!cancelled && !localStorage.getItem('accessToken')) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAuthChecked(true);
+        }
+      }
     };
+
     void checkAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

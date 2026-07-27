@@ -51,14 +51,9 @@ export const logoutApi = async (): Promise<void> => {
 };
 
 export const getUserApi = async (): Promise<User> => {
-  const token = localStorage.getItem('accessToken');
-  if (!token) {
-    throw new Error('토큰이 없습니다.');
-  }
   const res = await authFetch('/auth/user', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     credentials: 'include',
   });
@@ -98,16 +93,24 @@ export const refreshAccessToken = async (): Promise<string> => {
     if (typeof accessToken !== 'string' || !accessToken) {
       throw new Error('access token 재발급에 실패했습니다.');
     }
+
+    localStorage.setItem('accessToken', accessToken);
     return accessToken;
   })().finally(() => (refreshPromise = null));
   return refreshPromise;
 };
 
 const authFetch = async (url: string, options: RequestInit) => {
-  const token = localStorage.getItem('accessToken');
+  let token = localStorage.getItem('accessToken');
+
   if (!token) {
-    throw new Error('인증 토큰이 없습니다.');
+    try {
+      token = await refreshAccessToken();
+    } catch {
+      throw new Error('인증 토큰이 없습니다.');
+    }
   }
+
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
     ...options,
     headers: {
@@ -133,8 +136,6 @@ const authFetch = async (url: string, options: RequestInit) => {
       localStorage.removeItem('accessToken');
       throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
     }
-
-    localStorage.setItem('accessToken', newToken);
 
     const newRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
       ...options,
