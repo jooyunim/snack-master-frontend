@@ -11,20 +11,36 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const PASSWORD_REGEX =
-  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+  /^(?=(?:.*[A-Za-z].*[0-9])|(?=.*[A-Za-z].*[@$!%*?&])|(?=.*[0-9].*[@$!%*?&]))[A-Za-z\d@$!%*?&]{8,}$/;
 
 const getPasswordError = (password: string, passwordConfirm: string) => {
-  if (!password || !passwordConfirm) {
-    return '비밀번호와 비밀번호 확인이 필요합니다.';
+  if (!password) {
+    return { field: 'password' as const, message: '비밀번호 값이 필요합니다.' };
+  }
+  if (!passwordConfirm) {
+    return {
+      field: 'passwordConfirm' as const,
+      message: '비밀번호 확인 값이 필요합니다.',
+    };
   }
   if (password !== passwordConfirm) {
-    return '비밀번호와 비밀번호 확인이 일치하지 않습니다.';
+    return {
+      field: 'passwordConfirm' as const,
+      message: '비밀번호와 비밀번호 확인 값이 일치하지 않습니다.',
+    };
   }
   if (password.length < 8 || password.length > 20) {
-    return '비밀번호는 8자 이상 20자 이하여야 합니다.';
+    return {
+      field: 'password' as const,
+      message: '비밀번호는 8자 이상 20자 이하여야 합니다.',
+    };
   }
   if (!PASSWORD_REGEX.test(password)) {
-    return '비밀번호는 영문, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.';
+    return {
+      field: 'password' as const,
+      message:
+        '비밀번호는 영문, 숫자, 특수문자 중 두 가지 이상 포함해야 합니다.',
+    };
   }
   return null;
 };
@@ -37,6 +53,10 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordConfirmError, setPasswordConfirmError] = useState<
+    string | null
+  >(null);
+  const [signupError, setSignupError] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -70,7 +90,7 @@ const SignupPage = () => {
     );
 
     if (!res.ok) {
-      throw new Error('서버로부터 이름, 이메일을 받지 못했습니다.');
+      throw new Error('서버로부터 이름, 이메일 값을 가져오는데 실패했습니다.');
     }
 
     const data = await res.json();
@@ -89,7 +109,9 @@ const SignupPage = () => {
       router.push('/login');
     },
     onError: (error) => {
-      setPasswordError(error.message);
+      setSignupError(error.message);
+      setPasswordError(null);
+      setPasswordConfirmError(null);
     },
   });
 
@@ -101,11 +123,17 @@ const SignupPage = () => {
 
     const error = getPasswordError(password, passwordConfirm);
     if (error) {
-      setPasswordError(error);
+      setSignupError(null);
+      setPasswordError(null);
+      setPasswordConfirmError(null);
+
+      if (error.field === 'password') setPasswordError(error.message);
+      else setPasswordConfirmError(error.message);
       return;
     }
 
     setPasswordError(null);
+    setPasswordConfirmError(null);
     mutate.mutate(token);
   };
 
@@ -142,7 +170,6 @@ const SignupPage = () => {
                   : isError || !data?.name
                     ? '초대 링크를 확인해 주세요'
                     : `${data?.name} 님, 만나서 반갑습니다.`}
-                {}
               </h1>
               <p className="text-[14px] tracking-[-0.35px] text-gray-600 md:text-[16px] md:tracking-[-0.4px]">
                 비밀번호를 입력해 회원가입을 완료해주세요
@@ -161,32 +188,45 @@ const SignupPage = () => {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
+                      setSignupError(null);
                       setPasswordError(null);
+                      setPasswordConfirmError(null);
                     }}
                     placeholder="비밀번호를 입력해주세요"
                     showPasswordToggle
                     autoComplete="new-password"
                   />
+                  {passwordError ? (
+                    <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                      {passwordError}
+                    </p>
+                  ) : null}
                   <div className="flex w-full flex-col gap-2">
                     <Input
                       type="password"
                       value={passwordConfirm}
                       onChange={(e) => {
                         setPasswordConfirm(e.target.value);
+                        setSignupError(null);
                         setPasswordError(null);
+                        setPasswordConfirmError(null);
                       }}
                       placeholder="비밀번호를 한 번 더 입력해주세요"
                       showPasswordToggle
                       autoComplete="new-password"
                     />
-                    {passwordError ? (
+                    {passwordConfirmError ? (
                       <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                        {passwordError}
+                        {passwordConfirmError}
                       </p>
                     ) : null}
                   </div>
                 </div>
-
+                {signupError ? (
+                  <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                    {signupError}
+                  </p>
+                ) : null}
                 <Button
                   type="submit"
                   disabled={mutate.isPending || !token || isPending || isError}
