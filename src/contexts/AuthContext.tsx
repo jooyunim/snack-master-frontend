@@ -1,20 +1,18 @@
 'use client';
 
 import {
+  getUserApi,
+  loginApi,
+  logoutApi,
+} from '@/features/auth/services/auth.api';
+import { User } from '@/features/auth/types/auth.types';
+import {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
 } from 'react';
-
-interface User {
-  email: string;
-  name: string;
-  id: string;
-  companyId: number;
-  role: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -55,53 +53,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('유효하지 않는 비밀번호입니다.');
     }
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email: safeEmail, password: safePassword }),
-      }
-    );
+    const user = await loginApi(safeEmail, safePassword);
 
-    if (!res.ok) {
-      const error = await res.json().catch(() => null);
-      throw new Error(error?.message || '로그인에 실패했습니다.');
-    }
-
-    const data = await res.json();
-
-    if (!data?.user) {
-      throw new Error('로그인에 실패했습니다.');
-    }
-
-    if (!data?.accessToken) {
-      throw new Error('토큰이 없습니다.');
-    }
-
-    setUser(data.user);
-    localStorage.setItem('accessToken', data.accessToken);
+    setUser(user);
   };
 
   const logout = async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        }
-      );
-      if (!res.ok) {
-        const error = await res.json().catch(() => null);
-        throw new Error(error?.message || '로그아웃에 실패했습니다.');
-      }
+      await logoutApi();
     } catch (error) {
       console.error(error);
     } finally {
@@ -110,56 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const refreshAccessToken = async () => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      }
-    );
-    if (!res.ok) {
-      throw new Error('서버로부터 토큰 갱신에 실패했습니다.');
-    }
-    const data = await res.json();
-    if (!data?.accessToken) {
-      throw new Error('토큰이 없습니다.');
-    }
-    localStorage.setItem('accessToken', data.accessToken);
-    return data.accessToken;
-  };
-
   const getUser = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('토큰이 없습니다.');
-      }
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/user`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: 'include',
-        }
-      );
-      if (!res.ok) {
-        localStorage.removeItem('accessToken');
-        throw new Error('토큰이 만료되었습니다.');
-      }
-      const data = await res.json();
-
-      if (!data?.user) {
-        throw new Error('유저에 대한 정보가 없습니다.');
-      }
-
-      setUser(data.user);
-      return data;
+      const user = await getUserApi();
+      setUser(user);
     } catch {
       setUser(null);
       return null;
