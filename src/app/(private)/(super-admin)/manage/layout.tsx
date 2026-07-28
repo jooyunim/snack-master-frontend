@@ -1,4 +1,4 @@
-import ManageSideNav from '@/app/(private)/manage/components/ManageSideNav';
+import ManageSideNav from '@/app/(private)/(super-admin)/manage/components/ManageSideNav';
 
 export default function ManageLayout({
   children,

@@ -2,14 +2,16 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import icXLine from '@/assets/icons/ic_x_line.svg';
-import type { UserType } from '@/components/Gnb';
+import type { Role } from '@/features/auth/types/auth.types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 
 type NavItem = {
   label: string;
   href: string;
-  roles: UserType[];
+  roles: Role[];
   matchPaths: string[];
 };
 
@@ -53,14 +55,14 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 type SideMenuProps = {
-  userType: UserType;
+  userType: Role;
   className?: string;
   onClose?: () => void;
 };
 
 function isNavActive(pathname: string, item: NavItem) {
   return item.matchPaths.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`),
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 }
 
@@ -78,6 +80,10 @@ export default function SideMenu({
   className = '',
   onClose,
 }: SideMenuProps) {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const { logout } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const items = NAV_ITEMS.filter((item) => item.roles.includes(userType));
 
@@ -118,23 +124,30 @@ export default function SideMenu({
           );
         })}
 
-        {/* TODO: 확정 경로로 교체 — 모바일만 노출 */}
         <Link
-          href="#"
-          className="hidden h-[50px] w-[177px] shrink-0 items-center justify-center p-2 text-[16px] font-normal tracking-[-0.4px] whitespace-nowrap text-gray-700 transition-colors hover:font-extrabold hover:text-gray-900 max-sm:flex"
+          href="/user"
+          className={menuItemClassName(false)}
           onClick={onClose}
         >
           마이페이지
         </Link>
 
-        <button type="button" className={menuItemClassName(false)}>
+        <button
+          type="button"
+          disabled={isLoggingOut}
+          onClick={async () => {
+            try {
+              await logout();
+              router.replace('/login');
+            } catch {
+              setIsLoggingOut(false);
+            }
+          }}
+          className={`${menuItemClassName(false)} cursor-pointer`}
+        >
           로그아웃
         </button>
       </nav>
     </aside>
   );
 }
-
-// <SideMenu userType="USER" />
-// <SideMenu userType="ADMIN" onClose={() => {}} />
-// <SideMenu userType="SUPER_ADMIN" onClose={() => {}} />

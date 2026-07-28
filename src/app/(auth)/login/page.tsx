@@ -5,53 +5,40 @@ import Link from 'next/link';
 import logo from '@/assets/icons/logo.svg';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMutation } from '@tanstack/react-query';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const { login, isAuthChecked } = useAuth();
 
   const router = useRouter();
 
-  const handleLogin = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      }
-    );
-
-    if (!res.ok) {
-      const error = await res.json().catch(() => null);
-      throw new Error(error?.message || '로그인에 실패했습니다.');
-    }
-
-    const data = await res.json();
-    return data.data;
-  };
-
   const mutate = useMutation({
-    mutationFn: handleLogin,
-    onSuccess: (data) => {
-      localStorage.setItem('accessToken', data.accessToken);
+    mutationFn: login,
+    onSuccess: () => {
       router.push('/products');
     },
     onError: (error) => {
-      setLoginError(error.message);
+      const message = error.message;
+      setLoginError(null);
+      setEmailError(null);
+      setPasswordError(null);
+
+      if (message.includes('이메일')) {
+        setEmailError(message);
+      } else if (message.includes('비밀번호')) {
+        setPasswordError(message);
+      } else {
+        setLoginError(message);
+      }
     },
   });
 
@@ -59,13 +46,10 @@ const LoginPage = () => {
     e.preventDefault();
     if (mutate.isPending) return;
 
-    if (!email.trim() || !password) {
-      setLoginError('이메일과 비밀번호를 입력해주세요.');
-      return;
-    }
-
     setLoginError(null);
-    mutate.mutate({ email: email.trim(), password });
+    setEmailError(null);
+    setPasswordError(null);
+    mutate.mutate({ email, password });
   };
 
   return (
@@ -98,32 +82,48 @@ const LoginPage = () => {
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setLoginError(null);
+                      setEmailError(null);
+                      setPasswordError(null);
                     }}
                     type="email"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
                   />
+                  {emailError ? (
+                    <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                      {emailError}
+                    </p>
+                  ) : null}
                   <div className="flex w-full flex-col gap-2">
                     <Input
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
                         setLoginError(null);
+                        setEmailError(null);
+                        setPasswordError(null);
                       }}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="current-password"
                       showPasswordToggle
                     />
-                    {loginError ? (
+                    {passwordError ? (
                       <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                        {loginError}
+                        {passwordError}
                       </p>
                     ) : null}
                   </div>
                 </div>
-
-                <Button type="submit" disabled={mutate.isPending}>
+                {loginError ? (
+                  <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                    {loginError}
+                  </p>
+                ) : null}
+                <Button
+                  type="submit"
+                  disabled={!isAuthChecked || mutate.isPending}
+                >
                   {mutate.isPending ? '로그인 중...' : '로그인'}
                 </Button>
               </div>

@@ -1,8 +1,13 @@
+import Image from 'next/image';
 import Link from 'next/link';
+import icLikeActive from '@/assets/icons/Property 1=active-1.svg';
 import type { Product } from '@/features/product/types/product.types';
 
 type ProductCardProps = {
   product: Product;
+  /** true면 이미지 영역 우하단에 찜 아이콘 표시 */
+  liked?: boolean;
+  onLikeClick?: () => void;
   className?: string;
 };
 
@@ -10,18 +15,39 @@ function formatPrice(price: number) {
   return `${price.toLocaleString('ko-KR')}원`;
 }
 
-export default function ProductCard({ product, className = '' }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  liked = false,
+  onLikeClick,
+  className = '',
+}: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.id}`}
       className={`flex min-w-0 flex-1 flex-col gap-5 max-lg:gap-3.5 ${className}`.trim()}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- 외부(S3/picsum) 이미지라 next/image remotePatterns 설정 없이 바로 사용 */}
-      <img
-        src={product.imageUrl}
-        alt={product.name}
-        className="aspect-square w-full overflow-hidden rounded-[2px] bg-gray-50 object-cover shadow-[4px_4px_10px_rgba(250,247,243,0.25)]"
-      />
+      <div className="relative aspect-square w-full overflow-hidden rounded-[2px] bg-gray-50 shadow-[4px_4px_10px_rgba(250,247,243,0.25)]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- 외부(S3/picsum) 이미지라 next/image remotePatterns 설정 없이 바로 사용 */}
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          className="size-full object-cover"
+        />
+        {liked ? (
+          <button
+            type="button"
+            aria-label="찜 해제"
+            className="absolute bottom-5 right-5 z-10 size-[30px] shrink-0 overflow-hidden"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onLikeClick?.();
+            }}
+          >
+            <Image src={icLikeActive} alt="" fill className="object-contain" />
+          </button>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-2 whitespace-nowrap max-lg:grid-cols-1 max-lg:justify-items-start">
         <p className="text-[18px] tracking-[-0.45px] text-black max-lg:text-[16px] max-lg:tracking-[-0.4px]">
