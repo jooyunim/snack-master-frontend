@@ -6,25 +6,41 @@ export async function getPurchaseRequestManageList(
     sortBy?: sortByOption
 ): Promise<purchaseRequestManage[]> {
     const query = sortBy ? `?sortBy=${sortBy}` : ``;
-    const response = await fetch(`${API_BASE}/purchase-requests/${query}`, { cache: 'no-store' });
+    const token = localStorage.getItem("accessToken")
+    const response = await fetch(`${API_BASE}/purchase-requests/${query}`, {
+        cache: 'no-store',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        }, credentials: 'include'
+    },
+
+    );
     return response.json();
 }
 
 export async function getPurchaseRequestManageDetail(id: number): Promise<purchaseRequestManageDetail> {
+    const token = localStorage.getItem("accessToken")
     const response = await fetch(`${API_BASE}/purchase-requests/${id}`, {
         cache: 'no-store',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        }, credentials: 'include'
     });
     return response.json();
 }
 
 async function patchStatus(id: number, resultMessage: string, action: Action): Promise<MessageResponse> {
+    const token = localStorage.getItem("accessToken")
     const response = await fetch(`${API_BASE}/purchase-requests/${id}/${action}`, {
         method: 'PATCH',
         body: JSON.stringify({ resultMessage }),
         headers: {
             'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
+            Authorization: `Bearer ${token}`
+        }, credentials: 'include',
+        cache: 'no-store'
     });
     return response.json();
 }

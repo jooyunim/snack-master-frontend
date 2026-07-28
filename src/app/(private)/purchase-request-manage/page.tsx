@@ -84,7 +84,7 @@ export default function PurchaseRequestManagePage() {
 
           {/* Mobile card list */}
           <ul className="hidden w-full flex-col max-sm:flex">
-            {REQUESTS.map((request) => (
+            {data.map((request) => (
               <li
                 key={request.id}
                 className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
@@ -92,12 +92,9 @@ export default function PurchaseRequestManagePage() {
                 <div className="flex w-full flex-col gap-2.5">
                   <div className="flex w-full items-center justify-between pr-1">
                     <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
-                      {request.date}
+                      {request.requestedAt}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 text-[10px] tracking-[-0.25px] text-black">
-                        {request.requesterInitials}
-                      </span>
                       <span className="text-[14px] tracking-[-0.35px] text-gray-950">
                         {request.requesterName}
                       </span>
@@ -105,10 +102,10 @@ export default function PurchaseRequestManagePage() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[14px] tracking-[-0.35px] text-gray-950">
-                      {request.product}
+                      {request.itemSummary}
                     </p>
                     <p className="text-[20px] font-extrabold tracking-[-0.5px] text-gray-950">
-                      {request.amount}원
+                      {request.totalAmount}원
                     </p>
                   </div>
                 </div>
