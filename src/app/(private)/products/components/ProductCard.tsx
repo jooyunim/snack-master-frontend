@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import icLikeActive from '@/assets/icons/Property 1=active-1.svg';
+import icLikeNormal from '@/assets/icons/Property 1=normal-1.svg';
 
-// products(useProducts 등 실제 API)와 wishlist(아직 목업) 양쪽에서 같이 쓰기 때문에,
+// products(useProducts 등 실제 API)와 wishlist 양쪽에서 같이 쓰기 때문에,
 // 전체 Product 도메인 타입 대신 실제로 렌더링에 쓰는 필드만 최소 요구한다.
 type ProductCardData = {
   id: number;
@@ -14,7 +15,7 @@ type ProductCardData = {
 
 type ProductCardProps = {
   product: ProductCardData;
-  /** true면 이미지 영역 우하단에 찜 아이콘 표시 */
+  /** 찜 여부 — 이미지 영역 우하단 하트 아이콘의 채움/테두리 상태를 결정 */
   liked?: boolean;
   onLikeClick?: () => void;
   className?: string;
@@ -42,20 +43,23 @@ export default function ProductCard({
           alt={product.name}
           className="size-full object-cover"
         />
-        {liked ? (
-          <button
-            type="button"
-            aria-label="찜 해제"
-            className="absolute bottom-5 right-5 z-10 size-[30px] shrink-0 overflow-hidden"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onLikeClick?.();
-            }}
-          >
-            <Image src={icLikeActive} alt="" fill className="object-contain" />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          aria-label={liked ? '찜 해제' : '찜하기'}
+          className="absolute bottom-5 right-5 z-10 size-[30px] shrink-0 overflow-hidden"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onLikeClick?.();
+          }}
+        >
+          <Image
+            src={liked ? icLikeActive : icLikeNormal}
+            alt=""
+            fill
+            className="object-contain"
+          />
+        </button>
       </div>
 
       <div className="grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-2 whitespace-nowrap max-lg:grid-cols-1 max-lg:justify-items-start">

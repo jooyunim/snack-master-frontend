@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Button from '@/components/Button';
 import ProductCard from '@/app/(private)/products/components/ProductCard';
+import { useWishlistMutations } from '@/features/wishlist/hooks/useWishlistMutations';
 import type { Product } from '@/features/product/types/product.types';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 
@@ -17,6 +18,8 @@ export default function ProductGrid({
   isFetchingNext,
   onLoadMore,
 }: ProductGridProps) {
+  const { toggleMutation } = useWishlistMutations();
+
   if (products.length === 0) {
     return (
       <div className="flex w-full items-center justify-center py-20">
@@ -32,7 +35,17 @@ export default function ProductGrid({
       <div className="flex w-full flex-col gap-[60px] pb-[30px] max-lg:gap-[50px] max-lg:pb-0 max-sm:gap-10">
         <div className="grid w-full grid-cols-3 gap-x-10 gap-y-[60px] max-lg:gap-x-3.5 max-lg:gap-y-[50px] max-sm:grid-cols-2 max-sm:gap-x-4 max-sm:gap-y-10">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              liked={product.isWished}
+              onLikeClick={() =>
+                toggleMutation.mutate({
+                  productId: product.id,
+                  isWished: product.isWished,
+                })
+              }
+            />
           ))}
         </div>
       </div>

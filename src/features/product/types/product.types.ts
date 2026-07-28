@@ -14,6 +14,8 @@ export type Product = {
   updatedAt: string;
   deletedAt: string | null;
   imageUrl: string;
+  /** 로그인 유저의 찜 여부. GET /products 목록에서만 실제 값이 내려오고, 나머지 응답은 항상 false */
+  isWished: boolean;
 };
 
 export type Category = {
