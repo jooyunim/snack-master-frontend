@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
+import icLikeActive from '@/assets/icons/Property 1=active-1.svg';
 
 type ProductCardProps = {
   id: number;
@@ -7,6 +9,9 @@ type ProductCardProps = {
   purchaseCount: number;
   categorySlug: string;
   subSlug?: string;
+  /** true면 이미지 영역 우하단에 찜 아이콘 표시 */
+  liked?: boolean;
+  onLikeClick?: () => void;
   className?: string;
 };
 
@@ -27,6 +32,8 @@ export default function ProductCard({
   purchaseCount,
   categorySlug,
   subSlug,
+  liked = false,
+  onLikeClick,
   className = '',
 }: ProductCardProps) {
   return (
@@ -34,7 +41,22 @@ export default function ProductCard({
       href={productHref(id, categorySlug, subSlug)}
       className={`flex min-w-0 flex-1 flex-col gap-5 max-lg:gap-3.5 ${className}`.trim()}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-[2px] bg-gray-50 shadow-[4px_4px_10px_rgba(250,247,243,0.25)]" />
+      <div className="relative aspect-square w-full overflow-hidden rounded-[2px] bg-gray-50 shadow-[4px_4px_10px_rgba(250,247,243,0.25)]">
+        {liked ? (
+          <button
+            type="button"
+            aria-label="찜 해제"
+            className="absolute bottom-5 right-5 z-10 size-[30px] shrink-0 overflow-hidden"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onLikeClick?.();
+            }}
+          >
+            <Image src={icLikeActive} alt="" fill className="object-contain" />
+          </button>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-2 whitespace-nowrap max-lg:grid-cols-1 max-lg:justify-items-start">
         <p className="text-[18px] tracking-[-0.45px] text-black max-lg:text-[16px] max-lg:tracking-[-0.4px]">

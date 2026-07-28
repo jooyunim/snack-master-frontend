@@ -17,7 +17,7 @@ const LoginPage = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const { login } = useAuth();
+  const { login, isAuthChecked } = useAuth();
 
   const router = useRouter();
 
@@ -120,7 +120,10 @@ const LoginPage = () => {
                     {loginError}
                   </p>
                 ) : null}
-                <Button type="submit" disabled={mutate.isPending}>
+                <Button
+                  type="submit"
+                  disabled={!isAuthChecked || mutate.isPending}
+                >
                   {mutate.isPending ? '로그인 중...' : '로그인'}
                 </Button>
               </div>
