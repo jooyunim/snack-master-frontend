@@ -20,6 +20,5 @@ export function useRequestMutations() {
             queryClient.invalidateQueries({ queryKey: purchaseRequestManageKeys.details() });
         },
     });
-
-
+    return { patchApproveMutation, patchRejectMutation }
 }

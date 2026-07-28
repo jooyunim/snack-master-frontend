@@ -74,7 +74,7 @@ export default function PurchaseRequestManagePage() {
                     <Button variant="sub" className="w-20">
                       반려
                     </Button>
-                    <Button variant="filled" size="sm" className="w-20">
+                    <Button variant="filled" size="sm" className="w-20" onClick={() => setApproveRequestId(request.id)}>
                       승인
                     </Button>
                   </div>
@@ -114,14 +114,14 @@ export default function PurchaseRequestManagePage() {
                   <Button variant="sub" className="min-w-0 flex-1">
                     반려
                   </Button>
-                  <Button variant="filled" size="sm" className="min-w-0 flex-1" onClick={() => setApproveRequestId(request.id)}>
+                  <Button variant="filled" size="sm" className="min-w-0 flex-1">
                     승인
                   </Button>
                 </div>
               </li>
             ))}
           </ul>
-          {approveRequestId && <PurchaseRequestApprovalModal requestId={approveRequestId} />}
+          {approveRequestId && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"> <PurchaseRequestApprovalModal requestId={approveRequestId} onclose={() => setApproveRequestId(null)} /></div>}
           <Pagination />
         </div>
       </main>

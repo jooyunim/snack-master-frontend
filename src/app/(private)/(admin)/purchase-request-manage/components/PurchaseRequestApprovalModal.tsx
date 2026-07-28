@@ -2,15 +2,27 @@
 import Image from 'next/image';
 import Button from '@/components/Button';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
-import { request } from 'http';
+import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
+import { useState } from 'react';
 
 
 
 
-export default function PurchaseRequestApprovalModal({ requestId }: { requestId: number }) {
+export default function PurchaseRequestApprovalModal({ requestId, onclose }: { requestId: number, onclose: () => void }) {
 
   const { data, isPending, isError } = useRequestDetail(requestId)
+  const { patchApproveMutation } = useRequestMutations()
+  const [resultMessage, setResultMessage] = useState("")
 
+  const approveHandler = () => {
+    patchApproveMutation.mutate({ id: requestId, resultMessage: resultMessage }, {
+      onSuccess: () => {
+        onclose()
+      }
+    }
+    )
+
+  }
   if (isPending) return (
     <div>로딩중...</div>
   )
@@ -139,16 +151,18 @@ export default function PurchaseRequestApprovalModal({ requestId }: { requestId:
               <textarea
                 placeholder="승인 메시지를 입력해주세요"
                 className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
+                value={resultMessage}
+                onChange={(e) => setResultMessage(e.target.value)}
               />
             </div>
           </div>
         </div>
 
         <div className="flex w-full items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:bg-white max-sm:p-6">
-          <Button variant="line" className="min-w-0 flex-1">
+          <Button variant="line" className="min-w-0 flex-1" onClick={onclose}>
             취소
           </Button>
-          <Button variant="filled" className="min-w-0 flex-1">
+          <Button variant="filled" className="min-w-0 flex-1" onClick={approveHandler}>
             승인하기
           </Button>
         </div>
