@@ -42,6 +42,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string;
     password: string;
   }) => {
+    if (!isAuthChecked) {
+      throw new Error('인증 확인 중입니다. 잠시 후 다시 시도해주세요.');
+    }
+
     const safeEmail = typeof email === 'string' ? email.trim() : '';
     const safePassword = typeof password === 'string' ? password : '';
 
@@ -59,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    if (!isAuthChecked) return;
     try {
       await logoutApi();
     } catch (error) {
@@ -69,23 +74,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const getUser = async () => {
-    try {
-      const user = await getUserApi();
-      setUser(user);
-    } catch {
-      setUser(null);
-      return null;
-    } finally {
-      setIsAuthChecked(true);
-    }
-  };
-
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
-      await getUser();
+      try {
+        const user = await getUserApi();
+        if (!cancelled) {
+          setUser(user);
+        }
+      } catch {
+        // 로그인 직후 늦게 도착한 실패가 세션을 덮어쓰지 않도록 함
+        if (!cancelled && !localStorage.getItem('accessToken')) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAuthChecked(true);
+        }
+      }
     };
+
     void checkAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

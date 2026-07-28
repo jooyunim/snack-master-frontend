@@ -3,5 +3,7 @@ export type User = {
   name: string;
   id: string;
   companyId: number;
-  role: string;
+  role: Role;
 };
+
+export type Role = 'USER' | 'ADMIN' | 'SUPER_ADMIN';

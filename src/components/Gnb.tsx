@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import logo from '@/assets/icons/logo.svg';
 import icLock from '@/assets/icons/ic_lock.svg';
 import icManager from '@/assets/icons/ic_manager.svg';
@@ -17,13 +17,13 @@ import {
   CATEGORIES,
   findCategory,
 } from '@/app/(private)/products/constants/categories';
-
-export type UserType = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+import { Role } from '@/features/auth/types/auth.types';
+import { useAuth } from '@/contexts/AuthContext';
 
 type NavItem = {
   label: string;
   href: string;
-  roles: UserType[];
+  roles: Role[];
   matchPaths: string[];
 };
 
@@ -69,14 +69,14 @@ const NAV_ITEMS: NavItem[] = [
 type GnbProps = {
   className?: string;
   /** 없으면 비로그인(guest) UI */
-  userType?: UserType | null;
+  userType?: Role | null;
   cartCount?: number;
   profileName?: string;
 };
 
 function isNavActive(pathname: string, item: NavItem) {
   return item.matchPaths.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`),
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 }
 
@@ -125,7 +125,7 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
   );
 }
 
-function AuthNav({ userType, pathname }: { userType: UserType; pathname: string }) {
+function AuthNav({ userType, pathname }: { userType: Role; pathname: string }) {
   const items = NAV_ITEMS.filter((item) => item.roles.includes(userType));
 
   return (
@@ -157,6 +157,10 @@ function AuthActions({
   profileName: string;
   onOpenMenu: () => void;
 }) {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const router = useRouter();
+  const { logout } = useAuth();
+
   return (
     <div className="flex h-11 shrink-0 items-center gap-[30px] max-lg:gap-10 max-sm:h-auto max-sm:gap-5">
       <div className="flex items-center gap-[30px] max-lg:gap-5">
@@ -187,9 +191,22 @@ function AuthActions({
 
         <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" aria-hidden />
 
-        <span className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:hidden">
+        <button
+          type="button"
+          disabled={isLoggingOut}
+          onClick={async () => {
+            setIsLoggingOut(true);
+            try {
+              await logout();
+              router.replace('/login');
+            } catch {
+              setIsLoggingOut(false);
+            }
+          }}
+          className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:hidden cursor-pointer"
+        >
           로그아웃
-        </span>
+        </button>
       </div>
 
       <button
@@ -254,7 +271,7 @@ function MobileCategoryDropdown() {
 export default function Gnb({
   className = '',
   userType = null,
-  cartCount = 0,
+  cartCount = 0, //장바구니 api 연동 후 수정
   profileName = '',
 }: GnbProps) {
   const pathname = usePathname();
@@ -292,7 +309,9 @@ export default function Gnb({
       </header>
 
       {isSideMenuOpen ? (
-        <div className={`fixed inset-0 z-40 ${isLoggedIn ? 'lg:hidden' : 'sm:hidden'}`}>
+        <div
+          className={`fixed inset-0 z-40 ${isLoggedIn ? 'lg:hidden' : 'sm:hidden'}`}
+        >
           <button
             type="button"
             aria-label="메뉴 닫기"
@@ -323,7 +342,12 @@ export default function Gnb({
                 onClick={() => setIsSideMenuOpen(false)}
               >
                 <span className="relative size-6 shrink-0 overflow-hidden">
-                  <Image src={icManager} alt="" fill className="object-contain" />
+                  <Image
+                    src={icManager}
+                    alt=""
+                    fill
+                    className="object-contain"
+                  />
                 </span>
                 기업 담당자 회원가입
               </Link>
@@ -334,14 +358,3 @@ export default function Gnb({
     </>
   );
 }
-
-// 1차: userType 없음 → 비로그인 (로그인 / 기업 담당자 회원가입)
-// 2차: userType
-//   USER         → 상품 리스트, 구매 요청 내역, 상품 등록 내역
-//   ADMIN        → USER + 구매 요청 관리, 구매 내역 확인
-//   SUPER_ADMIN  → ADMIN + 관리
-//
-// <Gnb />
-// <Gnb userType="USER" cartCount={4} profileName="김" className="sticky top-0 z-10" />
-// <Gnb userType="ADMIN" cartCount={4} profileName="김" className="sticky top-0 z-10" />
-// <Gnb userType="SUPER_ADMIN" cartCount={4} profileName="김" className="sticky top-0 z-10" />
