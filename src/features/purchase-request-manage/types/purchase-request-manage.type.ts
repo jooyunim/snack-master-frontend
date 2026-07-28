@@ -43,4 +43,9 @@ export type MessageResponse = {
     message: string
 }
 
+export type ModalState = {
+    requestId: number
+    action: 'approve' | 'reject'
+}
+
 

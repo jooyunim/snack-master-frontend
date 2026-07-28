@@ -8,14 +8,18 @@ import { useState } from 'react';
 
 
 
-export default function PurchaseRequestApprovalModal({ requestId, onclose }: { requestId: number, onclose: () => void }) {
+export default function PurchaseRequestModal({ requestId, onclose, mode }: { requestId: number, onclose: () => void, mode: 'approve' | 'reject' }) {
 
   const { data, isPending, isError } = useRequestDetail(requestId)
-  const { patchApproveMutation } = useRequestMutations()
+  const { patchApproveMutation, patchRejectMutation } = useRequestMutations()
   const [resultMessage, setResultMessage] = useState("")
 
-  const approveHandler = () => {
-    patchApproveMutation.mutate({ id: requestId, resultMessage: resultMessage }, {
+  const isApprove = mode === 'approve'
+
+  const mutation = isApprove ? patchApproveMutation : patchRejectMutation
+
+  const handleSubmit = () => {
+    mutation.mutate({ id: requestId, resultMessage }, {
       onSuccess: () => {
         onclose()
       }
@@ -41,7 +45,7 @@ export default function PurchaseRequestApprovalModal({ requestId, onclose }: { r
         id="purchase-request-approval-title"
         className="text-[18px] font-bold tracking-[-0.45px] text-gray-950 max-sm:px-2 max-sm:py-4"
       >
-        구매 요청 승인
+        {isApprove ? '구매 요청 승인' : '구매 요청 반려'}
       </h2>
 
       <div className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]">
@@ -146,10 +150,10 @@ export default function PurchaseRequestApprovalModal({ requestId, onclose }: { r
 
             <div className="flex w-full flex-col gap-3">
               <p className="text-[16px] font-bold tracking-[-0.4px] text-gray-950">
-                승인 메시지
+                {isApprove ? '승인' : '반려'}메시지
               </p>
               <textarea
-                placeholder="승인 메시지를 입력해주세요"
+                placeholder={isApprove ? '승인 메시지를 입력해주세요' : '반려 사유를 입력해주세요'}
                 className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
                 value={resultMessage}
                 onChange={(e) => setResultMessage(e.target.value)}
@@ -162,8 +166,8 @@ export default function PurchaseRequestApprovalModal({ requestId, onclose }: { r
           <Button variant="line" className="min-w-0 flex-1" onClick={onclose}>
             취소
           </Button>
-          <Button variant="filled" className="min-w-0 flex-1" onClick={approveHandler}>
-            승인하기
+          <Button variant="filled" className="min-w-0 flex-1" onClick={handleSubmit}>
+            {isApprove ? '승인하기' : '반려하기'}
           </Button>
         </div>
       </div>

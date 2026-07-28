@@ -3,16 +3,16 @@ import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
-import { sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
+import { ModalState, sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
-import PurchaseRequestApprovalModal from './components/PurchaseRequestApprovalModal';
+import PurchaseRequestModal from './components/PurchaseRequestModal';
 
 
 
 export default function PurchaseRequestManagePage() {
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent')
-  const [approveRequestId, setApproveRequestId] = useState<number | null>(null)
+  const [modalState, setModalState] = useState<ModalState | null>(null)
   const { data, isPending, isError } = useRequestList(sortBy)
 
   if (isPending) return <div>로딩 중...</div>
@@ -71,10 +71,10 @@ export default function PurchaseRequestManagePage() {
                     </span>
                   </div>
                   <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
-                    <Button variant="sub" className="w-20">
+                    <Button variant="sub" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'reject' })}>
                       반려
                     </Button>
-                    <Button variant="filled" size="sm" className="w-20" onClick={() => setApproveRequestId(request.id)}>
+                    <Button variant="filled" size="sm" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'approve' })}>
                       승인
                     </Button>
                   </div>
@@ -121,7 +121,7 @@ export default function PurchaseRequestManagePage() {
               </li>
             ))}
           </ul>
-          {approveRequestId && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"> <PurchaseRequestApprovalModal requestId={approveRequestId} onclose={() => setApproveRequestId(null)} /></div>}
+          {modalState && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"> <PurchaseRequestModal requestId={modalState.requestId} mode={modalState.action} onclose={() => setModalState(null)} /></div>}
           <Pagination />
         </div>
       </main>
