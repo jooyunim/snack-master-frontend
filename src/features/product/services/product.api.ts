@@ -7,6 +7,7 @@ import type {
   ListProductsParams,
   Product,
   ProductDetail,
+  ProductSort,
   UpdateProductInput,
 } from '../types/product.types';
 
@@ -30,8 +31,14 @@ export function getProducts(params: ListProductsParams = {}) {
   return apiFetch<CursorPage<Product>>(`/products${query}`);
 }
 
-export function getMyProducts(params: { cursor?: string; limit?: number } = {}) {
-  const query = buildQuery({ cursor: params.cursor, limit: params.limit });
+export function getMyProducts(
+  params: { sort?: ProductSort; cursor?: string; limit?: number } = {},
+) {
+  const query = buildQuery({
+    sort: params.sort,
+    cursor: params.cursor,
+    limit: params.limit,
+  });
   return apiFetch<CursorPage<Product>>(`/products/mine${query}`);
 }
 

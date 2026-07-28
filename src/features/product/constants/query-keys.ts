@@ -1,4 +1,4 @@
-import type { ListProductsParams } from '../types/product.types';
+import type { ListProductsParams, ProductSort } from '../types/product.types';
 
 export const productKeys = {
   all: ['products'] as const,
@@ -6,6 +6,7 @@ export const productKeys = {
   list: (params: Omit<ListProductsParams, 'cursor'>) =>
     [...productKeys.lists(), params] as const,
   myLists: () => [...productKeys.all, 'my', 'list'] as const,
+  myList: (sort: ProductSort) => [...productKeys.myLists(), { sort }] as const,
   details: () => [...productKeys.all, 'detail'] as const,
   detail: (id: number) => [...productKeys.details(), id] as const,
 };

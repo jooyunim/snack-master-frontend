@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import ProductModal from '@/app/(private)/products/components/ProductModal';
 import { useCategories } from '@/features/product/hooks/useCategories';
@@ -10,6 +11,7 @@ import { useProduct } from '@/features/product/hooks/useProduct';
 import { useProductMutations } from '@/features/product/hooks/useProductMutations';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import icChevronRight from '@/assets/icons/ic_chevron__right.svg';
+import iconX from '@/assets/icons/icon_X.svg';
 import icMenu from '@/assets/icons/ic_menu.svg';
 import icPlus from '@/assets/icons/ic_plus.svg';
 
@@ -89,13 +91,13 @@ export default function ProductDetailContent({
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const toggleSection = (key: AccordionKey) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   async function handleDelete() {
-    if (!window.confirm('이 상품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.')) return;
     await deleteMutation.mutateAsync(productId);
     router.push('/products');
   }
@@ -212,7 +214,7 @@ export default function ProductDetailContent({
                     type="button"
                     onClick={() => {
                       setIsMenuOpen(false);
-                      handleDelete();
+                      setIsDeleteConfirmOpen(true);
                     }}
                     className="flex h-[50px] w-full items-center py-2 pr-5 pl-4"
                   >
@@ -265,6 +267,21 @@ export default function ProductDetailContent({
       {isEditOpen ? (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
           <ProductModal product={product} onClose={() => setIsEditOpen(false)} />
+        </div>
+      ) : null}
+
+      {isDeleteConfirmOpen ? (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="상품 삭제"
+            content={'정말 이 상품을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.'}
+            cancelLabel="취소"
+            confirmLabel="삭제하기"
+            confirmDisabled={deleteMutation.isPending}
+            onCancel={() => setIsDeleteConfirmOpen(false)}
+            onConfirm={handleDelete}
+          />
         </div>
       ) : null}
     </section>

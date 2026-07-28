@@ -1,11 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Button from '@/components/Button';
 import SortDropdown from '@/components/SortDropdown';
 import { useCategories } from '@/features/product/hooks/useCategories';
 import { useMyProducts } from '@/features/product/hooks/useMyProducts';
-import type { Product } from '@/features/product/types/product.types';
+import type { Product, ProductSort } from '@/features/product/types/product.types';
+
+const SORT_OPTIONS: { label: string; value: ProductSort }[] = [
+  { label: '최신순', value: 'recent' },
+  { label: '판매순', value: 'sales' },
+  { label: '낮은 가격순', value: 'priceAsc' },
+  { label: '높은 가격순', value: 'priceDesc' },
+];
 
 function formatDate(iso: string) {
   const date = new Date(iso);
@@ -20,7 +27,9 @@ function formatPrice(price: number) {
 
 export default function ProductRegisterPage() {
   const { data: categories } = useCategories();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useMyProducts();
+  const [sort, setSort] = useState<ProductSort>('recent');
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useMyProducts(sort);
 
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -43,7 +52,11 @@ export default function ProductRegisterPage() {
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-gray-950">
             상품 등록 내역
           </h1>
-          <SortDropdown />
+          <SortDropdown
+            options={SORT_OPTIONS}
+            value={sort}
+            onChange={(value) => setSort(value as ProductSort)}
+          />
         </div>
 
         {products.length === 0 ? (

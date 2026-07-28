@@ -6,6 +6,7 @@ import ProductListHeader from '@/app/(private)/products/components/ProductListHe
 import ProductModal from '@/app/(private)/products/components/ProductModal';
 import { useCategories } from '@/features/product/hooks/useCategories';
 import { useProducts } from '@/features/product/hooks/useProducts';
+import type { ProductSort } from '@/features/product/types/product.types';
 
 type ProductListContentProps = {
   categorySlug?: string;
@@ -17,6 +18,7 @@ export default function ProductListContent({
   subSlug,
 }: ProductListContentProps) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [sort, setSort] = useState<ProductSort>('recent');
   const { data: categories } = useCategories();
 
   const category = categorySlug
@@ -31,6 +33,7 @@ export default function ProductListContent({
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts({
     categoryId,
+    sort,
     limit: 12, // 한 번에 가져올 상품 수
   });
 
@@ -44,6 +47,8 @@ export default function ProductListContent({
       <ProductListHeader
         categoryLabel={category?.name}
         subLabel={sub?.name}
+        sort={sort}
+        onSortChange={setSort}
         onRegisterClick={() => setIsRegisterOpen(true)}
       />
       <ProductGrid

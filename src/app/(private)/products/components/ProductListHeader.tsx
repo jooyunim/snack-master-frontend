@@ -1,18 +1,30 @@
 import Image from 'next/image';
 import Button from '@/components/Button';
 import SortDropdown from '@/components/SortDropdown';
+import type { ProductSort } from '@/features/product/types/product.types';
 import icChevronRight from '@/assets/icons/ic_chevron__right.svg';
 import icPlus from '@/assets/icons/ic_plus.svg';
+
+const SORT_OPTIONS: { label: string; value: ProductSort }[] = [
+  { label: '최신순', value: 'recent' },
+  { label: '판매순', value: 'sales' },
+  { label: '낮은 가격순', value: 'priceAsc' },
+  { label: '높은 가격순', value: 'priceDesc' },
+];
 
 type ProductListHeaderProps = {
   categoryLabel?: string;
   subLabel?: string;
+  sort: ProductSort;
+  onSortChange: (sort: ProductSort) => void;
   onRegisterClick: () => void;
 };
 
 export default function ProductListHeader({
   categoryLabel,
   subLabel,
+  sort,
+  onSortChange,
   onRegisterClick,
 }: ProductListHeaderProps) {
   return (
@@ -54,7 +66,11 @@ export default function ProductListHeader({
       </nav>
 
       <div className="flex items-center gap-[30px] max-sm:justify-between max-sm:border-b max-sm:border-solid max-sm:border-gray-100 max-sm:pb-5">
-        <SortDropdown />
+        <SortDropdown
+          options={SORT_OPTIONS}
+          value={sort}
+          onChange={(value) => onSortChange(value as ProductSort)}
+        />
         <Button
           type="button"
           onClick={onRegisterClick}

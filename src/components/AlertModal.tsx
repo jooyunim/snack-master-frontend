@@ -8,6 +8,10 @@ type AlertModalProps = {
   cancelLabel?: string;
   confirmLabel?: string;
   className?: string;
+  // 옵셔널 — 안 넘기면 기존과 동일하게 버튼이 아무 동작 안 함 (하위호환)
+  onCancel?: () => void;
+  onConfirm?: () => void;
+  confirmDisabled?: boolean;
 };
 
 const DEFAULT_TITLE = '승인 완료';
@@ -23,6 +27,9 @@ export default function AlertModal({
   cancelLabel = DEFAULT_CANCEL_LABEL,
   confirmLabel = DEFAULT_CONFIRM_LABEL,
   className = '',
+  onCancel,
+  onConfirm,
+  confirmDisabled = false,
 }: AlertModalProps) {
   return (
     <div
@@ -53,13 +60,18 @@ export default function AlertModal({
 
       <div className="flex w-full items-center gap-5 max-sm:gap-2.5">
         <Button
+          type="button"
           variant="line"
+          onClick={onCancel}
           className="min-w-0 flex-1 max-sm:h-[50px] max-sm:text-[14px] max-sm:tracking-[-0.35px]"
         >
           {cancelLabel}
         </Button>
         <Button
+          type="button"
           variant="filled"
+          onClick={onConfirm}
+          disabled={confirmDisabled}
           className="min-w-0 flex-1 max-sm:h-[50px] max-sm:text-[14px] max-sm:tracking-[-0.35px]"
         >
           {confirmLabel}
