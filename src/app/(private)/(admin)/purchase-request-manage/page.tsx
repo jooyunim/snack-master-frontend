@@ -5,13 +5,14 @@ import SortDropdown from '@/components/SortDropdown';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
 import { sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
+import PurchaseRequestApprovalModal from './components/PurchaseRequestApprovalModal';
 
 
 
 export default function PurchaseRequestManagePage() {
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent')
-
+  const [approveRequestId, setApproveRequestId] = useState<number | null>(null)
   const { data, isPending, isError } = useRequestList(sortBy)
 
   if (isPending) return <div>로딩 중...</div>
@@ -113,14 +114,14 @@ export default function PurchaseRequestManagePage() {
                   <Button variant="sub" className="min-w-0 flex-1">
                     반려
                   </Button>
-                  <Button variant="filled" size="sm" className="min-w-0 flex-1">
+                  <Button variant="filled" size="sm" className="min-w-0 flex-1" onClick={() => setApproveRequestId(request.id)}>
                     승인
                   </Button>
                 </div>
               </li>
             ))}
           </ul>
-
+          {approveRequestId && <PurchaseRequestApprovalModal requestId={approveRequestId} />}
           <Pagination />
         </div>
       </main>

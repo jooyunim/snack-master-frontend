@@ -1,35 +1,23 @@
+"use client"
 import Image from 'next/image';
 import Button from '@/components/Button';
+import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
+import { request } from 'http';
 
-type ApprovalItem = {
-  id: number;
-  name: string;
-  unitPrice: string;
-  quantity: string;
-  totalPrice: string;
-  imageSrc: string;
-};
 
-const DUMMY_ITEMS: readonly ApprovalItem[] = [
-  {
-    id: 1,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-  {
-    id: 2,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-];
 
-export default function PurchaseRequestApprovalModal() {
+
+export default function PurchaseRequestApprovalModal({ requestId }: { requestId: number }) {
+
+  const { data, isPending, isError } = useRequestDetail(requestId)
+
+  if (isPending) return (
+    <div>로딩중...</div>
+  )
+
+  if (isError) return (
+    <div>에러...</div>
+  )
   return (
     <div
       role="dialog"
@@ -54,14 +42,14 @@ export default function PurchaseRequestApprovalModal() {
                 </span>
               </div>
               <p className="w-16 text-[16px] font-bold tracking-[-0.4px] text-gray-950">
-                김스낵
+                {data?.requesterName}
               </p>
             </div>
 
             <div className="flex items-center gap-1.5 tracking-[-0.4px] text-gray-950">
               <p className="text-[16px] font-bold">요청 품목</p>
               <p className="text-[16px] max-sm:text-[14px] max-sm:tracking-[-0.35px]">
-                총 2개
+                총 {data?.items.length}개
               </p>
             </div>
           </div>
@@ -69,7 +57,7 @@ export default function PurchaseRequestApprovalModal() {
           <div className="flex w-full flex-col gap-8">
             <div className="flex w-full flex-col gap-5 rounded-[2px] bg-white px-5 pb-[30px] pt-5 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
               <ul className="flex w-full flex-col">
-                {DUMMY_ITEMS.map((item) => (
+                {data?.items.map((item) => (
                   <li
                     key={item.id}
                     className="flex w-full items-center justify-between border-b border-solid border-gray-100 py-5 pr-2"
@@ -78,8 +66,8 @@ export default function PurchaseRequestApprovalModal() {
                       <div className="relative flex size-10 shrink-0 items-center justify-center bg-white shadow-[4px_4px_10px_rgba(250,247,243,0.25)]">
                         <div className="relative h-[35px] w-5">
                           <Image
-                            src={item.imageSrc}
-                            alt={item.name}
+                            src={item.imageUrl}
+                            alt={item.productName}
                             fill
                             className="object-contain"
                           />
@@ -87,18 +75,18 @@ export default function PurchaseRequestApprovalModal() {
                       </div>
                       <div className="flex flex-col gap-2.5 text-[16px] tracking-[-0.4px] text-gray-900 max-sm:gap-1 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
                         <p className="font-medium max-sm:font-normal">
-                          {item.name}
+                          {item.productName}
                         </p>
-                        <p className="font-bold">{item.unitPrice}</p>
+                        <p className="font-bold">{item.price}</p>
                       </div>
                     </div>
 
                     <p className="text-[16px] font-bold text-gray-500 max-sm:hidden">
-                      {item.quantity}
+                      수량 {item.quantity} 개
                     </p>
 
                     <p className="text-center text-[20px] font-extrabold leading-8 text-gray-700 max-sm:hidden">
-                      {item.totalPrice}
+                      {item.lineTotal}
                     </p>
 
                     <div className="hidden flex-col items-start justify-center gap-1 max-sm:flex">
@@ -106,7 +94,7 @@ export default function PurchaseRequestApprovalModal() {
                         {item.quantity}
                       </p>
                       <p className="text-center text-[16px] font-bold tracking-[-0.4px] text-gray-700">
-                        {item.totalPrice}
+                        {item.lineTotal}
                       </p>
                     </div>
                   </li>
@@ -116,18 +104,18 @@ export default function PurchaseRequestApprovalModal() {
               <div className="flex w-full flex-col gap-2.5">
                 <div className="flex w-full items-center justify-between px-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700">
                   <p>주문금액</p>
-                  <p>52,000원</p>
+                  <p>{data.orderAmount}</p>
                 </div>
                 <div className="flex w-full items-center justify-between px-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700">
                   <p>배송비</p>
-                  <p>3,000원</p>
+                  <p>{data.shippingFee}</p>
                 </div>
                 <div className="flex w-full items-center justify-between px-2 text-gray-950">
                   <p className="text-[18px] font-bold tracking-[-0.45px] max-sm:text-[16px] max-sm:tracking-[-0.4px]">
                     총 주문금액
                   </p>
                   <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                    55,000원
+                    {data.requestAmount}
                   </p>
                 </div>
               </div>
@@ -140,7 +128,7 @@ export default function PurchaseRequestApprovalModal() {
                 남은 예산 금액
               </p>
               <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                60,000원
+                {data.afterBudget}
               </p>
             </div>
 

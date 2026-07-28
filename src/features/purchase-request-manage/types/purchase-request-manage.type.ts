@@ -18,6 +18,7 @@ export type PurchaseRequestItem = {
     price: number;
     quantity: number;
     imageUrl: string | null;
+    lineTotal: number
 }
 
 export type purchaseRequestManageDetail = {
@@ -25,6 +26,8 @@ export type purchaseRequestManageDetail = {
     remained: number;
     afterBudget: number;
     isOverBudget: boolean;
+    orderAmount: number,
+    shippingFee: number,
     items: PurchaseRequestItem[]
     requesterName: PurchaseRequestRequester,
     requestMessage: string,
