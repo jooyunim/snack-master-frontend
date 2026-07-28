@@ -26,12 +26,14 @@ export default function WishlistGrid({ products }: WishlistGridProps) {
           {products.map((product) => (
             <ProductCard
               key={product.id}
-              id={product.id}
-              name={product.name}
-              price={product.price}
-              purchaseCount={product.purchaseCount}
-              categorySlug={product.categorySlug}
-              subSlug={product.subSlug}
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                totalSold: product.purchaseCount,
+                // 찜 목록이 아직 목업 데이터라 실제 이미지가 없음 — 실 API 연동 시 교체 필요
+                imageUrl: '',
+              }}
               liked
             />
           ))}
