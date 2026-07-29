@@ -1,14 +1,25 @@
 import Image from 'next/image';
 import Button from '@/components/Button';
 import ProductCard from '@/app/(private)/products/components/ProductCard';
-import type { Product } from '@/app/(private)/products/constants/products';
+import { useWishlistMutations } from '@/features/wishlist/hooks/useWishlistMutations';
+import type { Product } from '@/features/product/types/product.types';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 
 type ProductGridProps = {
   products: Product[];
+  hasNext: boolean;
+  isFetchingNext: boolean;
+  onLoadMore: () => void;
 };
 
-export default function ProductGrid({ products }: ProductGridProps) {
+export default function ProductGrid({
+  products,
+  hasNext,
+  isFetchingNext,
+  onLoadMore,
+}: ProductGridProps) {
+  const { toggleMutation } = useWishlistMutations();
+
   if (products.length === 0) {
     return (
       <div className="flex w-full items-center justify-center py-20">
@@ -26,26 +37,33 @@ export default function ProductGrid({ products }: ProductGridProps) {
           {products.map((product) => (
             <ProductCard
               key={product.id}
-              id={product.id}
-              name={product.name}
-              price={product.price}
-              purchaseCount={product.purchaseCount}
-              categorySlug={product.categorySlug}
-              subSlug={product.subSlug}
+              product={product}
+              liked={product.isWished}
+              onLikeClick={() =>
+                toggleMutation.mutate({
+                  productId: product.id,
+                  isWished: product.isWished,
+                })
+              }
             />
           ))}
         </div>
       </div>
 
-      <Button
-        variant="line"
-        className="h-16 gap-2 text-[14px] font-medium tracking-[-0.35px] text-gray-800 max-sm:h-11"
-      >
-        더보기
-        <span className="relative size-5 shrink-0 overflow-hidden">
-          <Image src={icChevronDown} alt="" fill className="object-contain" />
-        </span>
-      </Button>
+      {hasNext ? (
+        <Button
+          type="button"
+          variant="line"
+          disabled={isFetchingNext}
+          onClick={onLoadMore}
+          className="h-16 gap-2 text-[14px] font-medium tracking-[-0.35px] text-gray-800 max-sm:h-11"
+        >
+          {isFetchingNext ? '불러오는 중...' : '더보기'}
+          <span className="relative size-5 shrink-0 overflow-hidden">
+            <Image src={icChevronDown} alt="" fill className="object-contain" />
+          </span>
+        </Button>
+      ) : null}
     </div>
   );
 }
