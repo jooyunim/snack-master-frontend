@@ -1,72 +1,23 @@
+"use client"
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
-import type { PurchaseRequest } from '@/features/purchase-request/types/purchase-request.types';
+import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
+import { ModalState, sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
+import { useState } from 'react';
+import PurchaseRequestModal from './components/PurchaseRequestModal';
 
-const REQUESTS: PurchaseRequest[] = [
-  {
-    id: 1,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-  {
-    id: 2,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-  {
-    id: 3,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-  {
-    id: 4,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-  {
-    id: 5,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-  {
-    id: 6,
-    date: '2024. 07. 04',
-    product: '코카콜라 제로 외 1건',
-    productName: '코카콜라 제로',
-    amount: '1,900',
-    status: 'pending',
-    requesterName: '김스낵',
-    requesterInitials: 'JN',
-  },
-];
+
 
 export default function PurchaseRequestManagePage() {
+
+  const [sortBy, setsortBy] = useState<sortByOption>('recent')
+  const [modalState, setModalState] = useState<ModalState | null>(null)
+  const { data, isPending, isError } = useRequestList(sortBy)
+
+  if (isPending) return <div>로딩 중...</div>
+  if (isError) return <div>에러남</div>
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-10 px-6 pb-20 pt-20 max-lg:gap-5 max-lg:pt-[60px] max-sm:gap-3 max-sm:pt-10">
@@ -98,34 +49,32 @@ export default function PurchaseRequestManagePage() {
               </span>
             </div>
 
+
             <ul className="flex w-full min-w-[1100px] flex-col max-lg:min-w-[696px]">
-              {REQUESTS.map((request) => (
+              {data.map((request) => (
                 <li
                   key={request.id}
                   className="flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
                 >
                   <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.date}
+                    {request.requestedAt}
                   </span>
                   <span className="w-[360px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
-                    {request.product}
+                    {request.itemSummary}
                   </span>
                   <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.amount}
+                    {request.totalAmount}
                   </span>
                   <div className="flex w-[134px] shrink-0 items-center gap-3 max-lg:w-[108px]">
-                    <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 text-[10px] tracking-[-0.25px] text-black">
-                      {request.requesterInitials}
-                    </span>
                     <span className="w-[90px] text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-16">
                       {request.requesterName}
                     </span>
                   </div>
                   <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
-                    <Button variant="sub" className="w-20">
+                    <Button variant="sub" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'reject' })}>
                       반려
                     </Button>
-                    <Button variant="filled" size="sm" className="w-20">
+                    <Button variant="filled" size="sm" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'approve' })}>
                       승인
                     </Button>
                   </div>
@@ -136,7 +85,7 @@ export default function PurchaseRequestManagePage() {
 
           {/* Mobile card list */}
           <ul className="hidden w-full flex-col max-sm:flex">
-            {REQUESTS.map((request) => (
+            {data.map((request) => (
               <li
                 key={request.id}
                 className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
@@ -144,12 +93,9 @@ export default function PurchaseRequestManagePage() {
                 <div className="flex w-full flex-col gap-2.5">
                   <div className="flex w-full items-center justify-between pr-1">
                     <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
-                      {request.date}
+                      {request.requestedAt}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 text-[10px] tracking-[-0.25px] text-black">
-                        {request.requesterInitials}
-                      </span>
                       <span className="text-[14px] tracking-[-0.35px] text-gray-950">
                         {request.requesterName}
                       </span>
@@ -157,10 +103,10 @@ export default function PurchaseRequestManagePage() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <p className="text-[14px] tracking-[-0.35px] text-gray-950">
-                      {request.product}
+                      {request.itemSummary}
                     </p>
                     <p className="text-[20px] font-extrabold tracking-[-0.5px] text-gray-950">
-                      {request.amount}원
+                      {request.totalAmount}원
                     </p>
                   </div>
                 </div>
@@ -175,7 +121,7 @@ export default function PurchaseRequestManagePage() {
               </li>
             ))}
           </ul>
-
+          {modalState && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"> <PurchaseRequestModal requestId={modalState.requestId} mode={modalState.action} onclose={() => setModalState(null)} /></div>}
           <Pagination />
         </div>
       </main>
