@@ -6,7 +6,7 @@ import { purchaseRequestManageKeys } from '../constants/query-keys';
 
 export function useRequestList(sortBy: sortByOption) {
     return useQuery({
-        queryKey: purchaseRequestManageKeys.list(),
+        queryKey: purchaseRequestManageKeys.list(sortBy),
         queryFn: () => getPurchaseRequestManageList(sortBy),
     });
 }

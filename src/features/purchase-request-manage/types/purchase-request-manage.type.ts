@@ -3,17 +3,15 @@ export type sortByOption = 'price_asc' | 'price_desc' | 'recent';
 
 export type purchaseRequestManage = {
     id: number;
-    requestedAt: Date;
+    requestedAt: string;
     totalAmount: number;
     requesterName: string;
     itemSummary: string;
 };
 
-export type PurchaseRequestRequester = {
-    name: string;
-}
 
 export type PurchaseRequestItem = {
+    id: number;
     productName: string;
     price: number;
     quantity: number;
@@ -29,9 +27,9 @@ export type purchaseRequestManageDetail = {
     orderAmount: number,
     shippingFee: number,
     items: PurchaseRequestItem[]
-    requesterName: PurchaseRequestRequester,
+    requesterName: string,
     requestMessage: string,
-    requestedAt: Date,
+    requestedAt: string,
     requestAmount: number,
     id: number,
     status: string

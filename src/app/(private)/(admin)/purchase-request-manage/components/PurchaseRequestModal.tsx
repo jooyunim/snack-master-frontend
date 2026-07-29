@@ -21,7 +21,11 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   const handleSubmit = () => {
     mutation.mutate({ id: requestId, resultMessage }, {
       onSuccess: () => {
+        alert('성공했습니다.')
         onclose()
+      },
+      onError: () => {
+        alert('에러가 발생했습니다.');
       }
     }
     )
@@ -166,7 +170,7 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
           <Button variant="line" className="min-w-0 flex-1" onClick={onclose}>
             취소
           </Button>
-          <Button variant="filled" className="min-w-0 flex-1" onClick={handleSubmit}>
+          <Button variant="filled" className="min-w-0 flex-1" onClick={handleSubmit} disabled={mutation.isPending}>
             {isApprove ? '승인하기' : '반려하기'}
           </Button>
         </div>

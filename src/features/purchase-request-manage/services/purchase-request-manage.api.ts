@@ -16,6 +16,9 @@ export async function getPurchaseRequestManageList(
     },
 
     );
+    if (!response.ok) {
+        throw new Error(`구매 요청 목록 조회 실패: ${response.status}`);
+    }
     return response.json();
 }
 
@@ -28,6 +31,9 @@ export async function getPurchaseRequestManageDetail(id: number): Promise<purcha
             Authorization: `Bearer ${token}`
         }, credentials: 'include'
     });
+    if (!response.ok) {
+        throw new Error(`구매 요청 상세 조회 실패: ${response.status}`);
+    }
     return response.json();
 }
 
@@ -42,6 +48,9 @@ async function patchStatus(id: number, resultMessage: string, action: Action): P
         }, credentials: 'include',
         cache: 'no-store'
     });
+    if (!response.ok) {
+        throw new Error(`구매 요청 처리 실패: ${response.status}`);
+    }
     return response.json();
 }
 
