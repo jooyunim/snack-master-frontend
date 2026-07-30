@@ -5,8 +5,8 @@ import emptyIcon from '@/assets/icons/Frame 2610897.svg';
 type EmptyStateProps = {
   title: string;
   description: string;
-  buttonLabel?: string;
-  onButtonClick?: () => void;
+  buttonLabel: string;
+  onButtonClick: () => void;
 };
 
 export default function EmptyState({
