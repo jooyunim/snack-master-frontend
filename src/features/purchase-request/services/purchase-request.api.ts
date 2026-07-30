@@ -1,30 +1,45 @@
-// BE 연동 시 참고용 fetch 호출 예시
+import { apiFetch } from '@/lib/api';
+import type {
+  CancelPurchaseRequestResponse,
+  MyPurchaseRequestDetailResponse,
+  MyPurchaseRequestListResponse,
+} from '../types/purchase-request.types';
 
-import type { PurchaseRequest } from '../types/purchase-request.types';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
-/** 내가 요청한 구매요청 목록 (USER+) */
-export async function getMyPurchaseRequests(): Promise<PurchaseRequest[]> {
-  const response = await fetch(`${API_BASE}/purchase-requests/me`, {
-    cache: 'no-store',
+export async function getMyPurchaseRequests(
+  page = 1,
+  pageSize = 10
+): Promise<MyPurchaseRequestListResponse['data']> {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
   });
-  return response.json();
+
+  return apiFetch<MyPurchaseRequestListResponse['data']>(
+    `/purchase-requests/mine?${params.toString()}`,
+    {
+      cache: 'no-store',
+    }
+  );
 }
 
-/** 전체 구매요청 목록 (ADMIN+) */
-export async function getAllPurchaseRequests(): Promise<PurchaseRequest[]> {
-  const response = await fetch(`${API_BASE}/purchase-requests`, {
-    cache: 'no-store',
-  });
-  return response.json();
+export async function getMyPurchaseRequest(
+  id: number
+): Promise<MyPurchaseRequestDetailResponse['data']> {
+  return apiFetch<MyPurchaseRequestDetailResponse['data']>(
+    `/purchase-requests/mine/${id}`,
+    {
+      cache: 'no-store',
+    }
+  );
 }
 
-export async function getPurchaseRequestById(
-  id: number,
-): Promise<PurchaseRequest> {
-  const response = await fetch(`${API_BASE}/purchase-requests/${id}`, {
-    cache: 'no-store',
-  });
-  return response.json();
+export async function cancelMyPurchaseRequest(
+  id: number
+): Promise<CancelPurchaseRequestResponse['data']> {
+  return apiFetch<CancelPurchaseRequestResponse['data']>(
+    `/purchase-requests/${id}/cancel`,
+    {
+      method: 'POST',
+    }
+  );
 }
