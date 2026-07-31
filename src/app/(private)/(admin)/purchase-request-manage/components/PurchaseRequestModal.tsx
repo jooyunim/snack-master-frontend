@@ -119,7 +119,7 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                       </p>
 
                       <p className="text-center text-[20px] font-extrabold leading-8 text-gray-700 max-sm:hidden">
-                        {item.lineTotal.toLocaleString()}
+                        {item.totalPrice.toLocaleString()}
                       </p>
 
                       <div className="hidden flex-col items-start justify-center gap-1 max-sm:flex">
@@ -127,7 +127,7 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                           {item.quantity}
                         </p>
                         <p className="text-center text-[16px] font-bold tracking-[-0.4px] text-gray-700">
-                          {item.lineTotal.toLocaleString()}
+                          {item.totalPrice.toLocaleString()}
                         </p>
                       </div>
                     </li>
