@@ -9,13 +9,15 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  loginSchema,
+  type LoginFormValues,
+} from '@/features/auth/schemas/auth';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const { login, isAuthChecked } = useAuth();
 
@@ -27,29 +29,27 @@ const LoginPage = () => {
       router.push('/products');
     },
     onError: (error) => {
-      const message = error.message;
-      setLoginError(null);
-      setEmailError(null);
-      setPasswordError(null);
-
-      if (message.includes('이메일')) {
-        setEmailError(message);
-      } else if (message.includes('비밀번호')) {
-        setPasswordError(message);
-      } else {
-        setLoginError(message);
-      }
+      setLoginError(error.message);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (mutate.isPending) return;
+  //useForm
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
+  const onValid = (data: LoginFormValues) => {
+    if (mutate.isPending) return;
     setLoginError(null);
-    setEmailError(null);
-    setPasswordError(null);
-    mutate.mutate({ email, password });
+    mutate.mutate(data);
   };
 
   return (
@@ -72,47 +72,36 @@ const LoginPage = () => {
             </h1>
 
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit(onValid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <Input
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setLoginError(null);
-                      setEmailError(null);
-                      setPasswordError(null);
-                    }}
+                    {...register('email')}
                     type="email"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
                   />
-                  {emailError ? (
+                  {errors.email && (
                     <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                      {emailError}
+                      {errors.email.message}
                     </p>
-                  ) : null}
+                  )}
+
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setLoginError(null);
-                        setEmailError(null);
-                        setPasswordError(null);
-                      }}
+                      {...register('password')}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="current-password"
                       showPasswordToggle
                     />
-                    {passwordError ? (
+                    {errors.password && (
                       <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                        {passwordError}
+                        {errors.password.message}
                       </p>
-                    ) : null}
+                    )}
                   </div>
                 </div>
                 {loginError ? (
