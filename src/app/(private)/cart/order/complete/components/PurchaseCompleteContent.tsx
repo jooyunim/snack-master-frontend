@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Button from '@/components/Button';
 import RequestItemsSection, {
   type RequestItem,
-} from '../../../components/RequestItemsSection';
+} from '../../../../../../components/RequestItemsSection';
 
 const COMPLETE_ITEMS: readonly RequestItem[] = [
   {
