@@ -6,6 +6,7 @@ import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequ
 import { ModalState, sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
+import { useRouter } from 'next/navigation';
 
 
 export default function PurchaseRequestManagePage() {
@@ -20,6 +21,7 @@ export default function PurchaseRequestManagePage() {
   const [sortBy, setsortBy] = useState<sortByOption>('recent')
   const [modalState, setModalState] = useState<ModalState | null>(null)
   const { data, isPending, isError } = useRequestList(sortBy)
+  const router = useRouter()
 
 
   if (isPending) return <div>로딩 중...</div>
@@ -63,6 +65,7 @@ export default function PurchaseRequestManagePage() {
                 <li
                   key={request.id}
                   className="flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
+                  onClick={() => router.push(`/purchase-request-manage/${request.id}`)}
                 >
                   <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
                     {request.requestedAt}
@@ -78,7 +81,8 @@ export default function PurchaseRequestManagePage() {
                       {request.requesterName}
                     </span>
                   </div>
-                  <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
+                  <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]"
+                    onClick={(e) => e.stopPropagation()}>
                     <Button variant="sub" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'reject' })}>
                       반려
                     </Button>

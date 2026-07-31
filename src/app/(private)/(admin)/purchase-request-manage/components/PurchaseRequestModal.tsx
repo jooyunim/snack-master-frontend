@@ -4,8 +4,8 @@ import Button from '@/components/Button';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
 import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
 import { useState } from 'react';
-import IconX2 from '@/assets/icons/icon_X2.svg';
-import IconWarning from '@/assets/icons/ic_!.svg';
+import Toast from '@/components/Toast';
+
 
 
 
@@ -18,7 +18,8 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
 
   const isApprove = mode === 'approve'
   const isApproveBlock = isApprove && data?.isOverBudget
-  const isShowAlert = isApprove && showAlert
+  const isShowAlert = isApproveBlock && showAlert
+
 
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation
 
@@ -44,15 +45,11 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   )
   return (
     <>{isShowAlert && (
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] flex w-[1152px] h-20 items-center justify-between rounded-[4px] bg-black/80 px-[60px] py-10 pl-[50px] shadow-[0_10px_8px_0_rgba(0,0,0,0.10)] backdrop-blur-[15px]">
-        <div className="flex items-center gap-2 text-white">
-          <span><Image src={IconWarning} width={20} height={20} alt="alert"></Image></span>
-          <span>예산이 부족합니다. 수량을 줄이거나 항목을 제거해주세요.</span>
-        </div>
-        <div className="flex items-center gap-4 text-white">
-          <span>남은 예산 {data.remained.toLocaleString()}원</span>
-          <Image src={IconX2} width={24} height={24} alt="close" onClick={() => setShowAlert(false)} />
-        </div>
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] w-[1152px]">
+        <Toast
+          onClose={() => setShowAlert(false)}
+          remainingBudget={data.remained.toLocaleString()}
+        />
       </div>
     )}
       <div
