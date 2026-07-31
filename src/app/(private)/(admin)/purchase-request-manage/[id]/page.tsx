@@ -5,11 +5,13 @@ import InfoSection from '@/components/InfoSection';
 
 import RequestItemsSection from '@/components/RequestItemsSection';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
+import { use } from 'react';
 
 
 
-export default function PurchaseRequestManageDetailPage({ params }: { params: { id: string } }) {
-  const requestId = Number(params.id)
+export default function PurchaseRequestManageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const requestId = Number(id)
   const { data, isPending, isError } = useRequestDetail(requestId)
 
   if (isPending) return (
