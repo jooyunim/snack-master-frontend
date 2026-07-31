@@ -1,8 +1,8 @@
 import Button from '@/components/Button';
 import RequestItemsSection, {
   type RequestItem,
-} from '@/app/(private)/cart/components/RequestItemsSection';
-import InfoSection from '@/app/(private)/purchase-request/[id]/components/InfoSection';
+} from '@/components/RequestItemsSection';
+import InfoSection from '@/components/InfoSection';
 
 const DETAIL_ITEMS: readonly RequestItem[] = [
   {

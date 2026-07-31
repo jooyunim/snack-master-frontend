@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Button from '@/components/Button';
 import CartStepIndicator from '../components/CartStepIndicator';
-import RequestItemsSection from '../components/RequestItemsSection';
+import RequestItemsSection from '../../../../components/RequestItemsSection';
 import RequestMessage from '../components/RequestMessage';
 
 const ORDER_ITEMS = [
