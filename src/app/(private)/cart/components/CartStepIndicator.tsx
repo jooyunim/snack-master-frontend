@@ -14,21 +14,25 @@ const FLOW_STEPS: Record<
   CartFlow,
   readonly { step: CartStep; label: string }[]
 > = {
+  // 구매: 1.Shopping Cart → 2.purchase → 3.purchase confirmed
   purchase: [
-    { step: 1, label: '1 Shopping Cart' },
-    { step: 2, label: '2 Order Confirmed' },
+    { step: 1, label: '1. Shopping Cart' },
+    { step: 2, label: '2. Purchase' },
+    { step: 3, label: '3. Purchase Confirmed' },
   ],
+  // 구매요청: 1.Shopping Cart → 2.Order → 3.Order Confirmed
   request: [
-    { step: 1, label: '1 Shopping Cart' },
-    { step: 2, label: '2 Order' },
-    { step: 3, label: '3 Order Confirmed' },
+    { step: 1, label: '1. Shopping Cart' },
+    { step: 2, label: '2. Order' },
+    { step: 3, label: '3. Order Confirmed' },
   ],
 };
 
 export default function CartStepIndicator({
   flow = 'request',
-  currentStep,
+  currentStep = 1,
 }: CartStepIndicatorProps) {
+  // flow에 해당하는 단계 목록만 렌더
   const steps = FLOW_STEPS[flow];
 
   return (
