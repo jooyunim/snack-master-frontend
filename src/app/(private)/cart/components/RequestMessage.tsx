@@ -1,11 +1,13 @@
 type RequestMessageProps = {
   value?: string;
+  onChange?: (value: string) => void;
   placeholder?: string;
   readOnly?: boolean;
 };
 
 export default function RequestMessage({
   value,
+  onChange,
   placeholder = '메시지를 입력해주세요',
   readOnly = false,
 }: RequestMessageProps) {
@@ -21,7 +23,8 @@ export default function RequestMessage({
       ) : (
         <textarea
           placeholder={placeholder}
-          defaultValue={value}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
           className="h-[165px] w-full resize-none overflow-hidden rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-500 max-sm:p-4"
         />
       )}

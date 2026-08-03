@@ -1,29 +1,26 @@
+"use client"
 import Button from '@/components/Button';
-import RequestItemsSection, {
-  type RequestItem,
-} from '@/app/(private)/cart/components/RequestItemsSection';
-import InfoSection from '@/app/(private)/purchase-request/[id]/components/InfoSection';
+import InfoSection from '@/components/InfoSection';
 
-const DETAIL_ITEMS: readonly RequestItem[] = [
-  {
-    id: 1,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-  {
-    id: 2,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-];
 
-export default function PurchaseRequestManageDetailPage() {
+import RequestItemsSection from '@/components/RequestItemsSection';
+import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
+import { use } from 'react';
+
+
+
+export default function PurchaseRequestManageDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const requestId = Number(id)
+  const { data, isPending, isError } = useRequestDetail(requestId)
+
+  if (isPending) return (
+    <div>로딩중...</div>
+  )
+
+  if (isError) return (
+    <div>에러...</div>
+  )
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px] max-sm:pb-[136px]">
@@ -32,12 +29,12 @@ export default function PurchaseRequestManageDetailPage() {
         </h1>
 
         <RequestItemsSection
-          itemCount={2}
-          items={DETAIL_ITEMS}
-          orderAmount="52,000원"
-          shippingFee="3,000원"
-          totalAmount="55,000원"
-          showChevron
+          itemCount={data.items.length}
+          items={data.items}
+          orderAmount={data.orderAmount}
+          shippingFee={data.shippingFee}
+          totalAmount={data.totalAmount}
+          showChevron={true}
         />
 
         <InfoSection
