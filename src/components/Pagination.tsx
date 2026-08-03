@@ -3,6 +3,9 @@ import icChevronLeft from '@/assets/icons/ic_chevron_left.svg';
 import icChevronRight from '@/assets/icons/ic_chevron__right.svg';
 
 type PaginationProps = {
+  currentPage?: number;
+  totalPages?: number;
+  onChange?: (page: number) => void;
   className?: string;
 };
 

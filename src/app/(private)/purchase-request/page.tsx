@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
@@ -20,6 +21,7 @@ function formatDate(date: string) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    timeZone: 'Asia/Seoul',
   }).format(new Date(date));
 }
 
@@ -40,10 +42,20 @@ function getStatusBadge(status: PurchaseRequestStatus) {
 }
 
 export default function PurchaseRequestPage() {
-  const page = 1;
+  const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('recent');
   const pageSize = 10;
 
-  const { data, isLoading, isError } = useMyPurchaseRequests(page, pageSize);
+  const handleSortChange = (nextSortBy: string) => {
+    setSortBy(nextSortBy);
+    setPage(1);
+  };
+
+  const { data, isLoading, isError } = useMyPurchaseRequests(
+    page,
+    pageSize,
+    sortBy
+  );
 
   const requests = data?.purchaseRequests ?? [];
 
@@ -54,7 +66,15 @@ export default function PurchaseRequestPage() {
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-black max-sm:text-[16px] max-sm:tracking-[-0.4px]">
             구매 요청 내역
           </h1>
-          <SortDropdown />
+          <SortDropdown
+            value={sortBy}
+            options={[
+              { label: '최신순', value: 'recent' },
+              { label: '낮은 가격순', value: 'price_asc' },
+              { label: '높은 가격순', value: 'price_desc' },
+            ]}
+            onChange={handleSortChange}
+          />
         </div>
 
         <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
@@ -191,7 +211,11 @@ export default function PurchaseRequestPage() {
               })}
           </ul>
 
-          <Pagination />
+          <Pagination
+            currentPage={data?.pagination.page ?? page}
+            totalPages={data?.pagination.totalPages ?? 1}
+            onChange={setPage}
+          />
         </div>
       </main>
     </div>

@@ -3,8 +3,8 @@ export const purchaseRequestKeys = {
 
   myLists: () => [...purchaseRequestKeys.all, 'my', 'list'] as const,
 
-  myList: (page: number, pageSize: number) =>
-    [...purchaseRequestKeys.myLists(), { page, pageSize }] as const,
+  myList: (page: number, pageSize: number, sortBy: string) =>
+    [...purchaseRequestKeys.myLists(), { page, pageSize, sortBy }] as const,
 
   manageLists: () => [...purchaseRequestKeys.all, 'manage', 'list'] as const,
 
