@@ -8,9 +8,14 @@ import PurchaseCompleteContent from './PurchaseCompleteContent';
 import RequestCompleteContent from './RequestCompleteContent';
 import type { RequestItem } from '@/components/RequestItemsSection';
 import { useMyPurchaseRequest } from '@/features/cart/hooks/useMyPurchaseRequest';
+import { ApiError } from '@/lib/api';
 import { redirect } from 'next/navigation';
 
 const formatPrice = (value: number) => `${value.toLocaleString('ko-KR')}원`;
+
+const isPermanentLookupError = (error: unknown) =>
+  error instanceof ApiError &&
+  (error.status === 401 || error.status === 403 || error.status === 404);
 
 type CartCompleteContentProps = {
   purchaseRequestId: number;
@@ -26,7 +31,7 @@ export default function CartCompleteContent({
 
   // ADMIN 구매(POST /cart/purchase)도 PurchaseRequest를 만들고 requesterId가 본인이라
   // request와 동일하게 GET /purchase-requests/mine/:id 로 조회 가능
-  const { data, isLoading, isError } = useMyPurchaseRequest(
+  const { data, isLoading, isError, error, refetch } = useMyPurchaseRequest(
     purchaseRequestId,
     isAuthChecked
   );
@@ -42,7 +47,26 @@ export default function CartCompleteContent({
   }
 
   if (isError) {
-    redirect('/cart');
+    if (isPermanentLookupError(error)) {
+      redirect('/cart');
+    }
+
+    return (
+      <div className="flex h-screen items-center justify-center gap-2">
+        <p className="text-[16px] tracking-[-0.4px] text-gray-600">
+          {cartFlow === 'purchase'
+            ? '구매 내역을 불러오지 못했습니다. 다시 시도해주세요.'
+            : '요청 내역을 불러오지 못했습니다. 다시 시도해주세요.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="cursor-pointer text-[16px] tracking-[-0.4px] text-gray-600 underline max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
   }
 
   const completeItems: RequestItem[] =

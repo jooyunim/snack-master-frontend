@@ -87,7 +87,7 @@ export default function CartPurchaseContent({
     totalAmount - orderShippingFee - safeRequestPointAmount,
     0
   );
-  const paidAmount = totalAmount - safeRequestPointAmount;
+  const paidAmount = Math.max(totalAmount - safeRequestPointAmount, 0);
   const reward = Math.floor(paidAmountWithoutShippingFee * 0.01);
 
   const { mutate: submitPurchase, isPending } = useCreatePurchase(selectedIds);
