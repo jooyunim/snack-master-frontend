@@ -16,6 +16,13 @@ export default function PurchaseRequestManagePage() {
     { label: '낮은 가격순', value: 'price_asc' },
     { label: '높은 가격순', value: 'price_desc' },
   ];
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  }
 
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent')
@@ -68,7 +75,7 @@ export default function PurchaseRequestManagePage() {
                   onClick={() => router.push(`/purchase-request-manage/${request.id}`)}
                 >
                   <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.requestedAt}
+                    {formatDate(request.requestedAt)}
                   </span>
                   <span className="w-[360px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
                     {request.itemSummary}

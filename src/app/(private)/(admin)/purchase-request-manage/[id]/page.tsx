@@ -26,6 +26,13 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
 
 
   const router = useRouter()
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  }
   const isOverBudget = showAlert && data?.isOverBudget
   if (isPending) return (
     <div>로딩중...</div>
@@ -83,7 +90,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
             {
               type: 'pair',
               left: { label: '요청인', value: data.requesterName },
-              right: { label: '요청 날짜', value: data.requestedAt },
+              right: { label: '요청 날짜', value: formatDate(data.requestedAt) },
             },
             {
               type: 'single',
@@ -119,7 +126,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
             요청 반려
           </Button>
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1 max-sm:shrink">
-            <Button variant="filled" className="w-full" onClick={handleApprove} disabled={isOverBudget}>
+            <Button variant="filled" className="w-full" onClick={handleApprove} disabled={data?.isOverBudget}>
               요청 승인
             </Button>
           </div>
