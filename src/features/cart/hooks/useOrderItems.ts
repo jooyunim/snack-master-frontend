@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { cartQueryKeys } from '../constants/query-key';
+import { cartQueryKeys } from '../constants/query-keys';
 import { getCartOrderItems } from '../services/order.api';
 
 export const useOrderItems = (selectedIds: number[]) => {

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { patchCartItems } from '../services/cart.api';
-import { cartQueryKeys } from '../constants/query-key';
+import { cartQueryKeys } from '../constants/query-keys';
 import { Cart, CartItem } from '../schemas/cart';
 
 export const usePatchQuantity = () => {

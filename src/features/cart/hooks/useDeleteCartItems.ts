@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { handleDeleteSelectedItems } from '../services/cart.api';
-import { cartQueryKeys } from '../constants/query-key';
+import { cartQueryKeys } from '../constants/query-keys';
 
 export const useDeleteCartItems = () => {
   const queryClient = useQueryClient();

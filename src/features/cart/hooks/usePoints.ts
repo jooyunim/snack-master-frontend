@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { cartQueryKeys } from '../constants/query-key';
+import { cartQueryKeys } from '../constants/query-keys';
 import { getCompanyBalancePoint } from '../services/purchase.api';
 
 export const usePoints = () => {
