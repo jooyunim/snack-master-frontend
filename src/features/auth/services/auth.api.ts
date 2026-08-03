@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api';
 import { User } from '../types/auth.types';
 
 export const loginApi = async (
@@ -51,7 +52,7 @@ export const logoutApi = async (): Promise<void> => {
 };
 
 export const getUserApi = async (): Promise<User> => {
-  const res = await authFetch('/auth/user', {
+  const res = await apiFetch<{ user: User }>('/auth/user', {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -98,66 +99,4 @@ export const refreshAccessToken = async (): Promise<string> => {
     return accessToken;
   })().finally(() => (refreshPromise = null));
   return refreshPromise;
-};
-
-const authFetch = async (url: string, options: RequestInit) => {
-  let token = localStorage.getItem('accessToken');
-
-  if (!token) {
-    try {
-      token = await refreshAccessToken();
-    } catch {
-      throw new Error('인증 토큰이 없습니다.');
-    }
-  }
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: 'include',
-  });
-
-  if (res.ok) {
-    return await res.json();
-  } else if (res.status === 401) {
-    let newToken: string;
-
-    try {
-      newToken = await refreshAccessToken();
-    } catch {
-      try {
-        await logoutApi();
-      } catch {}
-
-      localStorage.removeItem('accessToken');
-      throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
-    }
-
-    const newRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${newToken}`,
-      },
-      credentials: 'include',
-    });
-
-    if (newRes.status === 401) {
-      await logoutApi();
-      throw new Error('인증이 만료되었습니다.');
-    }
-
-    if (!newRes.ok) {
-      throw new Error(`요청 실패 : ${newRes.status} ${newRes.statusText}`);
-    }
-
-    return await newRes.json();
-  } else {
-    throw new Error('서버 요청에 실패했습니다.');
-  }
 };
