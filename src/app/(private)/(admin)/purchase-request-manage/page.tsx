@@ -7,6 +7,7 @@ import { ModalState, sortByOption } from '@/features/purchase-request-manage/typ
 import { useState } from 'react';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 
 export default function PurchaseRequestManagePage() {
@@ -16,6 +17,7 @@ export default function PurchaseRequestManagePage() {
     { label: '낮은 가격순', value: 'price_asc' },
     { label: '높은 가격순', value: 'price_desc' },
   ];
+
   function formatDate(dateString: string) {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -71,29 +73,42 @@ export default function PurchaseRequestManagePage() {
               {data.map((request) => (
                 <li
                   key={request.id}
-                  className="flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
-                  onClick={() => router.push(`/purchase-request-manage/${request.id}`)}
+                  className="group flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 transition-colors hover:bg-gray-50 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
                 >
-                  <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {formatDate(request.requestedAt)}
-                  </span>
-                  <span className="w-[360px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
-                    {request.itemSummary}
-                  </span>
-                  <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.totalAmount.toLocaleString()}
-                  </span>
-                  <div className="flex w-[134px] shrink-0 items-center gap-3 max-lg:w-[108px]">
-                    <span className="w-[90px] text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-16">
-                      {request.requesterName}
+                  <Link
+                    href={`/purchase-request-manage/${request.id}`}
+                    className="flex flex-1 items-center gap-20"
+                  >
+                    <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {formatDate(request.requestedAt)}
                     </span>
-                  </div>
-                  <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]"
-                    onClick={(e) => e.stopPropagation()}>
-                    <Button variant="sub" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'reject' })}>
+                    <span className="w-[360px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
+                      {request.itemSummary}
+                    </span>
+                    <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {request.totalAmount.toLocaleString()}
+                    </span>
+                    <div className="flex w-[134px] shrink-0 items-center gap-3 max-lg:w-[108px]">
+                      <span className="w-[90px] text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-16">
+                        {request.requesterName}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
+                    <Button
+                      variant="sub"
+                      className="w-20"
+                      onClick={() => setModalState({ requestId: request.id, action: 'reject' })}
+                    >
                       반려
                     </Button>
-                    <Button variant="filled" size="sm" className="w-20" onClick={() => setModalState({ requestId: request.id, action: 'approve' })}>
+                    <Button
+                      variant="filled"
+                      size="sm"
+                      className="w-20"
+                      onClick={() => setModalState({ requestId: request.id, action: 'approve' })}
+                    >
                       승인
                     </Button>
                   </div>

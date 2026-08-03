@@ -45,7 +45,7 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   )
   return (
     <>{isShowAlert && (
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] w-[1152px]">
+      <div className="fixed left-1/2 top-6 z-[60] w-[calc(100%-3rem)] max-w-[1152px] -translate-x-1/2">
         <Toast
           onClose={() => setShowAlert(false)}
           remainingBudget={data.remained.toLocaleString()}
@@ -98,12 +98,16 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                       <div className="flex items-center gap-5 max-sm:gap-3">
                         <div className="relative flex size-10 shrink-0 items-center justify-center bg-white shadow-[4px_4px_10px_rgba(250,247,243,0.25)]">
                           <div className="relative h-[35px] w-5">
-                            <Image
-                              src={item.imageUrl}
-                              alt={item.productName}
-                              fill
-                              className="object-contain"
-                            />
+                            {item.imageUrl ? (
+                              <Image
+                                src={item.imageUrl}
+                                alt={item.productName}
+                                fill
+                                className="object-contain"
+                              />
+                            ) : (
+                              <span className="text-xs text-gray-500">이미지 없음</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col gap-2.5 text-[16px] tracking-[-0.4px] text-gray-900 max-sm:gap-1 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
