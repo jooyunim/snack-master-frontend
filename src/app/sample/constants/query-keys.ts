@@ -5,3 +5,5 @@ export const sampleKeys = {
   details: () => [...sampleKeys.all, 'detail'] as const,
   detail: (id: number) => [...sampleKeys.details(), id] as const,
 };
+
+

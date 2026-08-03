@@ -16,7 +16,7 @@ export type PurchaseRequestItem = {
     price: number;
     quantity: number;
     imageUrl: string | null;
-    lineTotal: number
+    totalPrice: number
 }
 
 export type purchaseRequestManageDetail = {

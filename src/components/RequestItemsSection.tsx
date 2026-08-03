@@ -1,10 +1,12 @@
+"use client"
 import Image from 'next/image';
 import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
+import { useState } from 'react';
 
 export type RequestItem = {
   id: number;
   name: string;
-  unitPrice: string;
+  price: string;
   quantity: string;
   totalPrice: string;
   imageSrc: string;
@@ -18,6 +20,7 @@ type RequestItemsSectionProps = {
   totalAmount: string;
   showChevron?: boolean;
   sectionTitle?: string;
+  defaultIsOpen?: boolean;
 };
 
 export default function RequestItemsSection({
@@ -27,26 +30,29 @@ export default function RequestItemsSection({
   shippingFee,
   totalAmount,
   showChevron = false,
+  defaultIsOpen = true,
   sectionTitle = '요청 품목',
 }: RequestItemsSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultIsOpen);
+
   return (
     <section className="flex w-full flex-col gap-5">
       <div className="flex items-start gap-1.5 text-[16px] tracking-[-0.4px] text-gray-950">
         <p className="font-bold">{sectionTitle}</p>
         <p>총 {itemCount}개</p>
         {showChevron ? (
-          <span className="relative size-5 shrink-0 overflow-hidden">
+          <button className="relative size-5 shrink-0 overflow-hidden"
+            onClick={() => setIsOpen((prev) => !prev)}>
             <Image
               src={icChevronUp}
               alt=""
               fill
-              className="object-contain max-lg:-rotate-180 max-lg:-scale-x-100"
+              className={`object-contain transition-transform max-lg:-scale-x-100 ${isOpen ? '' : 'rotate-180 max-lg:rotate-0'}`}
             />
-          </span>
+          </button>
         ) : null}
       </div>
-
-      <div className="flex w-full flex-col gap-5 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_10px_rgba(0,0,0,0.12)] max-lg:px-5 max-lg:pb-[30px] max-lg:pt-5 max-lg:shadow-[0_0_3px_rgba(0,0,0,0.1)] max-sm:gap-5 max-sm:p-0 max-sm:shadow-none">
+      {isOpen && (<div className="flex w-full flex-col gap-5 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_10px_rgba(0,0,0,0.12)] max-lg:px-5 max-lg:pb-[30px] max-lg:pt-5 max-lg:shadow-[0_0_3px_rgba(0,0,0,0.1)] max-sm:gap-5 max-sm:p-0 max-sm:shadow-none">
         <ul className="flex w-full flex-col">
           {items.map((item) => (
             <li
@@ -68,7 +74,7 @@ export default function RequestItemsSection({
                 <div className="flex min-w-0 flex-1 flex-col gap-[30px] text-[16px] max-sm:gap-3 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
                   <div className="flex flex-col gap-2.5 tracking-[-0.4px] text-gray-900 max-sm:gap-1 max-sm:text-gray-950">
                     <p>{item.name}</p>
-                    <p className="font-bold">{item.unitPrice}</p>
+                    <p className="font-bold">{item.price}</p>
                   </div>
                   <p className="font-bold text-gray-500 max-sm:hidden">
                     {item.quantity}
@@ -109,7 +115,8 @@ export default function RequestItemsSection({
             </p>
           </div>
         </div>
-      </div>
+      </div>)}
+
     </section>
   );
 }
