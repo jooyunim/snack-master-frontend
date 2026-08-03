@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
-import CartOrderContent from './components/CartOrderContent';
+import CartPurchaseContent from './components/CartPurchaseContent';
 
-type CartOrderPageProps = {
+type CartPurchasePageProps = {
   searchParams: Promise<{ cartItemIds?: string }>;
 };
 
-export default async function CartOrderPage({
+export default async function CartPurchasePage({
   searchParams,
-}: CartOrderPageProps) {
+}: CartPurchasePageProps) {
   const { cartItemIds } = await searchParams;
 
   const selectedIds = [
@@ -23,5 +23,5 @@ export default async function CartOrderPage({
     redirect('/cart');
   }
 
-  return <CartOrderContent selectedIds={selectedIds} />;
+  return <CartPurchaseContent selectedIds={selectedIds} />;
 }

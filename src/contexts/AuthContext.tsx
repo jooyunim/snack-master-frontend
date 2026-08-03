@@ -63,6 +63,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const checkAuth = async () => {
       try {
+        if (!localStorage.getItem('accessToken')) {
+          if (!cancelled) {
+            setUser(null);
+          }
+          return;
+        }
+
         const user = await getUserApi();
         if (!cancelled) {
           setUser(user);
