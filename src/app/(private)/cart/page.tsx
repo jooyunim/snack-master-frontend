@@ -49,7 +49,7 @@ export default function CartPage() {
   const router = useRouter();
 
   // user role에 따라 flow를 결정
-  const { user } = useAuth();
+  const { user, isAuthChecked } = useAuth();
   const cartFlow: CartFlow = user?.role === 'USER' ? 'request' : 'purchase';
 
   const { data, isPending, isError, refetch } = useCarts();
@@ -111,6 +111,16 @@ export default function CartPage() {
     }
     router.push(`/cart/order?cartItemIds=${selectedIds.join(',')}`);
   };
+
+  if (!isAuthChecked) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-[16px] tracking-[-0.4px] text-gray-600">
+          로딩 중...
+        </p>
+      </div>
+    );
+  }
 
   if (isPending) {
     return (
@@ -181,7 +191,6 @@ export default function CartPage() {
                 <CheckboxIcon
                   checked={selectedIds.includes(item.id)}
                   onChange={() => handleSelectItem(item.id)}
-                  aria-label="체크박스 선택"
                 />
 
                 <div className="flex min-w-0 flex-1 items-center gap-5 max-sm:items-start max-sm:gap-3">

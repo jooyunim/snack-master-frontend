@@ -1,12 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPurchaseRequest } from '../services/order.api';
 import { useRouter } from 'next/navigation';
+import { cartQueryKeys } from '../constants/query-keys';
 
 export const useCreatePurchaseRequest = (
   selectedIds: number[],
   requestMessage: string
 ) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: () => createPurchaseRequest(selectedIds, requestMessage),
     // POST /cart/purchase-request 응답의 id를 쿼리로 전달
@@ -18,6 +21,7 @@ export const useCreatePurchaseRequest = (
         router.push('/cart');
         return;
       }
+      queryClient.removeQueries({ queryKey: cartQueryKeys.list() });
       router.push(`/cart/complete?id=${purchaseRequestId}`);
     },
     onError: (error: Error) => {

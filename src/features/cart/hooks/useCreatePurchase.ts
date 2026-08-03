@@ -1,9 +1,11 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { createPurchase } from '../services/purchase.api';
+import { cartQueryKeys } from '../constants/query-keys';
 
 export const useCreatePurchase = (selectedIds: number[]) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (requestPointAmount: number) =>
@@ -15,6 +17,7 @@ export const useCreatePurchase = (selectedIds: number[]) => {
         router.push('/cart');
         return;
       }
+      queryClient.removeQueries({ queryKey: cartQueryKeys.list() });
       router.push(`/cart/complete?id=${purchaseId}`);
     },
     onError: (error: Error) => {
