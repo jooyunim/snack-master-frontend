@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import AlertModal from '@/components/AlertModal';
 import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
+import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useCancelPurchaseRequest';
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
+import iconX from '@/assets/icons/icon_X.svg';
 
 const STATUS_BADGE = {
   PENDING: { variant: 'pending', label: '대기 중' },
@@ -42,13 +45,38 @@ function getStatusBadge(status: PurchaseRequestStatus) {
 }
 
 export default function PurchaseRequestPage() {
-  const [page, setPage] = useState(1);
+  const page = 1;
   const [sortBy, setSortBy] = useState('recent');
+  const [cancelRequestId, setCancelRequestId] = useState<number | null>(null);
   const pageSize = 10;
+  const cancelMutation = useCancelPurchaseRequest();
 
   const handleSortChange = (nextSortBy: string) => {
     setSortBy(nextSortBy);
-    setPage(1);
+  };
+
+  const openCancelModal = (purchaseRequestId: number) => {
+    cancelMutation.reset();
+    setCancelRequestId(purchaseRequestId);
+  };
+
+  const closeCancelModal = () => {
+    if (!cancelMutation.isPending) {
+      setCancelRequestId(null);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (cancelRequestId === null) {
+      return;
+    }
+
+    try {
+      await cancelMutation.mutateAsync(cancelRequestId);
+      setCancelRequestId(null);
+    } catch {
+      // 오류 메시지는 확인 모달 안에서 표시합니다.
+    }
   };
 
   const { data, isLoading, isError } = useMyPurchaseRequests(
@@ -144,7 +172,12 @@ export default function PurchaseRequestPage() {
 
                   <div className="flex w-[126px] shrink-0 flex-col items-start">
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -202,7 +235,13 @@ export default function PurchaseRequestPage() {
                     </div>
 
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" size="sm" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -211,13 +250,28 @@ export default function PurchaseRequestPage() {
               })}
           </ul>
 
-          <Pagination
-            currentPage={data?.pagination.page ?? page}
-            totalPages={data?.pagination.totalPages ?? 1}
-            onChange={setPage}
-          />
+          <Pagination />
         </div>
       </main>
+
+      {cancelRequestId !== null ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="요청 취소"
+            content={
+              cancelMutation.isError
+                ? '구매 요청을 취소하지 못했습니다.\n잠시 후 다시 시도해주세요.'
+                : '구매 요청을 취소하시겠습니까?'
+            }
+            cancelLabel="돌아가기"
+            confirmLabel={cancelMutation.isPending ? '취소 중...' : '요청 취소'}
+            confirmDisabled={cancelMutation.isPending}
+            onCancel={closeCancelModal}
+            onConfirm={handleCancelRequest}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
