@@ -79,12 +79,16 @@ export default function PurchaseDetailPage() {
     );
   }
 
-  if (loading || !order || order.id !== orderId) {
+  if (loading) {
     return <PurchaseDetailLoading />;
   }
 
   if (error) {
     return <PurchaseDetailError message={error} />;
+  }
+
+  if (!order || order.id !== orderId) {
+    return <PurchaseDetailLoading />;
   }
 
   const itemTotal = calcItemTotal(order);
