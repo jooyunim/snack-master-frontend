@@ -55,10 +55,22 @@ export default function PurchasePage() {
   const pageSize = 10;
   const router = useRouter();
 
+  const handlePageChange = (nextPage: number) => {
+    setLoading(true);
+    setError(null);
+    setPage(nextPage);
+  };
+  
+  const handleSortChange = (value: string) => {
+    setLoading(true);
+    setError(null);
+    setPage(1);
+    setSort(value as OrderSort);
+  };
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null); // 요청 시작할 때마다 이전 에러 초기화
+    
   
     Promise.all([getOrders({ page, pageSize, sort }), getDashboardSummary()])
       .then(([list, dash]) => {
@@ -103,10 +115,7 @@ export default function PurchasePage() {
             { label: '높은 가격순', value: 'amountDesc' },
           ]}
           value={sort}
-          onChange={(v) => {
-            setPage(1);
-            setSort(v as OrderSort);
-          }}
+          onChange={handleSortChange}
         />
       </div>
 
@@ -361,7 +370,7 @@ export default function PurchasePage() {
             <PurchasePagination
               page={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
             />
               </>
             )}

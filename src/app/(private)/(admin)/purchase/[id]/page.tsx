@@ -42,25 +42,20 @@ export default function PurchaseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [prevOrderId, setPrevOrderId] = useState(orderId);
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
   const [itemsOpen, setItemsOpen] = useState(true);
   
   
 
   useEffect(() => {
-    if (!isValidId) {
-      setOrder(null);
-      setError('유효하지 않은 구매 내역입니다.');
-      setLoading(false);
-      return;
-    }
+    if (!isValidId) return;
+  
     let cancelled = false;
-
+  
     setOrder(null);
     setError(null);
     setLoading(true);
-    
+  
     getOrderById(orderId)
       .then((data) => {
         if (!cancelled) setOrder(data);
@@ -71,28 +66,29 @@ export default function PurchaseDetailPage() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+  
     return () => {
       cancelled = true;
     };
   }, [orderId, isValidId]);
 
   
+  if (!isValidId) {
+    return (
+      <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />
+    );
+  }
 
-  
-  const itemTotal = order ? calcItemTotal(order) : 0;
-  const totalQuantity = order ? calcTotalQuantity(order) : 0;
-
-  if (loading) {
+  if (loading || !order || order.id !== orderId) {
     return <PurchaseDetailLoading />;
   }
 
-  if (error || !order) {
-    return (
-      <PurchaseDetailError
-        message={error ?? '구매 내역을 찾을 수 없습니다.'}
-      />
-    );
+  if (error) {
+    return <PurchaseDetailError message={error} />;
   }
+
+  const itemTotal = calcItemTotal(order);
+  const totalQuantity = calcTotalQuantity(order);
 
   return (
     <div className="min-h-screen bg-white">

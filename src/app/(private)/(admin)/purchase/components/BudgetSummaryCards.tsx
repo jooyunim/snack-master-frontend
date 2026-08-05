@@ -43,7 +43,7 @@ export default function BudgetSummaryCards({ summary }: Props) {
       </div>
 
       {/* 2. 이번 달 지출액 + 호버 */}
-      <div className="group relative flex flex-1 flex-col gap-5 overflow-visible rounded bg-gray-50 py-[30px] pl-[30px] pr-10 max-lg:gap-4 max-lg:p-5 max-sm:h-full max-sm:overflow-hidden">
+      <div className="group relative flex flex-1 flex-col gap-5 overflow-visible rounded bg-gray-50 py-[30px] pl-[30px] pr-10 max-lg:gap-4 max-lg:p-5 max-sm:h-full ">
         <BudgetRemainHoverCard
           remainingBudget={remainingBudget}
           lastMonthRemaining={lastMonthRemaining}
