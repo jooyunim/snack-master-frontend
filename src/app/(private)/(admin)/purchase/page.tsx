@@ -13,7 +13,7 @@ import type {
   OrderListItem,
   OrderSort,
 } from '@/features/purchase/purchase.types';
-import { formatAmount, formatDate } from '@/features/purchase/format';
+import { formatAmount, formatDate, formatProductName } from '@/features/purchase/format';
 import BudgetSummaryCards from './components/BudgetSummaryCards';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
@@ -35,10 +35,9 @@ function toRow(item: OrderListItem): PurchaseRow {
     id: item.id,
     requestDate: formatDate(item.requestedAt),
     requester: item.requesterName,
-    product: item.productName,
-    // 목록 API에 수량 합계 없음 → 상세에서 확인 나중에 총수랑 추가예정
-    quantity: '',
-    quantityCompact: '',
+    product: formatProductName(item.items),
+    quantity: `총 수량 ${item.totalQuantity}개`,
+    quantityCompact: `총수량 ${item.totalQuantity}개`,
     amount: formatAmount(item.totalAmount),
     approvedDate: formatDate(item.resolvedAt),
     manager: item.resolverName ?? '-',
@@ -52,13 +51,27 @@ export default function PurchasePage() {
   const [sort, setSort] = useState<OrderSort>('latest');
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const pageSize = 10;
   const router = useRouter();
 
+  const handlePageChange = (nextPage: number) => {
+    setLoading(true);
+    setError(null);
+    setPage(nextPage);
+  };
+  
+  const handleSortChange = (value: string) => {
+    setLoading(true);
+    setError(null);
+    setPage(1);
+    setSort(value as OrderSort);
+  };
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-
+    
+  
     Promise.all([getOrders({ page, pageSize, sort }), getDashboardSummary()])
       .then(([list, dash]) => {
         if (cancelled) return;
@@ -66,17 +79,23 @@ export default function PurchasePage() {
         setTotal(list.total);
         setSummary(dash);
       })
-      .catch(console.error)
+      .catch(() => {
+        if (cancelled) return;
+        setError('구매 내역을 불러오지 못했습니다.');
+        setRows([]);
+        setTotal(0);
+        setSummary(null); // 실패 시 요약/목록 안 보이게
+      })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setLoading(false); // 성공/실패 모두 로딩 종료
       });
-
+  
     return () => {
       cancelled = true;
     };
   }, [page, sort]);
 
-  const isEmpty = !loading && rows.length === 0;
+  const isEmpty = !loading && !error && rows.length === 0;
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(total / pageSize)),
     [total]
@@ -96,24 +115,25 @@ export default function PurchasePage() {
             { label: '높은 가격순', value: 'amountDesc' },
           ]}
           value={sort}
-          onChange={(v) => {
-            setPage(1);
-            setSort(v as OrderSort);
-          }}
+          onChange={handleSortChange}
         />
       </div>
 
-        {summary ? <BudgetSummaryCards summary={summary} /> : null}
-
-        {isEmpty ? (
-            <EmptyState
-              title="구매 내역이 없어요"
-              description={'구매 요청을 승인하고\n상품을 주문해보세요'}
-              buttonLabel="구매 요청 내역으로 이동"
-              onButtonClick={() => router.push('/purchase-request-manage')}
-            />
+        {error ? (
+          <p className="text-[16px] text-gray-500">{error}</p>
         ) : (
           <>
+            {summary ? <BudgetSummaryCards summary={summary} /> : null}
+
+            {isEmpty ? (
+              <EmptyState
+                title="구매 내역이 없어요"
+                description={'구매 요청을 승인하고\n상품을 주문해보세요'}
+                buttonLabel="구매 요청 내역으로 이동"
+                onButtonClick={() => router.push('/purchase-request-manage')}
+              />
+            ) : (
+              <>
             {/* PC table */}
             <div className="flex w-full flex-col max-lg:hidden">
               <div className="flex w-full items-center justify-between border-y border-solid border-gray-100 px-10 py-5">
@@ -147,7 +167,7 @@ export default function PurchasePage() {
                       <span className="w-[130px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
                         {item.requestDate}
                       </span>
-                      <div className="flex shrink-0 items-center gap-2">
+                      <div className="flex w-[122px] shrink-0 items-center gap-2">
                         <span className="text-[16px] tracking-[-0.4px] text-gray-950">
                           {item.requester}
                         </span>
@@ -350,8 +370,10 @@ export default function PurchasePage() {
             <PurchasePagination
               page={page}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
             />
+              </>
+            )}
           </>
         )}
       </main>

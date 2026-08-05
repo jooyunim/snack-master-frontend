@@ -27,16 +27,17 @@ export default function PurchasePagination({
       </p>
 
       <div className="flex items-center gap-[30px]">
-        <button
-            type="button"
-            onClick={() => {
-                if (!isFirst) onPageChange(page - 1);
-            }}
-            className={[
-                'flex items-center gap-1.5',
-                isFirst ? 'opacity-40 cursor-default' : 'cursor-pointer',
-              ].filter(Boolean).join(' ')}
-            >
+      <button
+        type="button"
+        disabled={isFirst}
+        onClick={() => {
+          if (!isFirst) onPageChange(page - 1);
+        }}
+        className={[
+          'flex items-center gap-1.5',
+          isFirst ? 'opacity-40 cursor-default' : 'cursor-pointer',
+        ].join(' ')}
+      >
           <span className="relative size-6 shrink-0 overflow-hidden">
             <Image src={icChevronLeft} alt="" fill className="object-contain" />
           </span>
@@ -51,8 +52,10 @@ export default function PurchasePagination({
           onClick={() => {
             if (!isLast) onPageChange(page + 1);
           }}
-          className="flex items-center gap-[5px]"
-         
+          className={[
+            'flex items-center gap-[5px]',
+            isLast ? 'cursor-default' : 'cursor-pointer',
+          ].join(' ')}
         >
           <span className="text-center text-[16px] tracking-[-0.4px] text-gray-950">
             Next
