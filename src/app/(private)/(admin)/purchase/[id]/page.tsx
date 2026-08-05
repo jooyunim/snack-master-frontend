@@ -11,12 +11,14 @@ import InfoSection from '@/components/InfoSection';
 import { getOrderById } from '@/features/purchase/purchase.api';
 import type { OrderDetail } from '@/features/purchase/purchase.types';
 import { formatDate, formatWon, statusLabel } from '@/features/purchase/format';
+import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
+import PurchaseDetailError from '../components/PurchaseDetailError';
 
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
     id: item.id,
     name: item.productName,
-    unitPrice: formatWon(item.price),
+    price: formatWon(item.price),
     quantity: `수량 ${item.quantity}개`,
     totalPrice: formatWon(item.price * item.quantity),
     imageSrc: item.imageUrl,
@@ -42,13 +44,22 @@ export default function PurchaseDetailPage() {
 
   const [prevOrderId, setPrevOrderId] = useState(orderId);
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
-  const [itemsOpen, setItemsOpen] = useState(false);
+  const [itemsOpen, setItemsOpen] = useState(true);
   
   
 
   useEffect(() => {
-    if (!isValidId) return;
+    if (!isValidId) {
+      setOrder(null);
+      setError('유효하지 않은 구매 내역입니다.');
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
+
+    setOrder(null);
+    setError(null);
+    setLoading(true);
     
     getOrderById(orderId)
       .then((data) => {
@@ -65,49 +76,21 @@ export default function PurchaseDetailPage() {
     };
   }, [orderId, isValidId]);
 
-  if (orderId !== prevOrderId) {
-    setPrevOrderId(orderId);
-    setOrder(null);
-    setError(null);
-    setLoading(true);
-  }
   
-
-  if (!isValidId) {
-    return (
-      <div className="min-h-screen bg-white">
-        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px]">
-          <p className="text-[16px] text-gray-500">
-            유효하지 않은 구매 내역입니다.
-          </p>
-        </main>
-      </div>
-    );
-  }
 
   
   const itemTotal = order ? calcItemTotal(order) : 0;
   const totalQuantity = order ? calcTotalQuantity(order) : 0;
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px]">
-          <p className="text-[16px] text-gray-500">불러오는 중...</p>
-        </main>
-      </div>
-    );
+    return <PurchaseDetailLoading />;
   }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-white">
-        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px]">
-          <p className="text-[16px] text-gray-500">
-            {error ?? '구매 내역을 찾을 수 없습니다.'}
-          </p>
-        </main>
-      </div>
+      <PurchaseDetailError
+        message={error ?? '구매 내역을 찾을 수 없습니다.'}
+      />
     );
   }
 
