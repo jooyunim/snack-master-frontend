@@ -13,18 +13,13 @@ import {
   useEffect,
   ReactNode,
 } from 'react';
+import type { LoginFormValues } from '@/features/auth/schemas/auth';
 
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isAuthChecked: boolean;
-  login: ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => Promise<void>;
+  login: (data: LoginFormValues) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -46,18 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('인증 확인 중입니다. 잠시 후 다시 시도해주세요.');
     }
 
-    const safeEmail = typeof email === 'string' ? email.trim() : '';
-    const safePassword = typeof password === 'string' ? password : '';
-
-    if (!safeEmail) {
-      throw new Error('유효하지 않는 이메일입니다.');
-    }
-
-    if (!safePassword) {
-      throw new Error('유효하지 않는 비밀번호입니다.');
-    }
-
-    const user = await loginApi(safeEmail, safePassword);
+    const user = await loginApi(email, password);
 
     setUser(user);
   };
@@ -79,6 +63,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const checkAuth = async () => {
       try {
+        if (!localStorage.getItem('accessToken')) {
+          if (!cancelled) {
+            setUser(null);
+          }
+          return;
+        }
+
         const user = await getUserApi();
         if (!cancelled) {
           setUser(user);
