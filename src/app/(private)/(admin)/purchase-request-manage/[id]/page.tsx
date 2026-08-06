@@ -5,12 +5,13 @@ import InfoSection from '@/components/InfoSection';
 import icAlert from '@/assets/icons/ic_!.svg';
 
 
-import RequestItemsSection from '@/components/RequestItemsSection';
+import RequestItemsSection, { RequestItem } from '@/components/RequestItemsSection';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
 import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
+import { usePoints } from '@/features/cart/hooks/usePoints';
 
 
 
@@ -23,6 +24,10 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [showAlert, setShowAlert] = useState(true)
+  const [pointAmount, setPointAmount] = useState(0)
+  const { data: balancePointData } = usePoints();
+  const pointBalance = balancePointData?.balancePointAmount ?? 0;
+
 
 
   const router = useRouter()
@@ -41,8 +46,27 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
   if (isError) return (
     <div>에러...</div>
   )
+
+  const mappedItems: RequestItem[] = data.items.map((item) => ({
+    id: item.id,
+    name: item.productName,
+    price: `${item.price.toLocaleString()}원`,
+    quantity: `수량 ${item.quantity}개`,
+    totalPrice: `${item.totalPrice.toLocaleString()}원`,
+    imageSrc: item.imageUrl ?? '',
+  }));
+
+  const safePointAmount = Number.isFinite(pointAmount) ? pointAmount : 0;
+  const previewPaidAmount = Math.max(data.requestAmount - safePointAmount, 0);
+  const previewPaidAmountWithoutShipping = Math.max(
+    previewPaidAmount - data.shippingFee,
+    0
+  );
+  const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
+  const previewAfterBudget = data.remained - previewPaidAmount;
+
   const handleApprove = () => {
-    patchApproveMutation.mutate({ id: requestId, resultMessage: "" }, {
+    patchApproveMutation.mutate({ id: requestId, resultMessage: "", requestPointAmount: safePointAmount }, {
       onSuccess: () => {
         setShowApproveModal(true)
 
@@ -67,6 +91,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px] max-sm:pb-[136px]">
         <h1 className="w-full text-[18px] font-bold tracking-[-0.45px] text-gray-950">
           구매 요청 상세
+          {pointBalance}
         </h1>
         {isOverBudget && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] w-[1152px]">
           <Toast
@@ -75,14 +100,37 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
           />
         </div>
         }
+
         <RequestItemsSection
-          itemCount={data.items.length}
-          items={data.items}
-          orderAmount={data.orderAmount}
-          shippingFee={data.shippingFee}
-          totalAmount={data.requestAmount}
+          itemCount={mappedItems.length}
+          items={mappedItems}
+          orderAmount={`${data.orderAmount.toLocaleString()}원`}
+          shippingFee={`${data.shippingFee.toLocaleString()}원`}
+          totalAmount={`${data.requestAmount.toLocaleString()}원`}
           showChevron={true}
         />
+
+        <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
+          <div className="flex w-full items-center justify-end gap-2">
+            <input
+              type="number"
+              min={0}
+              max={Math.min(pointBalance, data.requestAmount)}
+              value={pointAmount}
+              onChange={(e) => setPointAmount(Number(e.target.value))}
+              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+            />
+            <span className="text-[16px] font-bold text-gray-600">
+              {`/ ${pointBalance.toLocaleString()} P`}
+            </span>
+          </div>
+          <div className="flex flex-col items-end gap-1 text-[16px] font-bold text-gray-700">
+            <p>적립 예정: {previewReward.toLocaleString()} P</p>
+            <p className="text-[20px] font-extrabold text-black">
+              실결제액: {previewPaidAmount.toLocaleString()}원
+            </p>
+          </div>
+        </div>
 
         <InfoSection
           title="요청 정보"
@@ -116,7 +164,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
             },
             {
               type: 'single',
-              field: { label: '구매 후 예산', value: data.afterBudget.toLocaleString() + '원' },
+              field: { label: '구매 후 예산', value: previewAfterBudget.toLocaleString() + '원' },
             },
           ]}
         />

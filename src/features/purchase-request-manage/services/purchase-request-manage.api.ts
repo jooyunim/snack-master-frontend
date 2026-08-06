@@ -37,11 +37,11 @@ export async function getPurchaseRequestManageDetail(id: number): Promise<purcha
     return response.json();
 }
 
-async function patchStatus(id: number, resultMessage: string, action: Action): Promise<MessageResponse> {
+async function patchStatus(id: number, resultMessage: string, action: Action, requestPointAmount?: number): Promise<MessageResponse> {
     const token = localStorage.getItem("accessToken")
     const response = await fetch(`${API_BASE}/purchase-requests/${id}/${action}`, {
         method: 'PATCH',
-        body: JSON.stringify({ resultMessage }),
+        body: JSON.stringify({ resultMessage, requestPointAmount }),
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -54,5 +54,5 @@ async function patchStatus(id: number, resultMessage: string, action: Action): P
     return response.json();
 }
 
-export const patchApprove = async (id: number, resultMessage: string) => patchStatus(id, resultMessage, 'approve');
-export const patchReject = async (id: number, resultMessage: string) => patchStatus(id, resultMessage, 'reject');
+export const patchApprove = async (id: number, resultMessage: string, requestPointAmount: number) => patchStatus(id, resultMessage, 'approve', requestPointAmount);
+export const patchReject = async (id: number, resultMessage: string,) => patchStatus(id, resultMessage, 'reject');

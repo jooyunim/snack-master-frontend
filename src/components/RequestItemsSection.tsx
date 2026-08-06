@@ -63,8 +63,8 @@ export default function RequestItemsSection({
                 <div className="relative flex size-[140px] shrink-0 items-center justify-center bg-white shadow-[4px_4px_10px_rgba(250,247,243,0.25)] max-sm:size-[72px] max-sm:rounded-[2px] max-sm:bg-gray-50 max-sm:p-6 max-sm:shadow-none">
                   <div className="relative h-[102px] w-[59px] max-sm:h-[50px] max-sm:w-[29px]">
                     <Image
-                      src={item.imageUrl}
-                      alt={item.productName}
+                      src={item.imageSrc}
+                      alt={item.name}
                       fill
                       className="object-contain"
                     />
@@ -73,25 +73,25 @@ export default function RequestItemsSection({
 
                 <div className="flex min-w-0 flex-1 flex-col gap-[30px] text-[16px] max-sm:gap-3 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
                   <div className="flex flex-col gap-2.5 tracking-[-0.4px] text-gray-900 max-sm:gap-1 max-sm:text-gray-950">
-                    <p>{item.productName}</p>
-                    <p className="font-bold">{item.price.toLocaleString()}원</p>
+                    <p>{item.name}</p>
+                    <p className="font-bold">{item.price}</p>
                   </div>
                   <p className="font-bold text-gray-500 max-sm:hidden">
-                    수량 {item.quantity}개
+                    {item.quantity}
                   </p>
                   <div className="hidden w-full items-center justify-between max-sm:flex">
                     <p className="text-[13px] tracking-[-0.325px] text-gray-500">
-                      수량 {item.quantity}개
+                      {item.quantity}
                     </p>
                     <p className="text-center text-[16px] font-extrabold tracking-[-0.4px] text-gray-700">
-                      {item.totalPrice.toLocaleString()}원
+                      {item.totalPrice}
                     </p>
                   </div>
                 </div>
               </div>
 
               <p className="shrink-0 text-center text-[20px] font-extrabold leading-8 text-gray-700 max-sm:hidden">
-                {item.totalPrice.toLocaleString()}원
+                {item.totalPrice}
               </p>
             </li>
           ))}
@@ -100,18 +100,18 @@ export default function RequestItemsSection({
         <div className="flex w-full flex-col gap-2.5 max-lg:px-5 max-sm:gap-4 max-sm:px-0">
           <div className="flex w-full items-center justify-between text-[16px] font-bold tracking-[-0.4px] text-gray-700 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
             <p>주문금액</p>
-            <p>{orderAmount.toLocaleString()}원</p>
+            <p>{orderAmount}</p>
           </div>
           <div className="flex w-full items-center justify-between text-[16px] font-bold tracking-[-0.4px] text-gray-700 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
             <p>배송비</p>
-            <p>{shippingFee.toLocaleString()}원</p>
+            <p>{shippingFee}</p>
           </div>
           <div className="flex w-full items-center justify-between text-gray-950">
             <p className="text-[18px] font-bold tracking-[-0.45px]">
               총 주문금액
             </p>
             <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[18px] max-sm:tracking-[-0.45px]">
-              {totalAmount.toLocaleString()}원
+              {totalAmount}
             </p>
           </div>
         </div>
