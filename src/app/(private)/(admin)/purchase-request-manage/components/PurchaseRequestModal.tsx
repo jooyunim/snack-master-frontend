@@ -5,6 +5,7 @@ import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRe
 import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
 import { useState } from 'react';
 import Toast from '@/components/Toast';
+import { usePoints } from '@/features/cart/hooks/usePoints';
 
 
 
@@ -15,6 +16,9 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   const { patchApproveMutation, patchRejectMutation } = useRequestMutations()
   const [resultMessage, setResultMessage] = useState("")
   const [showAlert, setShowAlert] = useState(true)
+  const [pointAmount, setPointAmount] = useState(0)
+  const { data: balancePointData } = usePoints();
+  const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
   const isApprove = mode === 'approve'
   const isApproveBlock = isApprove && data?.isOverBudget
@@ -23,8 +27,9 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
 
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation
 
+
   const handleSubmit = () => {
-    mutation.mutate({ id: requestId, resultMessage }, {
+    mutation.mutate({ id: requestId, resultMessage, requestPointAmount: isApprove ? pointAmount : 0, }, {
       onSuccess: () => {
         alert('성공했습니다.')
         onclose()
@@ -43,6 +48,16 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   if (isError) return (
     <div>에러...</div>
   )
+
+  const safePointAmount = Number.isFinite(pointAmount) ? pointAmount : 0;
+  const previewPaidAmount = Math.max(data.requestAmount - safePointAmount, 0);
+  const previewPaidAmountWithoutShipping = Math.max(
+    previewPaidAmount - data.shippingFee,
+    0
+  );
+  const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
+  const previewAfterBudget = data.remained - previewPaidAmount;
+
   return (
     <>{isShowAlert && (
       <div className="fixed left-1/2 top-6 z-[60] w-[calc(100%-3rem)] max-w-[1152px] -translate-x-1/2">
@@ -147,12 +162,33 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                     <p>배송비</p>
                     <p>{data.shippingFee.toLocaleString()}</p>
                   </div>
+                  <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
+                    <div className="flex w-full items-center justify-end gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={Math.min(pointBalance, data.requestAmount)}
+                        value={pointAmount}
+                        onChange={(e) => setPointAmount(Number(e.target.value))}
+                        className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+                      />
+                      <span className="text-[16px] font-bold text-gray-600">
+                        {`/ ${pointBalance.toLocaleString()} P`}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 text-[16px] font-bold text-gray-700">
+                      <p>적립 예정: {previewReward.toLocaleString()} P</p>
+                      <p className="text-[20px] font-extrabold text-black">
+                        실결제액: {previewPaidAmount.toLocaleString()}원
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex w-full items-center justify-between px-2 text-gray-950">
                     <p className="text-[18px] font-bold tracking-[-0.45px] max-sm:text-[16px] max-sm:tracking-[-0.4px]">
                       총 주문금액
                     </p>
                     <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                      {data.requestAmount.toLocaleString()}
+                      {previewPaidAmount.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -165,7 +201,7 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                   남은 예산 금액
                 </p>
                 <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                  {data.afterBudget.toLocaleString()}
+                  {previewAfterBudget.toLocaleString()}
                 </p>
               </div>
 
