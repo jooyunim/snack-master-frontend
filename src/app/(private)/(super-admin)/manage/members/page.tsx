@@ -54,8 +54,9 @@ export default function MembersPage() {
   const [successAlert, setSuccessAlert] = useState<
     'invite' | 'editRole' | null
   >(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const debouncedSearch = useDebounce(search, 300); // 300ms 딜레이 후 검색
+  const debouncedSearch = useDebounce(search, 300).trim(); // 300ms 딜레이 후 검색 (API 전송 시에만 trim)
 
   const openInviteModal = () => {
     setOpenMenuMemberId(null);
@@ -92,10 +93,16 @@ export default function MembersPage() {
     page: number,
     pageSize: number
   ): Promise<MembersResponse> => {
-    return await apiFetch<MembersResponse>(
-      `/members?page=${page}&pageSize=${pageSize}&search=${search}`
-    );
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (search) params.set('search', search);
+    return await apiFetch<MembersResponse>(`/members?${params.toString()}`);
   };
+
+  const getErrorMessage = (error: unknown, fallback: string) =>
+    error instanceof Error && error.message ? error.message : fallback;
 
   const { data, isLoading, isError, refetch } = useQuery<MembersResponse>({
     queryKey: ['members', debouncedSearch, page, pageSize],
@@ -130,6 +137,9 @@ export default function MembersPage() {
         setSuccessAlert('invite');
         refetch();
       },
+      onError: (error) => {
+        setErrorMessage(getErrorMessage(error, '회원 초대에 실패했습니다.'));
+      },
     });
 
   const updateMemberRole = async (id: string, role: MemberRole) => {
@@ -161,6 +171,9 @@ export default function MembersPage() {
         }
       );
     },
+    onError: (error) => {
+      setErrorMessage(getErrorMessage(error, '권한 변경에 실패했습니다.'));
+    },
   });
 
   const deleteMember = async (id: string) => {
@@ -175,6 +188,9 @@ export default function MembersPage() {
       onSuccess: () => {
         closeDeleteAlert();
         refetch();
+      },
+      onError: (error) => {
+        setErrorMessage(getErrorMessage(error, '회원 탈퇴에 실패했습니다.'));
       },
     });
 
@@ -246,7 +262,7 @@ export default function MembersPage() {
           <input
             value={search}
             onChange={(e) => {
-              setSearch(e.target.value.trim());
+              setSearch(e.target.value);
               setPage(1);
             }}
             type="search"
@@ -487,6 +503,24 @@ export default function MembersPage() {
               confirmLabel="확인"
               showCancel={false}
               onConfirm={() => setSuccessAlert(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6"
+          onClick={() => setErrorMessage(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <AlertModal
+              icon={icWarning}
+              title="요청 실패"
+              content={errorMessage}
+              confirmLabel="확인"
+              showCancel={false}
+              onConfirm={() => setErrorMessage(null)}
             />
           </div>
         </div>

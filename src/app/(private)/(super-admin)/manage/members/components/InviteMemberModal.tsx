@@ -17,7 +17,6 @@ type RoleOption = {
 const ROLE_OPTIONS: RoleOption[] = [
   { value: 'USER', label: '일반 사용자' },
   { value: 'ADMIN', label: '관리자' },
-  { value: 'SUPER_ADMIN', label: '최고 관리자' },
 ];
 
 type InviteMemberModalProps = {
