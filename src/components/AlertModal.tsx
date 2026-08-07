@@ -12,6 +12,8 @@ type AlertModalProps = {
   onCancel?: () => void;
   onConfirm?: () => void;
   confirmDisabled?: boolean;
+  /** false면 확인 버튼만 표시 (성공 안내 등) */
+  showCancel?: boolean;
 };
 
 const DEFAULT_TITLE = '승인 완료';
@@ -30,6 +32,7 @@ export default function AlertModal({
   onCancel,
   onConfirm,
   confirmDisabled = false,
+  showCancel = true,
 }: AlertModalProps) {
   return (
     <div
@@ -59,14 +62,16 @@ export default function AlertModal({
       </div>
 
       <div className="flex w-full items-center gap-5 max-sm:gap-2.5">
-        <Button
-          type="button"
-          variant="line"
-          onClick={onCancel}
-          className="min-w-0 flex-1 max-sm:h-[50px] max-sm:text-[14px] max-sm:tracking-[-0.35px]"
-        >
-          {cancelLabel}
-        </Button>
+        {showCancel && (
+          <Button
+            type="button"
+            variant="line"
+            onClick={onCancel}
+            className="min-w-0 flex-1 max-sm:h-[50px] max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+          >
+            {cancelLabel}
+          </Button>
+        )}
         <Button
           type="button"
           variant="filled"
@@ -80,15 +85,3 @@ export default function AlertModal({
     </div>
   );
 }
-
-// import icAlert from '@/assets/icons/ic_!.svg';
-// import iconX from '@/assets/icons/icon_X.svg';
-//
-// <AlertModal icon={icAlert} />
-// <AlertModal
-//   icon={iconX}
-//   title="회원 탈퇴"
-//   content={"정말 탈퇴시키겠습니까?\n탈퇴 후 복구할 수 없습니다."}
-//   cancelLabel="취소"
-//   confirmLabel="탈퇴시키기"
-// />
