@@ -40,6 +40,12 @@ type MembersResponse = {
 //아바타용 이니셜 뽑는 함수
 const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
 
+const getMemberBadgeVariant = (role: MemberRole) => {
+  if (role === 'ADMIN') return 'admin';
+  if (role === 'SUPER_ADMIN') return 'superAdmin';
+  return 'member';
+};
+
 export default function MembersPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -334,13 +340,7 @@ export default function MembersPage() {
 
                   <div className="flex w-[72px] shrink-0 justify-center">
                     <Badge
-                      variant={
-                        member.role === 'ADMIN'
-                          ? 'admin'
-                          : member.role === 'SUPER_ADMIN'
-                            ? 'superAdmin'
-                            : 'member'
-                      }
+                      variant={getMemberBadgeVariant(member.role)}
                       className="w-16"
                     />
                   </div>
@@ -387,7 +387,7 @@ export default function MembersPage() {
                           {member.name}
                         </span>
                         <Badge
-                          variant={member.role === 'ADMIN' ? 'admin' : 'member'}
+                          variant={getMemberBadgeVariant(member.role)}
                           size="sm"
                         />
                       </div>

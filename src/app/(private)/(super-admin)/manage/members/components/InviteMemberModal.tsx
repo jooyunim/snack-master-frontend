@@ -63,10 +63,15 @@ export default function InviteMemberModal({
     setIsRoleDropdownOpen(false);
   };
 
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  const isInviteInvalid = !isEditRole && (!trimmedName || !trimmedEmail);
+
   const handleConfirm = () => {
+    if (isInviteInvalid) return;
     onConfirm({
-      email: email.trim(),
-      name: name.trim(),
+      email: trimmedEmail,
+      name: trimmedName,
       role: selectedRole.value,
     });
   };
@@ -135,7 +140,7 @@ export default function InviteMemberModal({
               </span>
               <span className="relative size-4 shrink-0 overflow-hidden">
                 <Image
-                  src={isRoleDropdownOpen ? icChevronDown : icChevronUp}
+                  src={isRoleDropdownOpen ? icChevronUp : icChevronDown}
                   alt=""
                   fill
                   className="object-contain"
@@ -185,7 +190,7 @@ export default function InviteMemberModal({
             variant="filled"
             className="min-w-0 flex-1"
             onClick={handleConfirm}
-            disabled={isPending}
+            disabled={isPending || isInviteInvalid}
           >
             {confirmLabel}
           </Button>
