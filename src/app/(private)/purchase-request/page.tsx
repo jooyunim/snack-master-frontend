@@ -250,7 +250,7 @@ export default function PurchaseRequestPage() {
               })}
           </ul>
 
-          <Pagination />
+          <Pagination page={1} totalPages={1} onPageChange={() => {}} />
         </div>
       </main>
 
