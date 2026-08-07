@@ -1,16 +1,17 @@
-"use client"
+'use client';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
-import { ModalState, sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
+import {
+  ModalState,
+  sortByOption,
+} from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
 import Link from 'next/link';
 
-
 export default function PurchaseRequestManagePage() {
-
   const SORT_OPTIONS: SortOption[] = [
     { label: '최신순', value: 'recent' },
     { label: '낮은 가격순', value: 'price_asc' },
@@ -41,7 +42,11 @@ export default function PurchaseRequestManagePage() {
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-black max-sm:text-[16px] max-sm:tracking-[-0.4px]">
             구매 요청 관리
           </h1>
-          <SortDropdown options={SORT_OPTIONS} value={sortBy} onChange={(value) => setsortBy(value as sortByOption)} />
+          <SortDropdown
+            options={SORT_OPTIONS}
+            value={sortBy}
+            onChange={(value) => setsortBy(value as sortByOption)}
+          />
         </div>
 
         <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
@@ -155,8 +160,17 @@ export default function PurchaseRequestManagePage() {
               </li>
             ))}
           </ul>
-          {modalState && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"> <PurchaseRequestModal requestId={modalState.requestId} mode={modalState.action} onclose={() => setModalState(null)} /></div>}
-          <Pagination />
+          {modalState && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              {' '}
+              <PurchaseRequestModal
+                requestId={modalState.requestId}
+                mode={modalState.action}
+                onclose={() => setModalState(null)}
+              />
+            </div>
+          )}
+          <Pagination page={1} totalPages={1} onPageChange={() => {}} />
         </div>
       </main>
     </div>

@@ -1,3 +1,5 @@
+import type { OrderStatus } from './purchase.types';
+
 export function formatWon(amount?: number | null) {
   return `${(amount ?? 0).toLocaleString('ko-KR')}원`;
 }
@@ -15,7 +17,7 @@ export function formatDate(iso: string | null) {
   return `${y}. ${m}. ${day}`;
 }
 
-export function statusLabel(status: string) {
+export function statusLabel(status: OrderStatus): string {
   switch (status) {
     case 'APPROVED':
       return '승인 완료';
@@ -27,7 +29,11 @@ export function statusLabel(status: string) {
       return '요청 취소';
     case 'REFUNDED':
       return '환불';
-    default:
-      return status;
   }
+}
+
+export function formatProductName(items: { productName: string }[]) {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0].productName;
+  return `${items[0].productName} 외 ${items.length - 1}건`;
 }

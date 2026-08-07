@@ -7,11 +7,13 @@ import type {
 
 export async function getMyPurchaseRequests(
   page = 1,
-  pageSize = 10
+  pageSize = 10,
+  sortBy = 'recent'
 ): Promise<MyPurchaseRequestListResponse['data']> {
   const params = new URLSearchParams({
     page: String(page),
     pageSize: String(pageSize),
+    sortBy,
   });
 
   return apiFetch<MyPurchaseRequestListResponse['data']>(
