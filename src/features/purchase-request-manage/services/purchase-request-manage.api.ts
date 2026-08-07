@@ -6,7 +6,7 @@ export async function getPurchaseRequestManageList(
     sortBy?: sortByOption
 ): Promise<purchaseRequestManage[]> {
     const query = sortBy ? `?sortBy=${sortBy}` : ``;
-    return apiFetch<purchaseRequestManage[]>(`/purchase-requests${query}`)
+    return apiFetch<purchaseRequestManage[]>(`/purchase-requests/${query}`)
 }
 
 export async function getPurchaseRequestManageDetail(id: number): Promise<purchaseRequestManageDetail> {

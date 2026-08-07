@@ -6,7 +6,6 @@ import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequ
 import { ModalState, sortByOption } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 
@@ -30,7 +29,6 @@ export default function PurchaseRequestManagePage() {
   const [sortBy, setsortBy] = useState<sortByOption>('recent')
   const [modalState, setModalState] = useState<ModalState | null>(null)
   const { data, isPending, isError } = useRequestList(sortBy)
-  const router = useRouter()
 
 
   if (isPending) return <div>로딩 중...</div>
@@ -66,8 +64,6 @@ export default function PurchaseRequestManagePage() {
                 비고
               </span>
             </div>
-
-
 
             <ul className="flex w-full min-w-[1100px] flex-col max-lg:min-w-[696px]">
               {data.map((request) => (
@@ -124,10 +120,14 @@ export default function PurchaseRequestManagePage() {
                 key={request.id}
                 className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
               >
+                <Link
+                  href={`/purchase-request-manage/${request.id}`}
+                  className="flex flex-1 items-center gap-20"
+                ></Link>
                 <div className="flex w-full flex-col gap-2.5">
                   <div className="flex w-full items-center justify-between pr-1">
                     <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
-                      {request.requestedAt}
+                      {formatDate(request.requestedAt)}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[14px] tracking-[-0.35px] text-gray-950">
@@ -145,10 +145,10 @@ export default function PurchaseRequestManagePage() {
                   </div>
                 </div>
                 <div className="flex w-full items-center gap-2">
-                  <Button variant="sub" className="min-w-0 flex-1">
+                  <Button variant="sub" className="min-w-0 flex-1" onClick={() => setModalState({ requestId: request.id, action: 'reject' })}>
                     반려
                   </Button>
-                  <Button variant="filled" size="sm" className="min-w-0 flex-1">
+                  <Button variant="filled" size="sm" className="min-w-0 flex-1" onClick={() => setModalState({ requestId: request.id, action: 'approve' })}>
                     승인
                   </Button>
                 </div>

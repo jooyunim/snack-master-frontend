@@ -66,8 +66,6 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
   const previewAfterBudget = data.remained - previewPaidAmount;
 
   const handleApprove = () => {
-    console.log("🔥 [승인 클릭 시점 포인트 State]:", pointAmount);
-    console.log("🔥 [승인 클릭 시점 safePointAmount]:", safePointAmount);
     patchApproveMutation.mutate({ id: requestId, resultMessage: "", requestPointAmount: safePointAmount }, {
       onSuccess: () => {
         setShowApproveModal(true)
