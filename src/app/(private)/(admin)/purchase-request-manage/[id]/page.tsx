@@ -66,6 +66,8 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
   const previewAfterBudget = data.remained - previewPaidAmount;
 
   const handleApprove = () => {
+    console.log("🔥 [승인 클릭 시점 포인트 State]:", pointAmount);
+    console.log("🔥 [승인 클릭 시점 safePointAmount]:", safePointAmount);
     patchApproveMutation.mutate({ id: requestId, resultMessage: "", requestPointAmount: safePointAmount }, {
       onSuccess: () => {
         setShowApproveModal(true)
@@ -91,7 +93,6 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px] max-sm:pb-[136px]">
         <h1 className="w-full text-[18px] font-bold tracking-[-0.45px] text-gray-950">
           구매 요청 상세
-          {pointBalance}
         </h1>
         {isOverBudget && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] w-[1152px]">
           <Toast
@@ -113,9 +114,8 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
         <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
           <div className="flex w-full items-center justify-end gap-2">
             <input
-              type="number"
+              type="text"
               min={0}
-              max={Math.min(pointBalance, data.requestAmount)}
               value={pointAmount}
               onChange={(e) => setPointAmount(Number(e.target.value))}
               className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"

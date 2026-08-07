@@ -152,7 +152,6 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                     </li>
                   ))}
                 </ul>
-
                 <div className="flex w-full flex-col gap-2.5">
                   <div className="flex w-full items-center justify-between px-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700">
                     <p>주문금액</p>
@@ -162,27 +161,33 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
                     <p>배송비</p>
                     <p>{data.shippingFee.toLocaleString()}</p>
                   </div>
-                  <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
-                    <div className="flex w-full items-center justify-end gap-2">
-                      <input
-                        type="number"
-                        min={0}
-                        max={Math.min(pointBalance, data.requestAmount)}
-                        value={pointAmount}
-                        onChange={(e) => setPointAmount(Number(e.target.value))}
-                        className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
-                      />
-                      <span className="text-[16px] font-bold text-gray-600">
-                        {`/ ${pointBalance.toLocaleString()} P`}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 text-[16px] font-bold text-gray-700">
-                      <p>적립 예정: {previewReward.toLocaleString()} P</p>
-                      <p className="text-[20px] font-extrabold text-black">
-                        실결제액: {previewPaidAmount.toLocaleString()}원
-                      </p>
-                    </div>
-                  </div>
+                  {isApprove && (
+                    <>
+                      <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
+                        <div className="flex w-full items-center justify-end gap-2">
+                          <input
+                            type="text"
+                            min={0}
+                            max={Math.min(pointBalance, data.requestAmount)}
+                            value={pointAmount}
+                            onChange={(e) => setPointAmount(Number(e.target.value))}
+                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+                          />
+                          <span className="text-[16px] font-bold text-gray-600">
+                            {`/ ${pointBalance.toLocaleString()} P`}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 text-[16px] font-bold text-gray-700">
+                          <p>적립 예정: {previewReward.toLocaleString()} P</p>
+                          <p className="text-[20px] font-extrabold text-black">
+                            실결제액: {previewPaidAmount.toLocaleString()}원
+                          </p>
+                        </div>
+                      </div>
+
+                    </>
+                  )}
+
                   <div className="flex w-full items-center justify-between px-2 text-gray-950">
                     <p className="text-[18px] font-bold tracking-[-0.45px] max-sm:text-[16px] max-sm:tracking-[-0.4px]">
                       총 주문금액
