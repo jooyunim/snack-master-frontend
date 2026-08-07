@@ -1,11 +1,15 @@
 'use client';
 
+import { useState } from 'react';
+import AlertModal from '@/components/AlertModal';
 import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
+import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useCancelPurchaseRequest';
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
+import iconX from '@/assets/icons/icon_X.svg';
 
 const STATUS_BADGE = {
   PENDING: { variant: 'pending', label: '대기 중' },
@@ -20,6 +24,7 @@ function formatDate(date: string) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    timeZone: 'Asia/Seoul',
   }).format(new Date(date));
 }
 
@@ -41,9 +46,44 @@ function getStatusBadge(status: PurchaseRequestStatus) {
 
 export default function PurchaseRequestPage() {
   const page = 1;
+  const [sortBy, setSortBy] = useState('recent');
+  const [cancelRequestId, setCancelRequestId] = useState<number | null>(null);
   const pageSize = 10;
+  const cancelMutation = useCancelPurchaseRequest();
 
-  const { data, isLoading, isError } = useMyPurchaseRequests(page, pageSize);
+  const handleSortChange = (nextSortBy: string) => {
+    setSortBy(nextSortBy);
+  };
+
+  const openCancelModal = (purchaseRequestId: number) => {
+    cancelMutation.reset();
+    setCancelRequestId(purchaseRequestId);
+  };
+
+  const closeCancelModal = () => {
+    if (!cancelMutation.isPending) {
+      setCancelRequestId(null);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (cancelRequestId === null) {
+      return;
+    }
+
+    try {
+      await cancelMutation.mutateAsync(cancelRequestId);
+      setCancelRequestId(null);
+    } catch {
+      // 오류 메시지는 확인 모달 안에서 표시합니다.
+    }
+  };
+
+  const { data, isLoading, isError } = useMyPurchaseRequests(
+    page,
+    pageSize,
+    sortBy
+  );
 
   const requests = data?.purchaseRequests ?? [];
 
@@ -54,7 +94,15 @@ export default function PurchaseRequestPage() {
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-black max-sm:text-[16px] max-sm:tracking-[-0.4px]">
             구매 요청 내역
           </h1>
-          <SortDropdown />
+          <SortDropdown
+            value={sortBy}
+            options={[
+              { label: '최신순', value: 'recent' },
+              { label: '낮은 가격순', value: 'price_asc' },
+              { label: '높은 가격순', value: 'price_desc' },
+            ]}
+            onChange={handleSortChange}
+          />
         </div>
 
         <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
@@ -124,7 +172,12 @@ export default function PurchaseRequestPage() {
 
                   <div className="flex w-[126px] shrink-0 flex-col items-start">
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -182,7 +235,13 @@ export default function PurchaseRequestPage() {
                     </div>
 
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" size="sm" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -194,6 +253,25 @@ export default function PurchaseRequestPage() {
           <Pagination page={1} totalPages={1} onPageChange={() => {}} />
         </div>
       </main>
+
+      {cancelRequestId !== null ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="요청 취소"
+            content={
+              cancelMutation.isError
+                ? '구매 요청을 취소하지 못했습니다.\n잠시 후 다시 시도해주세요.'
+                : '구매 요청을 취소하시겠습니까?'
+            }
+            cancelLabel="돌아가기"
+            confirmLabel={cancelMutation.isPending ? '취소 중...' : '요청 취소'}
+            confirmDisabled={cancelMutation.isPending}
+            onCancel={closeCancelModal}
+            onConfirm={handleCancelRequest}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

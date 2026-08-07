@@ -28,6 +28,7 @@ export default function Pagination({
       <div className="flex items-center gap-[30px]">
         <button
           type="button"
+          disabled={isFirst}
           onClick={() => {
             if (!isFirst) onPageChange(page - 1);
           }}
