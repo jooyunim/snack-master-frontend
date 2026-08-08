@@ -38,7 +38,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}.${month}.${day}`;
   }
-  const isOverBudget = showAlert && data?.isOverBudget
+
   if (isPending) return (
     <div>로딩중...</div>
   )
@@ -64,6 +64,9 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
   );
   const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
   const previewAfterBudget = data.remained - previewPaidAmount;
+
+  const isOverBudgetAfterPoint = previewAfterBudget < 0
+  const isOverBudget = showAlert && isOverBudgetAfterPoint
 
   const handleApprove = () => {
     patchApproveMutation.mutate({ id: requestId, resultMessage: "", requestPointAmount: safePointAmount }, {
@@ -172,7 +175,7 @@ export default function PurchaseRequestManageDetailPage({ params }: { params: Pr
             요청 반려
           </Button>
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1 max-sm:shrink">
-            <Button variant="filled" className="w-full" onClick={handleApprove} disabled={data?.isOverBudget}>
+            <Button variant="filled" className="w-full" onClick={handleApprove} disabled={isOverBudgetAfterPoint}>
               요청 승인
             </Button>
           </div>

@@ -21,8 +21,8 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
   const isApprove = mode === 'approve'
-  const isApproveBlock = isApprove && data?.isOverBudget
-  const isShowAlert = isApproveBlock && showAlert
+
+
 
 
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation
@@ -57,6 +57,10 @@ export default function PurchaseRequestModal({ requestId, onclose, mode }: { req
   );
   const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
   const previewAfterBudget = data.remained - previewPaidAmount;
+
+  const isOverBudgetAfterPoints = previewAfterBudget < 0;
+  const isApproveBlock = isApprove && isOverBudgetAfterPoints;
+  const isShowAlert = isApproveBlock && showAlert
 
   return (
     <>{isShowAlert && (
