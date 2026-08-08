@@ -13,6 +13,7 @@ import type { OrderDetail } from '@/features/purchase/purchase.types';
 import { formatDate, formatWon, statusLabel } from '@/features/purchase/format';
 import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
 import PurchaseDetailError from '../components/PurchaseDetailError';
+import PaymentSummary from '@/components/PaymentSummary';
 
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
@@ -44,42 +45,40 @@ export default function PurchaseDetailPage() {
 
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
   const [itemsOpen, setItemsOpen] = useState(true);
-  
-  
 
   useEffect(() => {
     if (!isValidId) return;
-  
+
     let cancelled = false;
-  
-    setOrder(null);
-    setError(null);
-    setLoading(true);
-  
+
     getOrderById(orderId)
       .then((data) => {
-        if (!cancelled) setOrder(data);
+        if (cancelled) return;
+        setOrder(data);
+        setError(null);
+        setLoading(false);
       })
       .catch(() => {
-        if (!cancelled) setError('구매 내역을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setOrder(null);
+        setError('구매 내역을 불러오지 못했습니다.');
+        setLoading(false);
       });
-  
+
     return () => {
       cancelled = true;
     };
   }, [orderId, isValidId]);
 
-  
   if (!isValidId) {
-    return (
-      <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />
-    );
+    return <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />;
   }
 
-  if (loading) {
+  if (
+    loading ||
+    (!order && !error) ||
+    (order !== null && order.id !== orderId)
+  ) {
     return <PurchaseDetailLoading />;
   }
 
@@ -87,7 +86,7 @@ export default function PurchaseDetailPage() {
     return <PurchaseDetailError message={error} />;
   }
 
-  if (!order || order.id !== orderId) {
+  if (!order) {
     return <PurchaseDetailLoading />;
   }
 
@@ -134,7 +133,12 @@ export default function PurchaseDetailPage() {
             </div>
           ) : null}
         </div>
-        
+
+        <PaymentSummary
+          pointsUsed={`${(order.pointsUsed ?? 0).toLocaleString('ko-KR')} P`}
+          pointsEarned={`${(order.pointsEarned ?? 0).toLocaleString('ko-KR')} P`}
+          paidAmount={formatWon(order.paidAmount)}
+        />
 
         <InfoSection
           title="요청 정보"
@@ -181,8 +185,6 @@ export default function PurchaseDetailPage() {
             },
           ]}
         />
-
-        
       </main>
     </div>
   );
