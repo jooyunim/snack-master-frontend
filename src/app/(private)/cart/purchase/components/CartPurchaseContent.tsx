@@ -41,7 +41,7 @@ export default function CartPurchaseContent({
   const orderItems: RequestItem[] = selectedItems.map((item) => ({
     id: item.id,
     name: item.productName,
-    unitPrice: formatPrice(item.price),
+    price: formatPrice(item.price),
     quantity: `수량 ${item.quantity}개`,
     totalPrice: formatPrice(item.price * item.quantity),
     imageSrc: item.imageUrl,
