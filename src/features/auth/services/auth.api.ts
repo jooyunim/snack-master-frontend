@@ -100,3 +100,34 @@ export const refreshAccessToken = async (): Promise<string> => {
   })().finally(() => (refreshPromise = null));
   return refreshPromise;
 };
+
+export const adminSignupApi = async (
+  email: string,
+  name: string,
+  password: string,
+  passwordConfirm: string,
+  companyName: string,
+  businessNumber: string
+): Promise<void> => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/signup-admin`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        name,
+        password,
+        passwordConfirm,
+        companyName,
+        businessNumber,
+      }),
+    }
+  );
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '회원가입에 실패하였습니다.');
+  }
+};

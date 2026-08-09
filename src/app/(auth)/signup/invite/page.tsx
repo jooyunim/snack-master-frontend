@@ -9,40 +9,22 @@ import Input from '@/components/Input';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-const PASSWORD_REGEX =
-  /^(?=(?:.*[A-Za-z].*[0-9])|(?=.*[A-Za-z].*[@$!%*?&])|(?=.*[0-9].*[@$!%*?&]))[A-Za-z\d@$!%*?&]{8,}$/;
+import { inviteSignupSchema } from '@/features/auth/schemas/auth';
 
 const getPasswordError = (password: string, passwordConfirm: string) => {
-  if (!password) {
-    return { field: 'password' as const, message: '비밀번호 값이 필요합니다.' };
+  const result = inviteSignupSchema.safeParse({ password, passwordConfirm });
+  if (result.success) {
+    return null;
   }
-  if (!passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호 확인 값이 필요합니다.',
-    };
-  }
-  if (password !== passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호와 비밀번호 확인 값이 일치하지 않습니다.',
-    };
-  }
-  if (password.length < 8 || password.length > 20) {
-    return {
-      field: 'password' as const,
-      message: '비밀번호는 8자 이상 20자 이하여야 합니다.',
-    };
-  }
-  if (!PASSWORD_REGEX.test(password)) {
-    return {
-      field: 'password' as const,
-      message:
-        '비밀번호는 영문, 숫자, 특수문자 중 두 가지 이상 포함해야 합니다.',
-    };
-  }
-  return null;
+
+  const issue = result.error.issues[0];
+  const field =
+    issue?.path[0] === 'passwordConfirm' ? 'passwordConfirm' : 'password';
+
+  return {
+    field: field as 'password' | 'passwordConfirm',
+    message: issue?.message ?? '비밀번호를 확인해 주세요.',
+  };
 };
 
 const SignupPage = () => {
