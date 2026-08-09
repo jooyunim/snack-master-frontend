@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import icCheckboxActive from '@/assets/icons/Property 1=active.svg';
 import icCheckboxInactive from '@/assets/icons/Property 1=normal.svg';
+import iconX from '@/assets/icons/icon_X.svg';
+import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import CartStepIndicator, {
   type CartFlow,
@@ -17,6 +19,7 @@ import { useState } from 'react';
 import { useCarts } from '@/features/cart/hooks/useCarts';
 import { useDeleteCartItems } from '@/features/cart/hooks/useDeleteCartItems';
 import { usePatchQuantity } from '@/features/cart/hooks/usePatchQuantity';
+import { useInstantPurchase } from '@/features/cart/hooks/useInstantPurchase';
 
 function CheckboxIcon({
   checked,
@@ -45,6 +48,7 @@ function CheckboxIcon({
 
 export default function CartPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmItemId, setConfirmItemId] = useState<number | null>(null);
 
   const router = useRouter();
 
@@ -110,6 +114,26 @@ export default function CartPage() {
       return;
     }
     router.push(`/cart/order?cartItemIds=${selectedIds.join(',')}`);
+  };
+
+  const { mutate: instantPurchase, isPending: isInstantPurchasePending } =
+    useInstantPurchase();
+
+  const closeConfirmModal = () => {
+    if (isInstantPurchasePending) return;
+    setConfirmItemId(null);
+  };
+
+  const handleConfirmInstantPurchase = () => {
+    if (confirmItemId === null) return;
+    instantPurchase([confirmItemId], {
+      onSuccess: () => {
+        setSelectedIds((prev) =>
+          prev.filter((itemId) => itemId !== confirmItemId)
+        );
+        setConfirmItemId(null);
+      },
+    });
   };
 
   if (!isAuthChecked) {
@@ -231,13 +255,20 @@ export default function CartPage() {
                       <p className="text-[14px] tracking-[-0.35px] text-gray-600 max-sm:text-[13px] max-sm:tracking-[-0.325px]">
                         배송비 {formatPrice(shippingFee)}
                       </p>
-                      {/* {추후에 구현될 때 사용할 버튼} */}
-                      {/* <Button
-                        variant="sub"
-                        className="w-[99px] max-sm:w-[88px] max-sm:text-[13px] max-sm:tracking-[-0.325px]"
-                      >
-                        바로 요청
-                      </Button> */}
+                      {cartFlow === 'purchase' && (
+                        <Button
+                          variant="sub"
+                          className="w-[99px] max-sm:w-[88px] max-sm:text-[13px] max-sm:tracking-[-0.325px]"
+                          onClick={() => setConfirmItemId(item.id)}
+                          disabled={
+                            selectedItems.length === 0 ||
+                            isPatchCartQuantityPending ||
+                            isInstantPurchasePending
+                          }
+                        >
+                          바로 구매
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -268,7 +299,9 @@ export default function CartPage() {
             <Button
               onClick={() => handleGoToOrder(selectedIds)}
               disabled={
-                selectedItems.length === 0 || isPatchCartQuantityPending
+                selectedItems.length === 0 ||
+                isPatchCartQuantityPending ||
+                isInstantPurchasePending
               }
               variant="filled"
               className="w-full"
@@ -278,6 +311,23 @@ export default function CartPage() {
           </div>
         </section>
       </main>
+
+      {confirmItemId !== null ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="바로 구매"
+            content={
+              '선택한 상품을 바로 구매하시겠습니까?\n포인트 사용 없이 예산에서 즉시 결제됩니다.'
+            }
+            cancelLabel="돌아가기"
+            confirmLabel={isInstantPurchasePending ? '구매 중...' : '구매하기'}
+            confirmDisabled={isInstantPurchasePending}
+            onCancel={closeConfirmModal}
+            onConfirm={handleConfirmInstantPurchase}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -29,3 +29,14 @@ export const patchCartItems = async (id: number, quantity: number) => {
 
   return res;
 };
+
+export type InstantPurchaseResult = {
+  id: number;
+};
+
+export const instantPurchase = async (cartItemIds: number[]) => {
+  return apiFetch<InstantPurchaseResult>('/cart/instant', {
+    method: 'POST',
+    body: JSON.stringify({ cartItemIds }),
+  });
+};
