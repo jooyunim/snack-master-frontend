@@ -1,11 +1,13 @@
 import { apiFetch } from '@/lib/api';
 import { User } from '../types/auth.types';
 
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
+
 export const loginApi = async (
   email: string,
   password: string
 ): Promise<User> => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
+  const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,16 +34,13 @@ export const loginApi = async (
 
 export const logoutApi = async (): Promise<void> => {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      }
-    );
+    const res = await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
     if (!res.ok) {
       const error = await res.json().catch(() => null);
       throw new Error(error?.message || '로그아웃에 실패했습니다.');
@@ -74,16 +73,13 @@ export const refreshAccessToken = async (): Promise<string> => {
   }
 
   refreshPromise = (async () => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      }
-    );
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
 
     if (!res.ok) {
       throw new Error('access token 재발급에 실패했습니다.');
@@ -109,25 +105,59 @@ export const adminSignupApi = async (
   companyName: string,
   businessNumber: string
 ): Promise<void> => {
+  const res = await fetch(`${API_BASE}/auth/signup-admin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      name,
+      password,
+      passwordConfirm,
+      companyName,
+      businessNumber,
+    }),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '회원가입에 실패하였습니다.');
+  }
+};
+
+export const inviteSignupApi = async (
+  token: string,
+  password: string,
+  passwordConfirm: string
+) => {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/signup-admin`,
+    `${API_BASE}/auth/signup?token=${encodeURIComponent(token)}`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        email,
-        name,
-        password,
-        passwordConfirm,
-        companyName,
-        businessNumber,
-      }),
+      body: JSON.stringify({ password, passwordConfirm }),
     }
   );
   if (!res.ok) {
     const error = await res.json().catch(() => null);
     throw new Error(error?.message || '회원가입에 실패하였습니다.');
   }
+};
+
+export const getEmailNameApi = async (token: string) => {
+  const res = await fetch(
+    `${API_BASE}/auth/email-name?token=${encodeURIComponent(token)}`
+  );
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(
+      error?.message || '서버로부터 이름, 이메일 값을 가져오는데 실패했습니다.'
+    );
+  }
+
+  const data = await res.json();
+  return data.data;
 };
