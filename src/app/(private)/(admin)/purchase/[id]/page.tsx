@@ -54,6 +54,14 @@ export default function PurchaseDetailPage() {
     getOrderById(orderId)
       .then((data) => {
         if (cancelled) return;
+
+        if (data.id !== orderId) {
+          setOrder(null);
+          setError('구매 내역을 불러오지 못했습니다.');
+          setLoading(false);
+          return;
+        }
+
         setOrder(data);
         setError(null);
         setLoading(false);
