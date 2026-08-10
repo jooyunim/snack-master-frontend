@@ -226,6 +226,7 @@ export default function PurchaseRequestManageDetailPage({
             variant="line"
             className="min-w-0 flex-1"
             onClick={handleReject}
+            disabled={isMutating}
           >
             요청 반려
           </Button>
