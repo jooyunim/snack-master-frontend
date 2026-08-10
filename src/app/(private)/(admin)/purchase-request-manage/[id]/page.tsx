@@ -20,7 +20,12 @@ export default function PurchaseRequestManageDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const requestId = Number(id);
+  const parsedRequestId = Number(id);
+  const requestId =
+    Number.isSafeInteger(parsedRequestId) && parsedRequestId > 0
+      ? parsedRequestId
+      : null;
+
   const { data, isPending, isError } = useRequestDetail(requestId);
   const { patchApproveMutation } = useRequestMutations();
   const { patchRejectMutation } = useRequestMutations();
@@ -38,6 +43,12 @@ export default function PurchaseRequestManageDetailPage({
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}.${month}.${day}`;
+  }
+  const isMutating =
+    patchApproveMutation.isPending || patchRejectMutation.isPending;
+
+  if (requestId === null) {
+    return <div>잘못된 구매 요청입니다.</div>;
   }
 
   if (isPending) return <div>로딩중...</div>;
@@ -122,6 +133,7 @@ export default function PurchaseRequestManageDetailPage({
           <div className="flex w-full items-center justify-end gap-2">
             <input
               type="number"
+              aria-label="사용 포인트"
               min={0}
               max={maxPoint}
               value={pointAmount}
@@ -222,7 +234,7 @@ export default function PurchaseRequestManageDetailPage({
               variant="filled"
               className="w-full"
               onClick={handleApprove}
-              disabled={isOverBudgetAfterPoint}
+              disabled={isOverBudgetAfterPoint || isMutating}
             >
               요청 승인
             </Button>

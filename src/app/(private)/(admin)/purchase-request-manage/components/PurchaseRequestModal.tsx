@@ -180,6 +180,7 @@ export default function PurchaseRequestModal({
                         <div className="flex w-full items-center justify-end gap-2">
                           <input
                             type="number"
+                            aria-label="사용 포인트"
                             min={0}
                             max={maxPoint}
                             value={pointAmount}
@@ -249,7 +250,7 @@ export default function PurchaseRequestModal({
               variant="filled"
               className="min-w-0 flex-1"
               onClick={handleSubmit}
-              disabled={isApproveBlock}
+              disabled={isApproveBlock || mutation.isPending}
             >
               {isApprove ? '승인하기' : '반려하기'}
             </Button>
