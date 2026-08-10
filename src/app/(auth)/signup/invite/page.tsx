@@ -3,46 +3,37 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '@/assets/icons/logo.svg';
+import icWarning from '@/assets/icons/ic_!.svg';
+import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import Gnb from '@/components/Gnb';
 import Input from '@/components/Input';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { inviteSignupSchema } from '@/features/auth/schemas/auth';
+import {
+  getEmailNameApi,
+  inviteSignupApi,
+} from '@/features/auth/services/auth.api';
 
-const PASSWORD_REGEX =
-  /^(?=(?:.*[A-Za-z].*[0-9])|(?=.*[A-Za-z].*[@$!%*?&])|(?=.*[0-9].*[@$!%*?&]))[A-Za-z\d@$!%*?&]{8,}$/;
+const parseInvitePassword = (password: string, passwordConfirm: string) => {
+  const result = inviteSignupSchema.safeParse({ password, passwordConfirm });
+  if (result.success) {
+    return { success: true as const, data: result.data };
+  }
 
-const getPasswordError = (password: string, passwordConfirm: string) => {
-  if (!password) {
-    return { field: 'password' as const, message: '비밀번호 값이 필요합니다.' };
-  }
-  if (!passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호 확인 값이 필요합니다.',
-    };
-  }
-  if (password !== passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호와 비밀번호 확인 값이 일치하지 않습니다.',
-    };
-  }
-  if (password.length < 8 || password.length > 20) {
-    return {
-      field: 'password' as const,
-      message: '비밀번호는 8자 이상 20자 이하여야 합니다.',
-    };
-  }
-  if (!PASSWORD_REGEX.test(password)) {
-    return {
-      field: 'password' as const,
-      message:
-        '비밀번호는 영문, 숫자, 특수문자 중 두 가지 이상 포함해야 합니다.',
-    };
-  }
-  return null;
+  const issue = result.error.issues[0];
+  const field =
+    issue?.path[0] === 'passwordConfirm' ? 'passwordConfirm' : 'password';
+
+  return {
+    success: false as const,
+    error: {
+      field: field as 'password' | 'passwordConfirm',
+      message: issue?.message ?? '비밀번호를 확인해 주세요.',
+    },
+  };
 };
 
 const SignupPage = () => {
@@ -60,51 +51,27 @@ const SignupPage = () => {
 
   const router = useRouter();
 
-  const handleSignup = async (token: string) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/signup?token=${encodeURIComponent(token)}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password, passwordConfirm }),
-      }
-    );
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error?.message || '서버로부터 응답을 받지 못했습니다.');
-    }
-
-    const data = await res.json();
-    return data.data;
-  };
-
-  const getEmailName = async (token: string) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/get-email-name?token=${encodeURIComponent(token)}`,
-      {
-        method: 'GET',
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error('서버로부터 이름, 이메일 값을 가져오는데 실패했습니다.');
-    }
-
-    const data = await res.json();
-    return data.data;
-  };
-
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ['getEmailName', token],
-    queryFn: () => getEmailName(token as string),
+    queryFn: () => getEmailNameApi(token as string),
     enabled: !!token,
   });
 
+  const showInviteAlert = !token || isError;
+  const inviteAlertContent = !token
+    ? '초대 링크를 다시 확인해 주세요'
+    : (error?.message ?? '초대 링크를 다시 확인해 주세요');
+
   const mutate = useMutation({
-    mutationFn: handleSignup,
+    mutationFn: ({
+      token,
+      password,
+      passwordConfirm,
+    }: {
+      token: string;
+      password: string;
+      passwordConfirm: string;
+    }) => inviteSignupApi(token, password, passwordConfirm),
     onSuccess: () => {
       router.push('/login');
     },
@@ -121,30 +88,28 @@ const SignupPage = () => {
       return;
     }
 
-    const error = getPasswordError(password, passwordConfirm);
-    if (error) {
+    const parsed = parseInvitePassword(password, passwordConfirm);
+    if (!parsed.success) {
       setSignupError(null);
       setPasswordError(null);
       setPasswordConfirmError(null);
 
-      if (error.field === 'password') setPasswordError(error.message);
-      else setPasswordConfirmError(error.message);
+      if (parsed.error.field === 'password') {
+        setPasswordError(parsed.error.message);
+      } else {
+        setPasswordConfirmError(parsed.error.message);
+      }
       return;
     }
 
     setPasswordError(null);
     setPasswordConfirmError(null);
-    mutate.mutate(token);
+    mutate.mutate({
+      token,
+      password: parsed.data.password,
+      passwordConfirm: parsed.data.passwordConfirm,
+    });
   };
-
-  //초대링크가 없을 때
-  // if (!token) {
-  //   return (
-  //     <div className="text-center text-[16px] tracking-[-0.4px] text-gray-950">
-  //       초대 링크를 다시 확인해 주세요
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="relative min-h-screen bg-white">
@@ -248,6 +213,24 @@ const SignupPage = () => {
           </section>
         </div>
       </main>
+
+      {showInviteAlert && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6"
+          onClick={() => router.push('/')}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <AlertModal
+              icon={icWarning}
+              title="초대 링크 확인"
+              content={inviteAlertContent}
+              confirmLabel="메인페이지"
+              showCancel={false}
+              onConfirm={() => router.push('/')}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

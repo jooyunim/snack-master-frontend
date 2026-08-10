@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import AlertModal from '@/components/AlertModal';
 import Badge from '@/components/Badge';
@@ -154,21 +155,27 @@ export default function PurchaseRequestPage() {
                   key={request.id}
                   className="flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
                 >
-                  <span className="w-[180px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {formatDate(request.requestedAt)}
-                  </span>
+                  <Link
+                    href={`/purchase-request/${request.id}`}
+                    className="contents"
+                    aria-label={`${formatProductName(productNames)} 구매 요청 상세 보기`}
+                  >
+                    <span className="w-[180px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {formatDate(request.requestedAt)}
+                    </span>
 
-                  <span className="w-[260px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
-                    {formatProductName(productNames)}
-                  </span>
+                    <span className="w-[260px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
+                      {formatProductName(productNames)}
+                    </span>
 
-                  <span className="w-[180px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.totalAmount.toLocaleString()}원
-                  </span>
+                    <span className="w-[180px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {request.totalAmount.toLocaleString()}원
+                    </span>
 
-                  <div className="flex w-[180px] shrink-0 flex-col items-start max-lg:w-[100px]">
-                    <Badge variant={badge.variant}>{badge.label}</Badge>
-                  </div>
+                    <div className="flex w-[180px] shrink-0 cursor-pointer flex-col items-start max-lg:w-[100px]">
+                      <Badge variant={badge.variant}>{badge.label}</Badge>
+                    </div>
+                  </Link>
 
                   <div className="flex w-[126px] shrink-0 flex-col items-start">
                     {request.status === 'PENDING' ? (
@@ -219,7 +226,11 @@ export default function PurchaseRequestPage() {
                     key={request.id}
                     className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-[30px]"
                   >
-                    <div className="flex w-full flex-col gap-2.5">
+                    <Link
+                      href={`/purchase-request/${request.id}`}
+                      className="flex w-full flex-col gap-2.5"
+                      aria-label={`${formatProductName(productNames)} 구매 요청 상세 보기`}
+                    >
                       <div className="flex w-full items-center justify-between">
                         <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
                           {formatDate(request.requestedAt)}
@@ -232,7 +243,7 @@ export default function PurchaseRequestPage() {
                         <p>{formatProductName(productNames)}</p>
                         <p>{request.totalAmount.toLocaleString()}원</p>
                       </div>
-                    </div>
+                    </Link>
 
                     {request.status === 'PENDING' ? (
                       <Button
