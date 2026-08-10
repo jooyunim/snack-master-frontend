@@ -4,7 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import icCheckboxActive from '@/assets/icons/Property 1=active.svg';
 import icCheckboxInactive from '@/assets/icons/Property 1=normal.svg';
+import iconX from '@/assets/icons/icon_X.svg';
+import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
+import Toast from '@/components/Toast';
 import CartStepIndicator, {
   type CartFlow,
 } from './components/CartStepIndicator';
@@ -17,6 +20,8 @@ import { useState } from 'react';
 import { useCarts } from '@/features/cart/hooks/useCarts';
 import { useDeleteCartItems } from '@/features/cart/hooks/useDeleteCartItems';
 import { usePatchQuantity } from '@/features/cart/hooks/usePatchQuantity';
+import { useInstantPurchase } from '@/features/cart/hooks/useInstantPurchase';
+import { usePoints } from '@/features/cart/hooks/usePoints';
 
 function CheckboxIcon({
   checked,
@@ -45,6 +50,11 @@ function CheckboxIcon({
 
 export default function CartPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmItemId, setConfirmItemId] = useState<number | null>(null);
+  const [showBudgetAlert, setShowBudgetAlert] = useState(false);
+  const [dismissedToastKey, setDismissedToastKey] = useState<string | null>(
+    null
+  );
 
   const router = useRouter();
 
@@ -57,6 +67,10 @@ export default function CartPage() {
   const CART_ITEMS: CartItem[] = data?.cartItem ?? [];
 
   const shippingFee: number = data?.shippingFee ?? 0;
+
+  const budget: number = data?.budget ?? 0;
+  const { data: balancePointData } = usePoints();
+  const balancePointAmount: number = balancePointData?.balancePointAmount ?? 0;
 
   // 선택된 아이템들
   const selectedItems = CART_ITEMS.filter((item) =>
@@ -78,6 +92,20 @@ export default function CartPage() {
 
   // 선택된 아이템들의 총 가격 + 배송비
   const orderTotal = productTotal + orderShippingFee;
+
+  // 장바구니 전체 상품 금액 (바로 구매 예산 체크용)
+  const cartItemsTotal = CART_ITEMS.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+
+  const canPurchase = budget + balancePointAmount >= orderTotal;
+  const toastKey = `${selectedIds.slice().sort().join(',')}:${orderTotal}:${budget}:${balancePointAmount}`;
+  const isToastVisible =
+    cartFlow === 'purchase' &&
+    selectedItems.length > 0 &&
+    !canPurchase &&
+    dismissedToastKey !== toastKey;
 
   // 전체 선택 핸들러
   const handleSelectAll = () => {
@@ -110,6 +138,38 @@ export default function CartPage() {
       return;
     }
     router.push(`/cart/order?cartItemIds=${selectedIds.join(',')}`);
+  };
+
+  const { mutate: instantPurchase, isPending: isInstantPurchasePending } =
+    useInstantPurchase();
+
+  const handleInstantPurchaseClick = (itemId: number) => {
+    if (budget < cartItemsTotal) {
+      setShowBudgetAlert(true);
+      return;
+    }
+    setConfirmItemId(itemId);
+  };
+
+  const closeConfirmModal = () => {
+    if (isInstantPurchasePending) return;
+    setConfirmItemId(null);
+  };
+
+  const closeBudgetAlert = () => {
+    setShowBudgetAlert(false);
+  };
+
+  const handleConfirmInstantPurchase = () => {
+    if (confirmItemId === null) return;
+    instantPurchase([confirmItemId], {
+      onSuccess: () => {
+        setSelectedIds((prev) =>
+          prev.filter((itemId) => itemId !== confirmItemId)
+        );
+        setConfirmItemId(null);
+      },
+    });
   };
 
   if (!isAuthChecked) {
@@ -150,6 +210,15 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {isToastVisible ? (
+        <div className="fixed top-6 left-1/2 z-[60] w-[1152px] max-w-[calc(100%-48px)] -translate-x-1/2">
+          <Toast
+            remainingBudget={budget.toLocaleString('ko-KR')}
+            onClose={() => setDismissedToastKey(toastKey)}
+          />
+        </div>
+      ) : null}
+
       <main className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-[70px] px-6 pb-20 pt-20 max-lg:pt-[60px] max-sm:gap-10">
         {/*  cartFlow(role 기반) 전달 */}
         <CartStepIndicator flow={cartFlow} currentStep={1} />
@@ -231,13 +300,19 @@ export default function CartPage() {
                       <p className="text-[14px] tracking-[-0.35px] text-gray-600 max-sm:text-[13px] max-sm:tracking-[-0.325px]">
                         배송비 {formatPrice(shippingFee)}
                       </p>
-                      {/* {추후에 구현될 때 사용할 버튼} */}
-                      {/* <Button
-                        variant="sub"
-                        className="w-[99px] max-sm:w-[88px] max-sm:text-[13px] max-sm:tracking-[-0.325px]"
-                      >
-                        바로 요청
-                      </Button> */}
+                      {cartFlow === 'purchase' && (
+                        <Button
+                          variant="sub"
+                          className="w-[99px] max-sm:w-[88px] max-sm:text-[13px] max-sm:tracking-[-0.325px]"
+                          onClick={() => handleInstantPurchaseClick(item.id)}
+                          disabled={
+                            isPatchCartQuantityPending ||
+                            isInstantPurchasePending
+                          }
+                        >
+                          바로 구매
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -268,7 +343,10 @@ export default function CartPage() {
             <Button
               onClick={() => handleGoToOrder(selectedIds)}
               disabled={
-                selectedItems.length === 0 || isPatchCartQuantityPending
+                selectedItems.length === 0 ||
+                isPatchCartQuantityPending ||
+                isInstantPurchasePending ||
+                (cartFlow === 'purchase' && !canPurchase)
               }
               variant="filled"
               className="w-full"
@@ -278,6 +356,38 @@ export default function CartPage() {
           </div>
         </section>
       </main>
+
+      {confirmItemId !== null ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="바로 구매"
+            content={
+              '선택한 상품을 바로 구매하시겠습니까?\n포인트 사용 없이 예산에서 즉시 결제됩니다.'
+            }
+            cancelLabel="돌아가기"
+            confirmLabel={isInstantPurchasePending ? '구매 중...' : '구매하기'}
+            confirmDisabled={isInstantPurchasePending}
+            onCancel={closeConfirmModal}
+            onConfirm={handleConfirmInstantPurchase}
+          />
+        </div>
+      ) : null}
+
+      {showBudgetAlert ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="바로 구매 불가"
+            content={
+              '예산이 장바구니 총 금액보다 부족합니다.\n수량을 줄이거나 항목을 제거해주세요.'
+            }
+            confirmLabel="취소"
+            showCancel={false}
+            onConfirm={closeBudgetAlert}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
