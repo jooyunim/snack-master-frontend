@@ -1,29 +1,79 @@
+'use client';
+
 import Button from '@/components/Button';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
 import InfoSection from '../../../../components/InfoSection';
+import { useParams, useRouter } from 'next/navigation';
+import { useMyPurchaseRequest } from '@/features/purchase-request/hooks/useMyPurchaseRequest';
 
-const DETAIL_ITEMS: readonly RequestItem[] = [
-  {
-    id: 1,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-  {
-    id: 2,
-    name: '코카콜라 제로',
-    unitPrice: '2,000원',
-    quantity: '수량 4개',
-    totalPrice: '26,000원',
-    imageSrc: '/images/coke-zero.png',
-  },
-];
+function formatPrice(price: number) {
+  return `${price.toLocaleString('ko-KR')}원`;
+}
+
+function formatDate(date: string | null) {
+  if (!date) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Seoul',
+  }).format(new Date(date));
+}
 
 export default function PurchaseRequestDetailPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const purchaseRequestId = Number(params.id);
+
+  const { data, isLoading, isError } = useMyPurchaseRequest(purchaseRequestId);
+
+  const STATUS_LABEL = {
+    PENDING: '대기 중',
+    APPROVED: '승인',
+    REJECTED: '반려',
+    CANCELED: '취소',
+    REFUNDED: '환불',
+  } as const;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-gray-500">
+          구매 요청 상세 정보를 불러오는 중입니다.
+        </p>
+      </div>
+    );
+  }
+
+  if (
+    isError ||
+    !data ||
+    !Number.isInteger(purchaseRequestId) ||
+    purchaseRequestId < 1
+  ) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-gray-500">
+          구매 요청 상세 정보를 불러오지 못했습니다.
+        </p>
+      </div>
+    );
+  }
+
+  const detailItems: readonly RequestItem[] = data.items.map((item) => ({
+    id: item.id,
+    name: item.productName,
+    price: formatPrice(item.price),
+    quantity: `수량 ${item.quantity}개`,
+    totalPrice: formatPrice(item.lineTotal),
+    imageSrc: item.imageUrl,
+  }));
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px] max-sm:pb-[136px]">
@@ -32,11 +82,11 @@ export default function PurchaseRequestDetailPage() {
         </h1>
 
         <RequestItemsSection
-          itemCount={2}
-          items={DETAIL_ITEMS}
-          orderAmount="52,000원"
-          shippingFee="3,000원"
-          totalAmount="55,000원"
+          itemCount={data.summary.itemCount}
+          items={detailItems}
+          orderAmount={formatPrice(data.summary.productAmount)}
+          shippingFee={formatPrice(data.summary.shippingFee)}
+          totalAmount={formatPrice(data.summary.totalAmount)}
           showChevron
         />
 
@@ -45,15 +95,20 @@ export default function PurchaseRequestDetailPage() {
           rows={[
             {
               type: 'pair',
-              left: { label: '요청인', value: '김스낵' },
-              right: { label: '요청 날짜', value: '2025.06.03' },
+              left: {
+                label: '요청인',
+                value: data.requestInfo.requester.name,
+              },
+              right: {
+                label: '요청 날짜',
+                value: formatDate(data.requestInfo.requestedAt),
+              },
             },
             {
               type: 'single',
               field: {
                 label: '요청 메시지',
-                value:
-                  '제로콜라 맛있긴 한데 먹으면 배가 아픈 느낌? 그래도 인기 많으니까 주문하는데 음... 조금 더 달게 해주실 순 없나요? 설탕 넣은 것처럼',
+                value: data.requestInfo.message ?? '-',
               },
             },
           ]}
@@ -64,22 +119,36 @@ export default function PurchaseRequestDetailPage() {
           rows={[
             {
               type: 'pair',
-              left: { label: '담당자', value: '김코디' },
-              right: { label: '승인 날짜', value: '2025.06.14' },
+              left: {
+                label: '담당자',
+                value: data.resolutionInfo.resolver?.name ?? '-',
+              },
+              right: {
+                label: '승인 날짜',
+                value: formatDate(data.resolutionInfo.resolvedAt),
+              },
             },
             {
               type: 'pair',
-              left: { label: '상태', value: '구매 반려' },
+              left: {
+                label: '상태',
+                value: STATUS_LABEL[data.resolutionInfo.status],
+              },
               right: {
                 label: '결과 메시지',
-                value: '제로콜라에 설탕 넣은 콜라로 주문하시면 됩니다.',
+                value: data.resolutionInfo.message ?? '-',
               },
             },
           ]}
         />
 
         <div className="mx-auto flex h-16 w-full max-w-[616px] items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:h-auto max-sm:max-w-none max-sm:gap-4 max-sm:bg-white max-sm:p-6">
-          <Button variant="line" className="min-w-0 flex-1">
+          <Button
+            type="button"
+            variant="line"
+            className="min-w-0 flex-1"
+            onClick={() => router.push('/purchase-request')}
+          >
             목록 보기
           </Button>
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1 max-sm:shrink">
