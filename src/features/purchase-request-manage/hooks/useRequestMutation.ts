@@ -6,7 +6,7 @@ export function useRequestMutations() {
     const queryClient = useQueryClient();
 
     const patchApproveMutation = useMutation({
-        mutationFn: ({ id, resultMessage }: { id: number, resultMessage: string }) => patchApprove(id, resultMessage),
+        mutationFn: ({ id, resultMessage, requestPointAmount }: { id: number, resultMessage: string, requestPointAmount: number }) => patchApprove({ id, resultMessage, requestPointAmount }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: purchaseRequestManageKeys.lists() });
             queryClient.invalidateQueries({ queryKey: purchaseRequestManageKeys.details() });
