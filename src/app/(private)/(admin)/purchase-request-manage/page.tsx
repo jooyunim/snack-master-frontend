@@ -30,11 +30,15 @@ export default function PurchaseRequestManagePage() {
   }
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent');
+  const [page, setPage] = useState(1);
   const [modalState, setModalState] = useState<ModalState | null>(null);
-  const { data, isPending, isError } = useRequestList(sortBy);
+  const { data, isPending, isError } = useRequestList(sortBy, page);
 
   if (isPending) return <div>로딩 중...</div>;
   if (isError) return <div>에러남</div>;
+
+  const requests = data.items;
+  const pagination = data.pagination;
 
   return (
     <div className="min-h-screen bg-white">
@@ -50,7 +54,7 @@ export default function PurchaseRequestManagePage() {
           />
         </div>
 
-        {data.length == 0 ? (
+        {requests.length == 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -82,7 +86,7 @@ export default function PurchaseRequestManagePage() {
               </div>
 
               <ul className="flex w-full min-w-[1100px] flex-col max-lg:min-w-[696px]">
-                {data.map((request) => (
+                {requests.map((request) => (
                   <li
                     key={request.id}
                     className="group flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 transition-colors hover:bg-gray-50 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
@@ -141,7 +145,7 @@ export default function PurchaseRequestManagePage() {
 
             {/* Mobile card list */}
             <ul className="hidden w-full flex-col max-sm:flex">
-              {data.map((request) => (
+              {requests.map((request) => (
                 <li
                   key={request.id}
                   className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
@@ -201,7 +205,11 @@ export default function PurchaseRequestManagePage() {
               ))}
             </ul>
 
-            <Pagination page={1} totalPages={1} onPageChange={() => {}} />
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPage}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
           </div>
         )}
         {modalState && (
