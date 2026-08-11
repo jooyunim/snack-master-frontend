@@ -1,11 +1,16 @@
 'use client';
 
+import Link from 'next/link';
+import { useState } from 'react';
+import AlertModal from '@/components/AlertModal';
 import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
+import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useCancelPurchaseRequest';
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
+import iconX from '@/assets/icons/icon_X.svg';
 
 const STATUS_BADGE = {
   PENDING: { variant: 'pending', label: '대기 중' },
@@ -20,6 +25,7 @@ function formatDate(date: string) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    timeZone: 'Asia/Seoul',
   }).format(new Date(date));
 }
 
@@ -41,9 +47,44 @@ function getStatusBadge(status: PurchaseRequestStatus) {
 
 export default function PurchaseRequestPage() {
   const page = 1;
+  const [sortBy, setSortBy] = useState('recent');
+  const [cancelRequestId, setCancelRequestId] = useState<number | null>(null);
   const pageSize = 10;
+  const cancelMutation = useCancelPurchaseRequest();
 
-  const { data, isLoading, isError } = useMyPurchaseRequests(page, pageSize);
+  const handleSortChange = (nextSortBy: string) => {
+    setSortBy(nextSortBy);
+  };
+
+  const openCancelModal = (purchaseRequestId: number) => {
+    cancelMutation.reset();
+    setCancelRequestId(purchaseRequestId);
+  };
+
+  const closeCancelModal = () => {
+    if (!cancelMutation.isPending) {
+      setCancelRequestId(null);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (cancelRequestId === null) {
+      return;
+    }
+
+    try {
+      await cancelMutation.mutateAsync(cancelRequestId);
+      setCancelRequestId(null);
+    } catch {
+      // 오류 메시지는 확인 모달 안에서 표시합니다.
+    }
+  };
+
+  const { data, isLoading, isError } = useMyPurchaseRequests(
+    page,
+    pageSize,
+    sortBy
+  );
 
   const requests = data?.purchaseRequests ?? [];
 
@@ -54,7 +95,15 @@ export default function PurchaseRequestPage() {
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-black max-sm:text-[16px] max-sm:tracking-[-0.4px]">
             구매 요청 내역
           </h1>
-          <SortDropdown />
+          <SortDropdown
+            value={sortBy}
+            options={[
+              { label: '최신순', value: 'recent' },
+              { label: '낮은 가격순', value: 'price_asc' },
+              { label: '높은 가격순', value: 'price_desc' },
+            ]}
+            onChange={handleSortChange}
+          />
         </div>
 
         <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
@@ -106,25 +155,36 @@ export default function PurchaseRequestPage() {
                   key={request.id}
                   className="flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
                 >
-                  <span className="w-[180px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {formatDate(request.requestedAt)}
-                  </span>
+                  <Link
+                    href={`/purchase-request/${request.id}`}
+                    className="contents"
+                    aria-label={`${formatProductName(productNames)} 구매 요청 상세 보기`}
+                  >
+                    <span className="w-[180px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {formatDate(request.requestedAt)}
+                    </span>
 
-                  <span className="w-[260px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
-                    {formatProductName(productNames)}
-                  </span>
+                    <span className="w-[260px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
+                      {formatProductName(productNames)}
+                    </span>
 
-                  <span className="w-[180px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                    {request.totalAmount.toLocaleString()}원
-                  </span>
+                    <span className="w-[180px] shrink-0 cursor-pointer text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
+                      {request.totalAmount.toLocaleString()}원
+                    </span>
 
-                  <div className="flex w-[180px] shrink-0 flex-col items-start max-lg:w-[100px]">
-                    <Badge variant={badge.variant}>{badge.label}</Badge>
-                  </div>
+                    <div className="flex w-[180px] shrink-0 cursor-pointer flex-col items-start max-lg:w-[100px]">
+                      <Badge variant={badge.variant}>{badge.label}</Badge>
+                    </div>
+                  </Link>
 
                   <div className="flex w-[126px] shrink-0 flex-col items-start">
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -166,7 +226,11 @@ export default function PurchaseRequestPage() {
                     key={request.id}
                     className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-[30px]"
                   >
-                    <div className="flex w-full flex-col gap-2.5">
+                    <Link
+                      href={`/purchase-request/${request.id}`}
+                      className="flex w-full flex-col gap-2.5"
+                      aria-label={`${formatProductName(productNames)} 구매 요청 상세 보기`}
+                    >
                       <div className="flex w-full items-center justify-between">
                         <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
                           {formatDate(request.requestedAt)}
@@ -179,10 +243,16 @@ export default function PurchaseRequestPage() {
                         <p>{formatProductName(productNames)}</p>
                         <p>{request.totalAmount.toLocaleString()}원</p>
                       </div>
-                    </div>
+                    </Link>
 
                     {request.status === 'PENDING' ? (
-                      <Button variant="sub" size="sm" className="w-full">
+                      <Button
+                        type="button"
+                        variant="sub"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => openCancelModal(request.id)}
+                      >
                         요청 취소
                       </Button>
                     ) : null}
@@ -191,9 +261,28 @@ export default function PurchaseRequestPage() {
               })}
           </ul>
 
-          <Pagination />
+          <Pagination page={1} totalPages={1} onPageChange={() => {}} />
         </div>
       </main>
+
+      {cancelRequestId !== null ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="요청 취소"
+            content={
+              cancelMutation.isError
+                ? '구매 요청을 취소하지 못했습니다.\n잠시 후 다시 시도해주세요.'
+                : '구매 요청을 취소하시겠습니까?'
+            }
+            cancelLabel="돌아가기"
+            confirmLabel={cancelMutation.isPending ? '취소 중...' : '요청 취소'}
+            confirmDisabled={cancelMutation.isPending}
+            onCancel={closeCancelModal}
+            onConfirm={handleCancelRequest}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

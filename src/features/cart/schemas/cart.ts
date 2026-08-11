@@ -11,6 +11,7 @@ export const cartSchema = z.object({
     })
   ),
   shippingFee: z.number(),
+  budget: z.number(),
 });
 
 export type Cart = z.infer<typeof cartSchema>;

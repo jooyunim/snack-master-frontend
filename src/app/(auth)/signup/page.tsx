@@ -7,144 +7,68 @@ import Button from '@/components/Button';
 import Gnb from '@/components/Gnb';
 import Input from '@/components/Input';
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
-
-const PASSWORD_REGEX =
-  /^(?=(?:.*[A-Za-z].*[0-9])|(?=.*[A-Za-z].*[@$!%*?&])|(?=.*[0-9].*[@$!%*?&]))[A-Za-z\d@$!%*?&]{8,}$/;
-
-const getPasswordError = (password: string, passwordConfirm: string) => {
-  if (!password) {
-    return { field: 'password' as const, message: '비밀번호 값이 필요합니다.' };
-  }
-  if (!passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호 확인 값이 필요합니다.',
-    };
-  }
-  if (password !== passwordConfirm) {
-    return {
-      field: 'passwordConfirm' as const,
-      message: '비밀번호와 비밀번호 확인 값이 일치하지 않습니다.',
-    };
-  }
-  if (password.length < 8 || password.length > 20) {
-    return {
-      field: 'password' as const,
-      message: '비밀번호는 8자 이상 20자 이하여야 합니다.',
-    };
-  }
-  if (!PASSWORD_REGEX.test(password)) {
-    return {
-      field: 'password' as const,
-      message:
-        '비밀번호는 영문, 숫자, 특수문자 중 두 가지 이상 포함해야 합니다.',
-    };
-  }
-  return null;
-};
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  adminSignupSchema,
+  type AdminSignupFormValues,
+} from '@/features/auth/schemas/auth';
+import { adminSignupApi } from '@/features/auth/services/auth.api';
 
 const SignupPage = () => {
-  //이메일 쿼리 파라미터 가져오기
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordConfirmError, setPasswordConfirmError] = useState<
-    string | null
-  >(null);
   const [signupError, setSignupError] = useState<string | null>(null);
 
   const router = useRouter();
 
-  const handleSignup = async (token: string) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/signup?token=${encodeURIComponent(token)}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password, passwordConfirm }),
-      }
-    );
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error?.message || '서버로부터 응답을 받지 못했습니다.');
-    }
-
-    const data = await res.json();
-    return data.data;
-  };
-
-  const getEmailName = async (token: string) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/get-email-name?token=${encodeURIComponent(token)}`,
-      {
-        method: 'GET',
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error('서버로부터 이름, 이메일 값을 가져오는데 실패했습니다.');
-    }
-
-    const data = await res.json();
-    return data.data;
-  };
-
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['getEmailName', token],
-    queryFn: () => getEmailName(token as string),
-    enabled: !!token,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<AdminSignupFormValues>({
+    resolver: zodResolver(adminSignupSchema),
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      passwordConfirm: '',
+      companyName: '',
+      businessNumber: '',
+    },
   });
 
   const mutate = useMutation({
-    mutationFn: handleSignup,
+    mutationFn: ({
+      email,
+      name,
+      password,
+      passwordConfirm,
+      companyName,
+      businessNumber,
+    }: AdminSignupFormValues) =>
+      adminSignupApi(
+        email,
+        name,
+        password,
+        passwordConfirm,
+        companyName,
+        businessNumber
+      ),
     onSuccess: () => {
       router.push('/login');
     },
     onError: (error) => {
       setSignupError(error.message);
-      setPasswordError(null);
-      setPasswordConfirmError(null);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (mutate.isPending || !token) {
-      return;
-    }
-
-    const error = getPasswordError(password, passwordConfirm);
-    if (error) {
-      setSignupError(null);
-      setPasswordError(null);
-      setPasswordConfirmError(null);
-
-      if (error.field === 'password') setPasswordError(error.message);
-      else setPasswordConfirmError(error.message);
-      return;
-    }
-
-    setPasswordError(null);
-    setPasswordConfirmError(null);
-    mutate.mutate(token);
+  const onValid = (values: AdminSignupFormValues) => {
+    if (mutate.isPending) return;
+    setSignupError(null);
+    mutate.mutate(values);
   };
-
-  //초대링크가 없을 때
-  // if (!token) {
-  //   return (
-  //     <div className="text-center text-[16px] tracking-[-0.4px] text-gray-950">
-  //       초대 링크를 다시 확인해 주세요
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="relative min-h-screen bg-white">
@@ -162,64 +86,104 @@ const SignupPage = () => {
             />
           </div>
 
-          <section className="relative z-[1] flex w-full flex-col gap-[46px] rounded-[2px] bg-white md:gap-5 md:px-[60px] md:py-10 md:shadow-[0_0_40px_rgba(0,0,0,0.1)]">
-            <div className="flex flex-col items-center gap-2.5 text-center">
-              <h1 className="text-[18px] font-bold tracking-[-0.45px] text-gray-950 md:text-[24px] md:tracking-[-0.6px]">
-                {isPending
-                  ? '로딩 중...'
-                  : isError || !data?.name
-                    ? '초대 링크를 확인해 주세요'
-                    : `${data?.name} 님, 만나서 반갑습니다.`}
+          <section className="relative z-[1] flex w-full flex-col gap-[30px] rounded-[2px] bg-white md:gap-5 md:px-[60px] md:py-10 md:shadow-[0_0_40px_rgba(0,0,0,0.1)]">
+            <div className="flex flex-col gap-2.5">
+              <h1 className="text-[20px] font-bold tracking-[-0.5px] text-gray-950 md:text-[24px] md:tracking-[-0.6px]">
+                기업 담당자 회원가입
               </h1>
               <p className="text-[14px] tracking-[-0.35px] text-gray-600 md:text-[16px] md:tracking-[-0.4px]">
-                비밀번호를 입력해 회원가입을 완료해주세요
+                * 그룹 내 유저는 기업 담당자의 초대 메일을 통해 가입이
+                가능합니다.
               </p>
             </div>
 
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit(onValid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
-                  <Input floatingLabel="이메일" disabled value={data?.email} />
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setSignupError(null);
-                      setPasswordError(null);
-                      setPasswordConfirmError(null);
-                    }}
-                    placeholder="비밀번호를 입력해주세요"
-                    showPasswordToggle
-                    autoComplete="new-password"
-                  />
-                  {passwordError ? (
-                    <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                      {passwordError}
-                    </p>
-                  ) : null}
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      type="password"
-                      value={passwordConfirm}
-                      onChange={(e) => {
-                        setPasswordConfirm(e.target.value);
-                        setSignupError(null);
-                        setPasswordError(null);
-                        setPasswordConfirmError(null);
-                      }}
-                      placeholder="비밀번호를 한 번 더 입력해주세요"
-                      showPasswordToggle
-                      autoComplete="new-password"
+                      {...register('name')}
+                      placeholder="이름(기업 담당자)을 입력해주세요."
+                      autoComplete="name"
                     />
-                    {passwordConfirmError ? (
+                    {errors.name && (
                       <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                        {passwordConfirmError}
+                        {errors.name.message}
                       </p>
-                    ) : null}
+                    )}
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2">
+                    <Input
+                      {...register('email')}
+                      type="email"
+                      placeholder="이메일을 입력해주세요."
+                      autoComplete="email"
+                    />
+                    {errors.email && (
+                      <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2">
+                    <Input
+                      {...register('password')}
+                      type="password"
+                      placeholder="비밀번호를 입력해주세요"
+                      autoComplete="new-password"
+                      showPasswordToggle
+                    />
+                    {errors.password && (
+                      <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2">
+                    <Input
+                      {...register('passwordConfirm')}
+                      type="password"
+                      placeholder="비밀번호를 한 번 더 입력해주세요"
+                      autoComplete="new-password"
+                      showPasswordToggle
+                    />
+                    {errors.passwordConfirm && (
+                      <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                        {errors.passwordConfirm.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2">
+                    <Input
+                      {...register('companyName')}
+                      placeholder="회사명을 입력해주세요."
+                      autoComplete="organization"
+                    />
+                    {errors.companyName && (
+                      <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                        {errors.companyName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex w-full flex-col gap-2">
+                    <Input
+                      {...register('businessNumber')}
+                      inputMode="numeric"
+                      placeholder="사업자 번호를 입력해주세요"
+                    />
+                    {errors.businessNumber && (
+                      <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
+                        {errors.businessNumber.message}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {signupError ? (
@@ -227,10 +191,7 @@ const SignupPage = () => {
                     {signupError}
                   </p>
                 ) : null}
-                <Button
-                  type="submit"
-                  disabled={mutate.isPending || !token || isPending || isError}
-                >
+                <Button type="submit" disabled={!isValid || mutate.isPending}>
                   {mutate.isPending ? '가입 중...' : '가입하기'}
                 </Button>
               </div>

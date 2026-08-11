@@ -1,12 +1,7 @@
 export type OrderStatus =
-  | 'PENDING'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'CANCELED'
-  | 'REFUNDED';
+  'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELED' | 'REFUNDED';
 
 export type OrderSort = 'latest' | 'amountAsc' | 'amountDesc';
-  
 
 export type OrderListItem = {
   id: number;
@@ -14,8 +9,8 @@ export type OrderListItem = {
   resolvedAt: string | null;
   requesterName: string;
   resolverName: string | null;
-  items: { productName: string }[]; 
-  totalQuantity: number;            
+  items: { productName: string }[];
+  totalQuantity: number;
   totalAmount: number;
   shippingFee: number;
   status: OrderStatus;
@@ -47,6 +42,8 @@ export type OrderDetail = {
     imageUrl: string;
     quantity: number;
   }[];
+  pointsEarned: number;
+  paidAmount: number;
 };
 
 export type DashboardSummary = {
