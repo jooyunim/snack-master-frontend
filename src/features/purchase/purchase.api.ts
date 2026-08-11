@@ -1,10 +1,10 @@
+import { apiFetch } from '@/lib/api';
 import type {
   DashboardSummary,
   OrderDetail,
   OrderSort,
   OrdersResponse,
 } from './purchase.types';
-import { apiFetch } from '@/lib/api';
 
 export function getOrders(params?: {
   page?: number;
