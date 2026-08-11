@@ -19,13 +19,19 @@ export function getOrders(params?: {
     pageSize: String(pageSize),
     sort,
   });
-  return apiFetch<OrdersResponse>(`/orders?${qs}`);
+  return apiFetch<OrdersResponse>(`/orders?${qs}`, {
+    cache: 'no-store',
+  });
 }
 
 export function getOrderById(id: number) {
-  return apiFetch<OrderDetail>(`/orders/${id}`);
+  return apiFetch<OrderDetail>(`/orders/${id}`, {
+    cache: 'no-store',
+  });
 }
 
 export function getDashboardSummary() {
-  return apiFetch<DashboardSummary>('/dashboard/summary');
+  return apiFetch<DashboardSummary>('/dashboard/summary', {
+    cache: 'no-store',
+  });
 }
