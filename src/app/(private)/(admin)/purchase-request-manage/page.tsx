@@ -148,9 +148,8 @@ export default function PurchaseRequestManagePage() {
                 >
                   <Link
                     href={`/purchase-request-manage/${request.id}`}
-                    className="flex flex-1 items-center gap-20"
-                  ></Link>
-                  <div className="flex w-full flex-col gap-2.5">
+                    className="flex w-full flex-col gap-2.5"
+                  >
                     <div className="flex w-full items-center justify-between pr-1">
                       <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
                         {formatDate(request.requestedAt)}
@@ -169,7 +168,7 @@ export default function PurchaseRequestManagePage() {
                         {request.totalAmount.toLocaleString()}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex w-full items-center gap-2">
                     <Button
                       variant="sub"
