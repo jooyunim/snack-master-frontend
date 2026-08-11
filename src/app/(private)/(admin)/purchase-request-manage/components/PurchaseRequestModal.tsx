@@ -6,6 +6,7 @@ import { useRequestMutations } from '@/features/purchase-request-manage/hooks/us
 import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
+import { ApiError } from '@/lib/api';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -40,8 +41,10 @@ export default function PurchaseRequestModal({
           alert('성공했습니다.');
           onclose();
         },
-        onError: () => {
-          alert('에러가 발생했습니다.');
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
         },
       }
     );

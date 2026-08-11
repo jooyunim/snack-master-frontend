@@ -13,6 +13,7 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
+import { ApiError } from '@/lib/api';
 
 export default function PurchaseRequestManageDetailPage({
   params,
@@ -86,8 +87,10 @@ export default function PurchaseRequestManageDetailPage({
         onSuccess: () => {
           setShowApproveModal(true);
         },
-        onError: () => {
-          alert('에러가 발생했습니다.');
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
         },
       }
     );
@@ -99,8 +102,10 @@ export default function PurchaseRequestManageDetailPage({
         onSuccess: () => {
           setShowRejectModal(true);
         },
-        onError: () => {
-          alert('에러가 발생했습니다.');
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
         },
       }
     );
