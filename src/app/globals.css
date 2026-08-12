@@ -87,6 +87,12 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-landing-marquee {
+    animation: none;
+  }
+}
+
 body {
   background-color: var(--color-white);
   color: var(--color-gray-950);
