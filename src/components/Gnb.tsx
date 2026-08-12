@@ -98,7 +98,12 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icLock} alt="" fill className="object-contain" />
+            <Image
+              src={icLock}
+              alt="로그인 아이콘"
+              fill
+              className="object-contain"
+            />
           </span>
           로그인
         </Link>
@@ -107,7 +112,12 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icManager} alt="" fill className="object-contain" />
+            <Image
+              src={icManager}
+              alt="기업 담당자 회원가입 아이콘"
+              fill
+              className="object-contain"
+            />
           </span>
           기업 담당자 회원가입
         </Link>
@@ -119,7 +129,12 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
         onClick={onOpenMenu}
         className="relative size-6 shrink-0 overflow-hidden sm:hidden"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image
+          src={icMenu}
+          alt="메뉴 열기 아이콘"
+          fill
+          className="object-contain"
+        />
       </button>
     </>
   );
@@ -166,10 +181,20 @@ function AuthActions({
       <div className="flex items-center gap-[30px] max-lg:gap-5">
         <Link href="/cart" className="relative size-6 shrink-0 overflow-hidden">
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
-            <Image src={icCartBag} alt="" fill className="object-contain" />
+            <Image
+              src={icCartBag}
+              alt="장바구니 아이콘"
+              fill
+              className="object-contain"
+            />
           </span>
           <span className="absolute left-1/2 top-[3px] h-[5.947px] w-[7.411px] -translate-x-1/2">
-            <Image src={icCartHandle} alt="" fill className="object-contain" />
+            <Image
+              src={icCartHandle}
+              alt="장바구니 핸들 아이콘"
+              fill
+              className="object-contain"
+            />
           </span>
           {cartCount > 0 ? (
             <span className="absolute bottom-[16%] left-[calc(50%-3px)] text-[9px] font-bold tracking-[-0.225px] text-gray-950">
@@ -182,7 +207,12 @@ function AuthActions({
           href="/wishlist"
           className="relative size-6 shrink-0 overflow-hidden max-lg:hidden"
         >
-          <Image src={icLike} alt="" fill className="object-contain" />
+          <Image
+            src={icLike}
+            alt="찜하기 하트 아이콘"
+            fill
+            className="object-contain"
+          />
         </Link>
 
         <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden">
@@ -215,7 +245,12 @@ function AuthActions({
         onClick={onOpenMenu}
         className="relative hidden size-6 shrink-0 overflow-hidden max-lg:block"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image
+          src={icMenu}
+          alt="메뉴 열기 아이콘"
+          fill
+          className="object-contain"
+        />
       </button>
     </div>
   );
@@ -239,7 +274,12 @@ function MobileCategoryDropdown() {
           {activeLabel}
         </span>
         <span className="relative size-5 shrink-0 overflow-hidden">
-          <Image src={icChevronDown} alt="" fill className="object-contain" />
+          <Image
+            src={icChevronDown}
+            alt="하위 카테고리 열기 아이콘"
+            fill
+            className="object-contain"
+          />
         </span>
       </div>
 
@@ -285,10 +325,15 @@ export default function Gnb({
       >
         <div className="flex min-w-0 flex-1 items-center gap-10">
           <Link
-            href="/"
+            href={isLoggedIn ? '/products' : '/'}
             className="relative h-11 w-[102.746px] shrink-0 overflow-hidden"
           >
-            <Image src={logo} alt="Snack" fill className="object-contain" />
+            <Image
+              src={logo}
+              alt="스낵마스터 로고"
+              fill
+              className="object-contain"
+            />
           </Link>
           {isLoggedIn ? (
             <AuthNav userType={userType} pathname={pathname} />
@@ -344,7 +389,7 @@ export default function Gnb({
                 <span className="relative size-6 shrink-0 overflow-hidden">
                   <Image
                     src={icManager}
-                    alt=""
+                    alt="기업 담당자 회원가입 아이콘"
                     fill
                     className="object-contain"
                   />
