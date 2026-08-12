@@ -164,7 +164,11 @@ function AuthActions({
   return (
     <div className="flex h-11 shrink-0 items-center gap-[30px] max-lg:gap-10 max-sm:h-auto max-sm:gap-5">
       <div className="flex items-center gap-[30px] max-lg:gap-5">
-        <Link href="/cart" className="relative size-6 shrink-0 overflow-hidden">
+        <Link
+          href="/cart"
+          aria-label="장바구니"
+          className="relative size-6 shrink-0 overflow-hidden"
+        >
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
             <Image src={icCartBag} alt="" fill className="object-contain" />
           </span>
@@ -180,14 +184,19 @@ function AuthActions({
 
         <Link
           href="/wishlist"
+          aria-label="찜하기"
           className="relative size-6 shrink-0 overflow-hidden max-lg:hidden"
         >
           <Image src={icLike} alt="" fill className="object-contain" />
         </Link>
 
-        <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden">
+        <Link
+          href="/user"
+          aria-label="프로필"
+          className="relative flex size-6 shrink-0 items-center justify-center cursor-pointer overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden"
+        >
           {profileName}
-        </span>
+        </Link>
 
         <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" aria-hidden />
 
@@ -271,7 +280,7 @@ function MobileCategoryDropdown() {
 export default function Gnb({
   className = '',
   userType = null,
-  cartCount = 0, //장바구니 api 연동 후 수정
+  cartCount = 0,
   profileName = '',
 }: GnbProps) {
   const pathname = usePathname();
@@ -285,10 +294,15 @@ export default function Gnb({
       >
         <div className="flex min-w-0 flex-1 items-center gap-10">
           <Link
-            href="/"
+            href={isLoggedIn ? '/products' : '/'}
             className="relative h-11 w-[102.746px] shrink-0 overflow-hidden"
           >
-            <Image src={logo} alt="Snack" fill className="object-contain" />
+            <Image
+              src={logo}
+              alt="스낵마스터 로고"
+              fill
+              className="object-contain"
+            />
           </Link>
           {isLoggedIn ? (
             <AuthNav userType={userType} pathname={pathname} />

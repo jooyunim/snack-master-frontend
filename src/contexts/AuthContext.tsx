@@ -14,6 +14,8 @@ import {
   ReactNode,
 } from 'react';
 import type { LoginFormValues } from '@/features/auth/schemas/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { cartQueryKeys } from '@/features/cart/constants/query-keys';
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isLoggedIn = !!user;
+  const queryClient = useQueryClient();
 
   const login = async ({
     email,
@@ -55,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       localStorage.removeItem('accessToken');
+      queryClient.removeQueries({ queryKey: cartQueryKeys.all }); //로그아웃하면 cart 데이터 초기화
     }
   };
 
