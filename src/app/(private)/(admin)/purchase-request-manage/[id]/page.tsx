@@ -34,6 +34,7 @@ export default function PurchaseRequestManageDetailPage({
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
   const [pointAmount, setPointAmount] = useState(0);
+  const [resultMessage, setResultMessage] = useState('');
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
@@ -82,7 +83,7 @@ export default function PurchaseRequestManageDetailPage({
 
   const handleApprove = () => {
     patchApproveMutation.mutate(
-      { id: requestId, resultMessage: '', requestPointAmount: safePointAmount },
+      { id: requestId, resultMessage, requestPointAmount: safePointAmount },
       {
         onSuccess: () => {
           setShowApproveModal(true);
@@ -97,7 +98,7 @@ export default function PurchaseRequestManageDetailPage({
   };
   const handleReject = () => {
     patchRejectMutation.mutate(
-      { id: requestId, resultMessage: '' },
+      { id: requestId, resultMessage },
       {
         onSuccess: () => {
           setShowRejectModal(true);
@@ -155,6 +156,18 @@ export default function PurchaseRequestManageDetailPage({
               실결제액: {previewPaidAmount.toLocaleString()}원
             </p>
           </div>
+        </div>
+
+        <div className="flex w-full flex-col gap-3">
+          <p className="text-[16px] font-bold tracking-[-0.4px] text-gray-950">
+            처리 메시지
+          </p>
+          <textarea
+            placeholder="승인/반려 메시지를 입력해주세요"
+            className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
+            value={resultMessage}
+            onChange={(e) => setResultMessage(e.target.value)}
+          />
         </div>
 
         <InfoSection
