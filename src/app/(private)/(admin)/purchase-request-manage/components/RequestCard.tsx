@@ -19,27 +19,28 @@ const RequestCard = ({ request, onReject, onApprove }: RequestCardProps) => {
       <Link
         href={`/purchase-request-manage/${request.id}`}
         className="flex flex-1 items-center gap-20"
-      ></Link>
-      <div className="flex w-full flex-col gap-2.5">
-        <div className="flex w-full items-center justify-between pr-1">
-          <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
-            {formatDate(request.requestedAt)}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[14px] tracking-[-0.35px] text-gray-950">
-              {request.requesterName}
+      >
+        <div className="flex w-full flex-col gap-2.5">
+          <div className="flex w-full items-center justify-between pr-1">
+            <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
+              {formatDate(request.requestedAt)}
             </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[14px] tracking-[-0.35px] text-gray-950">
+                {request.requesterName}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-[14px] tracking-[-0.35px] text-gray-950">
+              {request.itemSummary}
+            </p>
+            <p className="text-[20px] font-extrabold tracking-[-0.5px] text-gray-950">
+              {request.totalAmount.toLocaleString()}
+            </p>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-[14px] tracking-[-0.35px] text-gray-950">
-            {request.itemSummary}
-          </p>
-          <p className="text-[20px] font-extrabold tracking-[-0.5px] text-gray-950">
-            {request.totalAmount.toLocaleString()}
-          </p>
-        </div>
-      </div>
+      </Link>
       <div className="flex w-full items-center gap-2">
         <Button variant="sub" className="min-w-0 flex-1" onClick={onReject}>
           반려
