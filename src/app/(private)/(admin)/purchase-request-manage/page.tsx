@@ -30,11 +30,18 @@ export default function PurchaseRequestManagePage() {
   }
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent');
+  const [page, setPage] = useState(1);
   const [modalState, setModalState] = useState<ModalState | null>(null);
-  const { data, isPending, isError } = useRequestList(sortBy);
+  const {
+    data: requestList,
+    isPending,
+    isError,
+  } = useRequestList(sortBy, page);
 
   if (isPending) return <div>로딩 중...</div>;
   if (isError) return <div>에러남</div>;
+
+  const { items: data, pagination } = requestList;
 
   return (
     <div className="min-h-screen bg-white">
@@ -46,7 +53,10 @@ export default function PurchaseRequestManagePage() {
           <SortDropdown
             options={SORT_OPTIONS}
             value={sortBy}
-            onChange={(value) => setsortBy(value as sortByOption)}
+            onChange={(value) => {
+              setsortBy(value as sortByOption);
+              setPage(1);
+            }}
           />
         </div>
 
@@ -200,7 +210,11 @@ export default function PurchaseRequestManagePage() {
               ))}
             </ul>
 
-            <Pagination page={1} totalPages={1} onPageChange={() => {}} />
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
         {modalState && (

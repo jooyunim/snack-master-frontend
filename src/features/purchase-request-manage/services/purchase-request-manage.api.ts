@@ -2,16 +2,24 @@ import { apiFetch } from '@/lib/api';
 import {
   Action,
   MessageResponse,
-  purchaseRequestManage,
   purchaseRequestManageDetail,
+  purchaseRequestManageList,
   sortByOption,
 } from '../types/purchase-request-manage.type';
 
 export async function getPurchaseRequestManageList(
-  sortBy?: sortByOption
-): Promise<purchaseRequestManage[]> {
-  const query = sortBy ? `?sortBy=${sortBy}` : ``;
-  return apiFetch<purchaseRequestManage[]>(`/purchase-requests/${query}`);
+  sortBy?: sortByOption,
+  page = 1,
+  pageSize = 10
+): Promise<purchaseRequestManageList> {
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (sortBy) query.set('sortBy', sortBy);
+  return apiFetch<purchaseRequestManageList>(
+    `/purchase-requests/?${query.toString()}`
+  );
 }
 
 export async function getPurchaseRequestManageDetail(
