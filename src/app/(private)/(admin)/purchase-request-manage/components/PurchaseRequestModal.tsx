@@ -6,6 +6,7 @@ import { useRequestMutations } from '@/features/purchase-request-manage/hooks/us
 import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
+import PointCalculate from '../utils/PointCalculate';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -50,19 +51,21 @@ export default function PurchaseRequestModal({
 
   if (isError) return <div>에러...</div>;
 
-  const maxPoint = Math.min(pointBalance, data.requestAmount);
-  const safePointAmount = Number.isFinite(pointAmount)
-    ? Math.min(Math.max(pointAmount, 0), maxPoint)
-    : 0;
-  const previewPaidAmount = Math.max(data.requestAmount - safePointAmount, 0);
-  const previewPaidAmountWithoutShipping = Math.max(
-    previewPaidAmount - data.shippingFee,
-    0
-  );
-  const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
-  const previewAfterBudget = data.remained - previewPaidAmount;
+  const {
+    maxPoint,
+    safePointAmount,
+    previewPaidAmount,
+    previewReward,
+    previewAfterBudget,
+    isOverBudgetAfterPoints,
+  } = PointCalculate({
+    pointBalance,
+    pointAmount,
+    requestAmount: data.requestAmount,
+    shippingFee: data.shippingFee,
+    remainedBudget: data.remained,
+  });
 
-  const isOverBudgetAfterPoints = previewAfterBudget < 0;
   const isApproveBlock = isApprove && isOverBudgetAfterPoints;
   const isShowAlert = isApproveBlock && showAlert;
 
