@@ -192,6 +192,7 @@ function AuthActions({
 
         <Link
           href="/user"
+          aria-label="프로필"
           className="relative flex size-6 shrink-0 items-center justify-center cursor-pointer overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden"
         >
           {profileName}
