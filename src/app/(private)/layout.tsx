@@ -11,9 +11,10 @@ export default function PrivateLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthChecked, isLoggedIn, user } = useAuth();
   const router = useRouter();
+  const { isAuthChecked, isLoggedIn, user } = useAuth();
   const { data: cartData } = useCarts();
+
   const cartCount = cartData?.cartItem.length ?? 0;
 
   useEffect(() => {

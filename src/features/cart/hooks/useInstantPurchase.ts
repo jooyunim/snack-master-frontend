@@ -2,8 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { instantPurchase } from '../services/cart.api';
 import { cartQueryKeys } from '../constants/query-keys';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useInstantPurchase = () => {
+  const { user } = useAuth();
+  const userId = user?.id ?? '';
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -16,7 +19,7 @@ export const useInstantPurchase = () => {
         router.push('/cart');
         return;
       }
-      queryClient.removeQueries({ queryKey: cartQueryKeys.list() });
+      queryClient.removeQueries({ queryKey: cartQueryKeys.list(userId) });
       router.push(`/cart/complete?id=${purchaseId}`);
     },
     onError: (error: Error) => {

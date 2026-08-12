@@ -1,7 +1,9 @@
+import { User } from '@/features/auth/types/auth.types';
+
 export const cartQueryKeys = {
   all: ['cart'] as const,
   lists: () => [...cartQueryKeys.all, 'list'] as const,
-  list: () => [...cartQueryKeys.lists()] as const,
+  list: (userId: User['id']) => [...cartQueryKeys.lists(), userId] as const,
   orderItems: (ids: number[]) =>
     [...cartQueryKeys.all, 'orderItems', ids] as const,
   companyBalancePoint: () =>
