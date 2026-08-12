@@ -215,9 +215,12 @@ function AuthActions({
           />
         </Link>
 
-        <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden">
+        <Link
+          href="/user"
+          className="relative flex size-6 shrink-0 items-center justify-center cursor-pointer overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden"
+        >
           {profileName}
-        </span>
+        </Link>
 
         <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" aria-hidden />
 
@@ -311,7 +314,7 @@ function MobileCategoryDropdown() {
 export default function Gnb({
   className = '',
   userType = null,
-  cartCount = 0, //장바구니 api 연동 후 수정
+  cartCount = 0,
   profileName = '',
 }: GnbProps) {
   const pathname = usePathname();
