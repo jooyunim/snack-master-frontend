@@ -1,7 +1,7 @@
 import { apiFetch } from '@/lib/api';
 import {
   Action,
-  MessageResponse,
+  PurchaseRequestStatusResult,
   purchaseRequestManageDetail,
   purchaseRequestManageList,
   sortByOption,
@@ -33,11 +33,14 @@ async function patchStatus(
   resultMessage: string,
   action: Action,
   requestPointAmount?: number
-): Promise<MessageResponse> {
-  return apiFetch<MessageResponse>(`/purchase-requests/${id}/${action}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ resultMessage, requestPointAmount }),
-  });
+): Promise<PurchaseRequestStatusResult> {
+  return apiFetch<PurchaseRequestStatusResult>(
+    `/purchase-requests/${id}/${action}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ resultMessage, requestPointAmount }),
+    }
+  );
 }
 
 export const patchApprove = async ({
