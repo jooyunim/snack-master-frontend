@@ -28,8 +28,7 @@ export default function PurchaseRequestManageDetailPage({
       : null;
 
   const { data, isPending, isError } = useRequestDetail(requestId);
-  const { patchApproveMutation } = useRequestMutations();
-  const { patchRejectMutation } = useRequestMutations();
+  const { patchApproveMutation, patchRejectMutation } = useRequestMutations();
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
