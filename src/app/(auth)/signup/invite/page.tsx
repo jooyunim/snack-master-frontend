@@ -6,7 +6,6 @@ import logo from '@/assets/icons/logo.svg';
 import icWarning from '@/assets/icons/ic_!.svg';
 import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
-import Gnb from '@/components/Gnb';
 import Input from '@/components/Input';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -113,9 +112,7 @@ const SignupPage = () => {
 
   return (
     <div className="relative min-h-screen bg-white">
-      <Gnb className="absolute left-0 top-0 z-10" />
-
-      <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[115px] md:justify-center md:px-4 md:pt-[90px]">
+      <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[139px] md:justify-center md:px-4 md:pt-0">
         <div className="relative flex w-full max-w-[600px] flex-col items-center">
           <div className="relative h-[140px] w-full shrink-0 overflow-hidden md:mb-[-62px] md:h-[214px] md:max-w-[500px]">
             <Image
