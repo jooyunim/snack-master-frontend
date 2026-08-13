@@ -52,6 +52,14 @@ const LoginPage = () => {
     mutate.mutate(data);
   };
 
+  const onInvalid = () => {
+    setLoginError('null');
+  };
+
+  const claerLoginError = () => {
+    if (loginError) setLoginError(null);
+  };
+
   return (
     <div className="relative min-h-screen bg-white">
       <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[139px] md:justify-center md:px-4 md:pt-0">
@@ -72,14 +80,14 @@ const LoginPage = () => {
             </h1>
 
             <form
-              onSubmit={handleSubmit(onValid)}
+              onSubmit={handleSubmit(onValid, onInvalid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <Input
-                    {...register('email')}
-                    type="email"
+                    {...register('email', { onChange: claerLoginError })}
+                    type="text"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
                   />
@@ -91,7 +99,7 @@ const LoginPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('password')}
+                      {...register('password', { onChange: claerLoginError })}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="current-password"
@@ -104,7 +112,7 @@ const LoginPage = () => {
                     )}
                   </div>
                 </div>
-                {loginError ? (
+                {!errors.email && !errors.password && loginError ? (
                   <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
                     {loginError}
                   </p>
