@@ -64,28 +64,30 @@ export default function PurchaseRequestManageDetailPage({
     totalPrice: `${item.totalPrice.toLocaleString()}원`,
     imageSrc: item.imageUrl ?? '',
   }));
-  const maxPoint = Math.min(pointBalance, data.requestAmount);
-  const safePointAmount = Number.isFinite(pointAmount)
-    ? Math.min(Math.max(pointAmount, 0), maxPoint)
-    : 0;
 
-  const previewPaidAmount = Math.max(data.requestAmount - safePointAmount, 0);
-  const previewPaidAmountWithoutShipping = Math.max(
-    previewPaidAmount - data.shippingFee,
-    0
-  );
-  const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
-  const previewAfterBudget = data.remained - previewPaidAmount;
+  const {
+    maxPoint,
+    safePointAmount,
+    previewPaidAmount,
+    previewReward,
+    previewAfterBudget,
+    isOverBudgetAfterPoints,
+  } = PointCalculate({
+    pointBalance,
+    pointAmount,
+    requestAmount: data.requestAmount,
+    shippingFee: data.shippingFee,
+    remainedBudget: data.remained,
+  });
 
-  const isOverBudgetAfterPoint = previewAfterBudget < 0;
-  const isOverBudget = showAlert && isOverBudgetAfterPoint;
+  const isOverBudget = showAlert && isOverBudgetAfterPoints;
 
   const handleApprove = () => {
     patchApproveMutation.mutate(
       { id: requestId, resultMessage, requestPointAmount: safePointAmount },
       {
         onSuccess: () => {
-          setShowApproveModal(true);
+          setResultModal('approve');
         },
         onError: (error) => {
           alert(
@@ -100,7 +102,7 @@ export default function PurchaseRequestManageDetailPage({
       { id: requestId, resultMessage },
       {
         onSuccess: () => {
-          setShowRejectModal(true);
+          setResultModal('reject');
         },
         onError: (error) => {
           alert(
@@ -189,7 +191,7 @@ export default function PurchaseRequestManageDetailPage({
             },
           ]}
         />
-        {showApproveModal && (
+        {resultModal === 'approve' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
             <AlertModal
               icon={icAlert}
@@ -199,7 +201,7 @@ export default function PurchaseRequestManageDetailPage({
             />
           </div>
         )}
-        {showRejectModal && (
+        {resultModal === 'reject' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
             <AlertModal
               icon={icAlert}
@@ -252,7 +254,7 @@ export default function PurchaseRequestManageDetailPage({
               variant="filled"
               className="w-full"
               onClick={handleApprove}
-              disabled={isOverBudgetAfterPoint || isMutating}
+              disabled={isOverBudgetAfterPoints || isMutating}
             >
               요청 승인
             </Button>

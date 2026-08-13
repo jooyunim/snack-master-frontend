@@ -4,10 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from '@/assets/icons/logo.svg';
 import Button from '@/components/Button';
-import Gnb from '@/components/Gnb';
 import Input from '@/components/Input';
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +13,7 @@ import {
   adminSignupSchema,
   type AdminSignupFormValues,
 } from '@/features/auth/schemas/auth';
-import { adminSignupApi } from '@/features/auth/services/auth.api';
+import { useSignup } from '@/features/auth/hooks/useSignup';
 
 const SignupPage = () => {
   const [signupError, setSignupError] = useState<string | null>(null);
@@ -39,23 +37,7 @@ const SignupPage = () => {
     },
   });
 
-  const mutate = useMutation({
-    mutationFn: ({
-      email,
-      name,
-      password,
-      passwordConfirm,
-      companyName,
-      businessNumber,
-    }: AdminSignupFormValues) =>
-      adminSignupApi(
-        email,
-        name,
-        password,
-        passwordConfirm,
-        companyName,
-        businessNumber
-      ),
+  const { signupMutation } = useSignup({
     onSuccess: () => {
       router.push('/login');
     },
@@ -65,16 +47,22 @@ const SignupPage = () => {
   });
 
   const onValid = (values: AdminSignupFormValues) => {
-    if (mutate.isPending) return;
+    if (signupMutation.isPending) return;
     setSignupError(null);
-    mutate.mutate(values);
+    signupMutation.mutate(values);
+  };
+
+  const onInvalid = () => {
+    setSignupError(null);
+  };
+
+  const clearSignupError = () => {
+    if (signupError) setSignupError(null);
   };
 
   return (
     <div className="relative min-h-screen bg-white">
-      <Gnb className="absolute left-0 top-0 z-10" />
-
-      <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[115px] md:justify-center md:px-4 md:pt-[90px]">
+      <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[139px] md:justify-center md:px-4 md:pt-0">
         <div className="relative flex w-full max-w-[600px] flex-col items-center">
           <div className="relative h-[140px] w-full shrink-0 overflow-hidden md:mb-[-62px] md:h-[214px] md:max-w-[500px]">
             <Image
@@ -98,14 +86,14 @@ const SignupPage = () => {
             </div>
 
             <form
-              onSubmit={handleSubmit(onValid)}
+              onSubmit={handleSubmit(onValid, onInvalid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('name')}
+                      {...register('name', { onChange: clearSignupError })}
                       placeholder="이름(기업 담당자)을 입력해주세요."
                       autoComplete="name"
                     />
@@ -118,7 +106,7 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('email')}
+                      {...register('email', { onChange: clearSignupError })}
                       type="email"
                       placeholder="이메일을 입력해주세요."
                       autoComplete="email"
@@ -132,7 +120,7 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('password')}
+                      {...register('password', { onChange: clearSignupError })}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="new-password"
@@ -147,7 +135,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('passwordConfirm')}
+                      {...register('passwordConfirm', {
+                        onChange: clearSignupError,
+                      })}
                       type="password"
                       placeholder="비밀번호를 한 번 더 입력해주세요"
                       autoComplete="new-password"
@@ -162,7 +152,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('companyName')}
+                      {...register('companyName', {
+                        onChange: clearSignupError,
+                      })}
                       placeholder="회사명을 입력해주세요."
                       autoComplete="organization"
                     />
@@ -175,7 +167,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('businessNumber')}
+                      {...register('businessNumber', {
+                        onChange: clearSignupError,
+                      })}
                       inputMode="numeric"
                       placeholder="사업자 번호를 입력해주세요"
                     />
@@ -186,13 +180,22 @@ const SignupPage = () => {
                     )}
                   </div>
                 </div>
-                {signupError ? (
+                {!errors.name &&
+                !errors.email &&
+                !errors.password &&
+                !errors.passwordConfirm &&
+                !errors.companyName &&
+                !errors.businessNumber &&
+                signupError ? (
                   <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
                     {signupError}
                   </p>
                 ) : null}
-                <Button type="submit" disabled={!isValid || mutate.isPending}>
-                  {mutate.isPending ? '가입 중...' : '가입하기'}
+                <Button
+                  type="submit"
+                  disabled={!isValid || signupMutation.isPending}
+                >
+                  {signupMutation.isPending ? '가입 중...' : '가입하기'}
                 </Button>
               </div>
 

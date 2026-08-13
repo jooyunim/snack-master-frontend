@@ -8,23 +8,22 @@ import Input from '@/components/Input';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   loginSchema,
   type LoginFormValues,
 } from '@/features/auth/schemas/auth';
+import { useLogin } from '@/features/auth/hooks/useLogin';
 
 const LoginPage = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const { login, isAuthChecked } = useAuth();
+  const { isAuthChecked } = useAuth();
 
   const router = useRouter();
 
-  const mutate = useMutation({
-    mutationFn: login,
+  const { loginMutation } = useLogin({
     onSuccess: () => {
       router.push('/products');
     },
@@ -47,9 +46,17 @@ const LoginPage = () => {
   });
 
   const onValid = (data: LoginFormValues) => {
-    if (mutate.isPending) return;
+    if (loginMutation.isPending) return;
     setLoginError(null);
-    mutate.mutate(data);
+    loginMutation.mutate(data);
+  };
+
+  const onInvalid = () => {
+    setLoginError(null);
+  };
+
+  const clearLoginError = () => {
+    if (loginError) setLoginError(null);
   };
 
   return (
@@ -72,14 +79,14 @@ const LoginPage = () => {
             </h1>
 
             <form
-              onSubmit={handleSubmit(onValid)}
+              onSubmit={handleSubmit(onValid, onInvalid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <Input
-                    {...register('email')}
-                    type="email"
+                    {...register('email', { onChange: clearLoginError })}
+                    type="text"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
                   />
@@ -91,7 +98,7 @@ const LoginPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('password')}
+                      {...register('password', { onChange: clearLoginError })}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="current-password"
@@ -104,16 +111,16 @@ const LoginPage = () => {
                     )}
                   </div>
                 </div>
-                {loginError ? (
+                {!errors.email && !errors.password && loginError ? (
                   <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
                     {loginError}
                   </p>
                 ) : null}
                 <Button
                   type="submit"
-                  disabled={!isAuthChecked || mutate.isPending}
+                  disabled={!isAuthChecked || loginMutation.isPending}
                 >
-                  {mutate.isPending ? '로그인 중...' : '로그인'}
+                  {loginMutation.isPending ? '로그인 중...' : '로그인'}
                 </Button>
               </div>
 

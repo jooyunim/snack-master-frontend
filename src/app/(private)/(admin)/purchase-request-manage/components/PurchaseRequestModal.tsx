@@ -53,19 +53,21 @@ export default function PurchaseRequestModal({
 
   if (isError) return <div>에러...</div>;
 
-  const maxPoint = Math.min(pointBalance, data.requestAmount);
-  const safePointAmount = Number.isFinite(pointAmount)
-    ? Math.min(Math.max(pointAmount, 0), maxPoint)
-    : 0;
-  const previewPaidAmount = Math.max(data.requestAmount - safePointAmount, 0);
-  const previewPaidAmountWithoutShipping = Math.max(
-    previewPaidAmount - data.shippingFee,
-    0
-  );
-  const previewReward = Math.floor(previewPaidAmountWithoutShipping * 0.01);
-  const previewAfterBudget = data.remained - previewPaidAmount;
+  const {
+    maxPoint,
+    safePointAmount,
+    previewPaidAmount,
+    previewReward,
+    previewAfterBudget,
+    isOverBudgetAfterPoints,
+  } = PointCalculate({
+    pointBalance,
+    pointAmount,
+    requestAmount: data.requestAmount,
+    shippingFee: data.shippingFee,
+    remainedBudget: data.remained,
+  });
 
-  const isOverBudgetAfterPoints = previewAfterBudget < 0;
   const isApproveBlock = isApprove && isOverBudgetAfterPoints;
   const isShowAlert = isApproveBlock && showAlert;
 
@@ -144,7 +146,7 @@ export default function PurchaseRequestModal({
                             {item.productName}
                           </p>
                           <p className="font-bold">
-                            {item.price.toLocaleString()}
+                            {item.price.toLocaleString()}원
                           </p>
                         </div>
                       </div>
@@ -154,7 +156,7 @@ export default function PurchaseRequestModal({
                       </p>
 
                       <p className="text-center text-[20px] font-extrabold leading-8 text-gray-700 max-sm:hidden">
-                        {item.totalPrice.toLocaleString()}
+                        {item.totalPrice.toLocaleString()}원
                       </p>
 
                       <div className="hidden flex-col items-start justify-center gap-1 max-sm:flex">
@@ -162,7 +164,7 @@ export default function PurchaseRequestModal({
                           {item.quantity}
                         </p>
                         <p className="text-center text-[16px] font-bold tracking-[-0.4px] text-gray-700">
-                          {item.totalPrice.toLocaleString()}
+                          {item.totalPrice.toLocaleString()}원
                         </p>
                       </div>
                     </li>
@@ -171,11 +173,11 @@ export default function PurchaseRequestModal({
                 <div className="flex w-full flex-col gap-2.5">
                   <div className="flex w-full items-center justify-between px-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700">
                     <p>주문금액</p>
-                    <p>{data.orderAmount.toLocaleString()}</p>
+                    <p>{data.orderAmount.toLocaleString()}원</p>
                   </div>
                   <div className="flex w-full items-center justify-between px-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700">
                     <p>배송비</p>
-                    <p>{data.shippingFee.toLocaleString()}</p>
+                    <p>{data.shippingFee.toLocaleString()}원</p>
                   </div>
                   {isApprove && (
                     <>
@@ -211,7 +213,7 @@ export default function PurchaseRequestModal({
                       총 주문금액
                     </p>
                     <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                      {previewPaidAmount.toLocaleString()}
+                      {previewPaidAmount.toLocaleString()}원
                     </p>
                   </div>
                 </div>
@@ -224,7 +226,7 @@ export default function PurchaseRequestModal({
                   남은 예산 금액
                 </p>
                 <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                  {previewAfterBudget.toLocaleString()}
+                  {previewAfterBudget.toLocaleString()}원
                 </p>
               </div>
 
