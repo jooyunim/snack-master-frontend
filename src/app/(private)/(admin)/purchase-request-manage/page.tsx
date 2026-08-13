@@ -1,4 +1,5 @@
 'use client';
+
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
@@ -27,10 +28,10 @@ export default function PurchaseRequestManagePage() {
   const { data, isPending, isError } = useRequestList(sortBy, page);
 
   if (isPending) return <div>로딩 중...</div>;
-  if (isError) return <div>에러남</div>;
+  if (isError || !data) return <div>에러가 발생했습니다.</div>;
 
-  const requests = data.items;
-  const pagination = data.pagination;
+  const requests = data?.items ?? [];
+  const pagination = data?.pagination;
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,7 +46,8 @@ export default function PurchaseRequestManagePage() {
             onChange={(value) => setsortBy(value as sortByOption)}
           />
         </div>
-        {requests.length == 0 ? (
+
+        {requests.length === 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -66,16 +68,19 @@ export default function PurchaseRequestManagePage() {
                 setModalState({ action: 'approve', requestId: id })
               }
             />
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.totalPage}
-              onPageChange={(newPage) => setPage(newPage)}
-            />
+
+            {pagination && (
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPage}
+                onPageChange={(newPage) => setPage(newPage)}
+              />
+            )}
           </div>
         )}
+
         {modalState && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            {' '}
             <PurchaseRequestModal
               requestId={modalState.requestId}
               mode={modalState.action}

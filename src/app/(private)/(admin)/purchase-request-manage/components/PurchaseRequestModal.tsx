@@ -7,6 +7,7 @@ import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import PointCalculate from '../utils/PointCalculate';
+import { getInitials } from '../utils/getInitials';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -98,7 +99,7 @@ export default function PurchaseRequestModal({
               <div className="flex items-center gap-3">
                 <div className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50">
                   <span className="text-[10px] font-medium tracking-[-0.25px] text-black">
-                    JN
+                    {getInitials(data.requesterName)}
                   </span>
                 </div>
                 <p className="w-16 text-[16px] font-bold tracking-[-0.4px] text-gray-950">
