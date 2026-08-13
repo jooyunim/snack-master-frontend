@@ -136,6 +136,9 @@ export default function MembersPage() {
     deleteMemberMutation(memberToDelete.id, {
       onSuccess: () => {
         closeDeleteAlert();
+        if (MEMBERS.length === 1 && page > 1) {
+          setPage((prev) => prev - 1);
+        }
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error, '회원 탈퇴에 실패했습니다.'));
@@ -304,7 +307,7 @@ export default function MembersPage() {
                 >
                   <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50">
                     <span className="text-[14px] tracking-[-0.35px] text-black">
-                      {member.initials}
+                      {getInitials(member.name)}
                     </span>
                   </div>
 
