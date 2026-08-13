@@ -8,23 +8,22 @@ import Input from '@/components/Input';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   loginSchema,
   type LoginFormValues,
 } from '@/features/auth/schemas/auth';
+import { useLogin } from '@/features/auth/hooks/useLogin';
 
 const LoginPage = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const { login, isAuthChecked } = useAuth();
+  const { isAuthChecked } = useAuth();
 
   const router = useRouter();
 
-  const mutate = useMutation({
-    mutationFn: login,
+  const { loginMutation } = useLogin({
     onSuccess: () => {
       router.push('/products');
     },
@@ -47,9 +46,9 @@ const LoginPage = () => {
   });
 
   const onValid = (data: LoginFormValues) => {
-    if (mutate.isPending) return;
+    if (loginMutation.isPending) return;
     setLoginError(null);
-    mutate.mutate(data);
+    loginMutation.mutate(data);
   };
 
   const onInvalid = () => {
@@ -119,9 +118,9 @@ const LoginPage = () => {
                 ) : null}
                 <Button
                   type="submit"
-                  disabled={!isAuthChecked || mutate.isPending}
+                  disabled={!isAuthChecked || loginMutation.isPending}
                 >
-                  {mutate.isPending ? '로그인 중...' : '로그인'}
+                  {loginMutation.isPending ? '로그인 중...' : '로그인'}
                 </Button>
               </div>
 

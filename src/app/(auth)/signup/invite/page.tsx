@@ -8,13 +8,10 @@ import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { inviteSignupSchema } from '@/features/auth/schemas/auth';
-import {
-  getEmailNameApi,
-  inviteSignupApi,
-} from '@/features/auth/services/auth.api';
+import { useInviteSignup } from '@/features/auth/hooks/useInviteSignup';
+import { useEmailName } from '@/features/auth/hooks/useEmailName';
 
 const parseInvitePassword = (password: string, passwordConfirm: string) => {
   const result = inviteSignupSchema.safeParse({ password, passwordConfirm });
@@ -50,27 +47,14 @@ const SignupPage = () => {
 
   const router = useRouter();
 
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ['getEmailName', token],
-    queryFn: () => getEmailNameApi(token as string),
-    enabled: !!token,
-  });
+  const { data, isPending, isError, error } = useEmailName({ token });
 
   const showInviteAlert = !token || isError;
   const inviteAlertContent = !token
     ? '초대 링크를 다시 확인해 주세요'
     : (error?.message ?? '초대 링크를 다시 확인해 주세요');
 
-  const mutate = useMutation({
-    mutationFn: ({
-      token,
-      password,
-      passwordConfirm,
-    }: {
-      token: string;
-      password: string;
-      passwordConfirm: string;
-    }) => inviteSignupApi(token, password, passwordConfirm),
+  const { inviteSignupMutation } = useInviteSignup({
     onSuccess: () => {
       router.push('/login');
     },
@@ -83,7 +67,7 @@ const SignupPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (mutate.isPending || !token) {
+    if (inviteSignupMutation.isPending || !token) {
       return;
     }
 
@@ -103,7 +87,7 @@ const SignupPage = () => {
 
     setPasswordError(null);
     setPasswordConfirmError(null);
-    mutate.mutate({
+    inviteSignupMutation.mutate({
       token,
       password: parsed.data.password,
       passwordConfirm: parsed.data.passwordConfirm,
@@ -191,9 +175,14 @@ const SignupPage = () => {
                 ) : null}
                 <Button
                   type="submit"
-                  disabled={mutate.isPending || !token || isPending || isError}
+                  disabled={
+                    inviteSignupMutation.isPending ||
+                    !token ||
+                    isPending ||
+                    isError
+                  }
                 >
-                  {mutate.isPending ? '가입 중...' : '가입하기'}
+                  {inviteSignupMutation.isPending ? '가입 중...' : '가입하기'}
                 </Button>
               </div>
 

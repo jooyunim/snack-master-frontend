@@ -6,7 +6,6 @@ import logo from '@/assets/icons/logo.svg';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,7 @@ import {
   adminSignupSchema,
   type AdminSignupFormValues,
 } from '@/features/auth/schemas/auth';
-import { adminSignupApi } from '@/features/auth/services/auth.api';
+import { useSignup } from '@/features/auth/hooks/useSignup';
 
 const SignupPage = () => {
   const [signupError, setSignupError] = useState<string | null>(null);
@@ -38,23 +37,7 @@ const SignupPage = () => {
     },
   });
 
-  const mutate = useMutation({
-    mutationFn: ({
-      email,
-      name,
-      password,
-      passwordConfirm,
-      companyName,
-      businessNumber,
-    }: AdminSignupFormValues) =>
-      adminSignupApi(
-        email,
-        name,
-        password,
-        passwordConfirm,
-        companyName,
-        businessNumber
-      ),
+  const { signupMutation } = useSignup({
     onSuccess: () => {
       router.push('/login');
     },
@@ -64,9 +47,9 @@ const SignupPage = () => {
   });
 
   const onValid = (values: AdminSignupFormValues) => {
-    if (mutate.isPending) return;
+    if (signupMutation.isPending) return;
     setSignupError(null);
-    mutate.mutate(values);
+    signupMutation.mutate(values);
   };
 
   const onInvalid = () => {
@@ -208,8 +191,11 @@ const SignupPage = () => {
                     {signupError}
                   </p>
                 ) : null}
-                <Button type="submit" disabled={!isValid || mutate.isPending}>
-                  {mutate.isPending ? '가입 중...' : '가입하기'}
+                <Button
+                  type="submit"
+                  disabled={!isValid || signupMutation.isPending}
+                >
+                  {signupMutation.isPending ? '가입 중...' : '가입하기'}
                 </Button>
               </div>
 
