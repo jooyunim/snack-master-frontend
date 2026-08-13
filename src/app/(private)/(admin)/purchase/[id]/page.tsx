@@ -143,9 +143,9 @@ export default function PurchaseDetailPage() {
         </div>
 
         <PaymentSummary
-          pointsUsed={`${(order.pointsUsed ?? 0).toLocaleString('ko-KR')} P`}
-          pointsEarned={`${(order.pointsEarned ?? 0).toLocaleString('ko-KR')} P`}
-          paidAmount={formatWon(order.paidAmount)}
+          pointsUsed={order.pointsUsed ?? 0}
+          pointsEarned={order.pointsEarned ?? 0}
+          paidAmount={order.paidAmount ?? 0}
         />
 
         <InfoSection
