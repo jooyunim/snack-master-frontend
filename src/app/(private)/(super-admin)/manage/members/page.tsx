@@ -11,43 +11,25 @@ import InviteMemberModal, {
 } from './components/InviteMemberModal';
 import AlertModal from '@/components/AlertModal';
 import icWarning from '@/assets/icons/ic_!.svg';
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { apiFetch } from '@/lib/api';
 import { useDebounce } from '@/features/member/hooks/useDebounce';
+import { useInviteUser } from '@/features/member/hooks/useInviteUser';
+import { useUpdateUserRole } from '@/features/member/hooks/useUpdateUserRole';
 import { useState } from 'react';
 import EmptyState from '@/components/EmptyState';
-
-export type MemberRole = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
-
-type Member = {
-  id: string;
-  name: string;
-  initials: string;
-  email: string;
-  role: MemberRole;
-};
-
-type MembersResponse = {
-  members: Member[];
-  total: number;
-};
+import { Member } from '@/features/member/types/members.type';
+import { useDeleteUser } from '@/features/member/hooks/useDeleteUser';
+import { useUsers } from '@/features/member/hooks/useUsers';
 
 //아바타용 이니셜 뽑는 함수
 const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
 
-const getMemberBadgeVariant = (role: MemberRole) => {
+const getMemberBadgeVariant = (role: Member['role']) => {
   if (role === 'ADMIN') return 'admin';
   if (role === 'SUPER_ADMIN') return 'superAdmin';
   return 'member';
 };
 
 export default function MembersPage() {
-  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(15);
@@ -94,125 +76,71 @@ export default function MembersPage() {
     setOpenMenuMemberId((prev) => (prev === memberId ? null : memberId));
   };
 
-  const getMembers = async (
-    search: string,
-    page: number,
-    pageSize: number
-  ): Promise<MembersResponse> => {
-    const params = new URLSearchParams({
-      page: String(page),
-      pageSize: String(pageSize),
-    });
-    if (search) params.set('search', search);
-    return await apiFetch<MembersResponse>(`/members?${params.toString()}`);
-  };
-
   const getErrorMessage = (error: unknown, fallback: string) =>
     error instanceof Error && error.message ? error.message : fallback;
 
-  const { data, isLoading, isError, refetch } = useQuery<MembersResponse>({
-    queryKey: ['members', debouncedSearch, page, pageSize],
-    queryFn: () => getMembers(debouncedSearch, page, pageSize),
-    placeholderData: keepPreviousData,
-  });
+  const { data, isLoading, isError, refetch } = useUsers(
+    debouncedSearch,
+    page,
+    pageSize
+  );
 
   const MEMBERS = data?.members ?? [];
   const totalUsers = data?.total ?? 0;
   const totalPages = Math.ceil(totalUsers / pageSize);
 
-  const inviteUsers = async (email: string, name: string, role: MemberRole) => {
-    return apiFetch<null>(`/members/invite`, {
-      method: 'POST',
-      body: JSON.stringify({ email, name, role }),
-    });
+  const { inviteUsersMutation, isInviteUsersPending } = useInviteUser();
+  const { updateMemberRoleMutation, isUpdateMemberRolePending } =
+    useUpdateUserRole();
+
+  const { deleteMemberMutation, isDeletePending } = useDeleteUser();
+
+  const isPending = isInviteUsersPending || isUpdateMemberRolePending;
+
+  const handleUpdateMemberRole = (id: string, role: Member['role']) => {
+    updateMemberRoleMutation(
+      { id, role },
+      {
+        onSuccess: () => {
+          closeInviteModal();
+          setSuccessAlert('editRole');
+        },
+        onError: (error) => {
+          setErrorMessage(getErrorMessage(error, '권한 변경에 실패했습니다.'));
+        },
+      }
+    );
   };
 
-  const { mutate: inviteUsersMutation, isPending: isInviteUsersPending } =
-    useMutation({
-      mutationFn: ({
-        email,
-        name,
-        role,
-      }: {
-        email: string;
-        name: string;
-        role: MemberRole;
-      }) => inviteUsers(email, name, role),
-      onSuccess: () => {
-        closeInviteModal();
-        setSuccessAlert('invite');
-        refetch();
-      },
-      onError: (error) => {
-        setErrorMessage(getErrorMessage(error, '회원 초대에 실패했습니다.'));
-      },
-    });
-
-  const updateMemberRole = async (id: string, role: MemberRole) => {
-    return apiFetch<null>(`/members/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ role }),
-    });
+  const handleInviteUsers = (
+    email: string,
+    name: string,
+    role: Member['role']
+  ) => {
+    inviteUsersMutation(
+      { email, name, role },
+      {
+        onSuccess: () => {
+          closeInviteModal();
+          setSuccessAlert('invite');
+        },
+        onError: (error) => {
+          setErrorMessage(getErrorMessage(error, '회원 초대에 실패했습니다.'));
+        },
+      }
+    );
   };
 
-  const {
-    mutate: updateMemberRoleMutation,
-    isPending: isUpdateMemberRolePending,
-  } = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: MemberRole }) =>
-      updateMemberRole(id, role),
-    onSuccess: (_data, { id, role }) => {
-      closeInviteModal();
-      setSuccessAlert('editRole');
-      queryClient.setQueryData<MembersResponse>(
-        ['members', debouncedSearch, page, pageSize],
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            members: old.members.map((member) =>
-              member.id === id ? { ...member, role } : member
-            ),
-          };
-        }
-      );
-    },
-    onError: (error) => {
-      setErrorMessage(getErrorMessage(error, '권한 변경에 실패했습니다.'));
-    },
-  });
-
-  const deleteMember = async (id: string) => {
-    return apiFetch<null>(`/members/${id}/delete`, {
-      method: 'PATCH',
-    });
-  };
-
-  const { mutate: deleteMemberMutation, isPending: isDeletePending } =
-    useMutation({
-      mutationFn: (id: string) => deleteMember(id),
+  const handleConfirmDelete = () => {
+    if (!memberToDelete) return;
+    deleteMemberMutation(memberToDelete.id, {
       onSuccess: () => {
         closeDeleteAlert();
-        refetch();
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error, '회원 탈퇴에 실패했습니다.'));
       },
     });
-
-  const isPending = isInviteUsersPending || isUpdateMemberRolePending;
-
-  const handleUpdateMemberRole = (id: string, role: MemberRole) => {
-    updateMemberRoleMutation({ id, role });
-  };
-
-  const handleInviteUsers = (email: string, name: string, role: MemberRole) => {
-    inviteUsersMutation({ email, name, role });
-  };
-
-  const handleConfirmDelete = () => {
-    if (!memberToDelete) return;
-    deleteMemberMutation(memberToDelete.id);
   };
 
   const handlePageChange = (nextPage: number) => {
