@@ -69,6 +69,14 @@ const SignupPage = () => {
     mutate.mutate(values);
   };
 
+  const onInvalid = () => {
+    setSignupError(null);
+  };
+
+  const clearSignupError = () => {
+    if (signupError) setSignupError(null);
+  };
+
   return (
     <div className="relative min-h-screen bg-white">
       <main className="flex min-h-screen flex-col items-center px-6 pb-10 pt-[139px] md:justify-center md:px-4 md:pt-0">
@@ -95,14 +103,14 @@ const SignupPage = () => {
             </div>
 
             <form
-              onSubmit={handleSubmit(onValid)}
+              onSubmit={handleSubmit(onValid, onInvalid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('name')}
+                      {...register('name', { onChange: clearSignupError })}
                       placeholder="이름(기업 담당자)을 입력해주세요."
                       autoComplete="name"
                     />
@@ -115,7 +123,7 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('email')}
+                      {...register('email', { onChange: clearSignupError })}
                       type="email"
                       placeholder="이메일을 입력해주세요."
                       autoComplete="email"
@@ -129,7 +137,7 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('password')}
+                      {...register('password', { onChange: clearSignupError })}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="new-password"
@@ -144,7 +152,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('passwordConfirm')}
+                      {...register('passwordConfirm', {
+                        onChange: clearSignupError,
+                      })}
                       type="password"
                       placeholder="비밀번호를 한 번 더 입력해주세요"
                       autoComplete="new-password"
@@ -159,7 +169,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('companyName')}
+                      {...register('companyName', {
+                        onChange: clearSignupError,
+                      })}
                       placeholder="회사명을 입력해주세요."
                       autoComplete="organization"
                     />
@@ -172,7 +184,9 @@ const SignupPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('businessNumber')}
+                      {...register('businessNumber', {
+                        onChange: clearSignupError,
+                      })}
                       inputMode="numeric"
                       placeholder="사업자 번호를 입력해주세요"
                     />
@@ -183,7 +197,13 @@ const SignupPage = () => {
                     )}
                   </div>
                 </div>
-                {signupError ? (
+                {!errors.name &&
+                !errors.email &&
+                !errors.password &&
+                !errors.passwordConfirm &&
+                !errors.companyName &&
+                !errors.businessNumber &&
+                signupError ? (
                   <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
                     {signupError}
                   </p>
