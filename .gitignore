@@ -42,3 +42,8 @@ next-env.d.ts
 
 # editor
 .vscode/
+.cursor/
+
+# AI assistant context (not for repo)
+CLAUDE.md
+DECISIONS.local.md

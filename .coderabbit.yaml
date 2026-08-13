@@ -1,0 +1,135 @@
+# .coderabbit.yaml (Frontend - Next.js App Router)
+# 참고: 1팀 [간식대장] 노션 컨벤션 / 폴더 구조
+
+language: 'ko-KR'
+
+reviews:
+  profile: 'chill'
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  sequence_diagrams: false
+  collapse_walkthrough: false
+
+  path_instructions:
+    # ─── 공통 TypeScript / TSX ────────────────────────────
+    - path: '**/*.{ts,tsx}'
+      instructions: |
+        모든 리뷰 코멘트는 반드시 한국어로 작성해주세요.
+
+        [리뷰 방식]
+        - console.log, console.error, debugger 등 디버깅 코드가 제거되었는지, 불필요한 주석이나 dead code가 없는지 확인해주세요.
+        - 네이밍 컨벤션을 따르는지 검토해주세요:
+          - 변수/함수: camelCase (fetchData, handleSubmit 등)
+          - 컴포넌트: PascalCase (TodoList, ProductCard 등)
+          - 컴포넌트 파일: PascalCase (TodoForm.tsx)
+          - 일반 모듈/유틸 파일: camelCase (authApi.ts, queryClient.ts)
+          - 폴더: kebab-case (purchase-request, my-prisma-api 등)
+        - ESLint/Prettier 규칙 위반 중 실제 오류나 유지보수에 영향을 주는 경우에만 리뷰해주세요.
+        - 리뷰는 실제 버그, 보안, 성능, 데이터 무결성, 유지보수성 문제가 있는 경우에만 남겨주세요.
+        - 리뷰마다 문제의 이유와 수정 방향을 함께 설명해주세요.
+        - 초급 개발자도 이해할 수 있도록 어려운 용어는 가능한 쉬운 표현으로 사용하고, 문제의 원인과 수정 방향을 2~3문장 이내로 함께 설명해주세요.
+        - 수정을 요구하는 경우에는 가능한 예시 코드 또는 수정 예시를 함께 제시해주세요.
+        - 같은 내용을 여러 파일에서 반복해서 리뷰하지 말아주세요.
+        - 확신이 없는 내용은 리뷰하지 말고, 추측성 리뷰는 남기지 말아주세요.
+        - 리뷰 우선순위는 버그 > 보안 > 성능 > 유지보수성 순으로 판단해주세요.
+        - 리뷰 개수보다 중요한 문제를 우선하여 리뷰해주세요.
+
+        [브랜치 / PR]
+        - feature 브랜치 → `dev`로 PR이 향하는지 확인해주세요.
+        - PR 제목이 커밋 타입 컨벤션을 따르는지 확인해주세요. 예: `feat: 장바구니 UI 구현`
+
+        [커밋 메시지]
+        - 커밋 타입이 아래 컨벤션을 따르는지 확인해주세요:
+          - feat: 새로운 기능 추가
+          - fix: 버그 수정
+          - style: CSS, UI 수정
+          - refactor: 코드 리팩토링(기능 변화 없음)
+          - remove: 파일 삭제만 수행한 경우
+          - chore: 각종 설정 변경
+
+        [코드 품질]
+        - 로컬 빌드/테스트 성공 여부를 PR 체크리스트에서 확인해주세요.
+
+        [보안]
+        - 환경변수(.env)가 코드에 하드코딩되지 않았는지 확인해주세요.
+        - .env 파일이 PR에 포함되어 있지 않은지 확인해주세요.
+        - accessToken·비밀번호가 로그나 전역 상태에 그대로 노출되지 않는지 확인해주세요.
+
+    # ─── 환경 변수 / Secret 관리 ──────────────────────────
+    - path: '.env*'
+      instructions: |
+        - 환경변수 파일이 PR에 포함되어 있지 않은지 확인해주세요.
+        - API Key, Secret Key, Token, Password 등 민감 정보가 노출되지 않았는지 확인해주세요.
+        - 실제 환경변수 값이 커밋된 경우 보안 위험으로 리뷰해주세요.
+        - `.env.example` 파일은 허용되며 실제 값 대신 예시 형태로 작성되어 있는지 확인해주세요.
+
+    # ─── Next.js App Router (page / layout) ───────────────
+    - path: '**/app/**/*.{ts,tsx}'
+      instructions: |
+        - 서버 컴포넌트와 클라이언트 컴포넌트('use client')가 적절히 구분되어 있는지 확인해주세요.
+        - 클라이언트 컴포넌트에서 `NEXT_PUBLIC_` 접두사 없는 환경변수가 노출되지 않는지 확인해주세요.
+        - 동적 라우트 파라미터(params, searchParams) 처리가 올바른지 검토해주세요.
+        - layout.tsx에 불필요한 비즈니스 로직이 포함되어 있지 않은지 확인해주세요.
+        - (private) 라우트 그룹 페이지에서 인증 처리(리다이렉트 등)가 누락되지 않았는지 확인해주세요.
+
+    # ─── 공통 컴포넌트 ────────────────────────────────────
+    - path: '**/components/**/*.{ts,tsx}'
+      instructions: |
+        - 컴포넌트가 과도한 책임으로 유지보수가 어려운 경우에만 리뷰해주세요.
+        - 실제 성능 문제가 예상되는 경우에만 useMemo, useCallback 등의 최적화를 제안해주세요.
+        - useEffect 의존성 배열이 올바른지 검토해주세요.
+        - shadcn/ui 컴포넌트를 직접 수정했다면 업스트림 업데이트 시 충돌 가능성을 코멘트해주세요.
+        - shadcn 컴포넌트 커스터마이징은 className prop을 통해 하는지 확인해주세요.
+        - 동일한 리뷰를 여러 컴포넌트에서 반복하지 말고 가장 적절한 위치에 한 번만 남겨주세요.
+        - 접근성(a11y) 리뷰는 실제 사용성에 영향을 주는 경우에만 남겨주세요. 단순 권장 사항은 생략해주세요.
+
+    # ─── features (도메인 비즈니스 로직) ──────────────────
+    - path: '**/features/**/*.{ts,tsx}'
+      instructions: |
+        - 도메인 로직이 프로젝트에서 사용하는 구조(api, hooks, components 등)에 맞게 적절히 분리되어 있는지 확인해주세요.
+        - api 파일에서 응답 에러 처리(res.ok 체크 등)가 누락되지 않았는지 확인해주세요.
+        - 프로젝트에서 사용하는 인증 토큰 저장 및 전달 방식이 일관되게 사용되는지 검토해주세요.
+        - 민감한 정보(토큰, 비밀번호)가 로그나 상태에 그대로 노출되지 않는지 확인해주세요.
+        - 실제 버그, 데이터 흐름 오류, 상태 관리 오류가 발생하는 경우를 우선 리뷰해주세요.
+
+    # ─── React Query hooks ────────────────────────────────
+    - path: '**/hooks/**/*.{ts,tsx}'
+      instructions: |
+        - React Query의 queryKey가 프로젝트 규칙에 맞게 일관되게 관리되며, 문자열 하드코딩이나 중복으로 인해 캐시 충돌이 발생하지 않는지 확인해주세요.
+        - 에러 상태(isError)와 로딩 상태(isPending/isLoading)가 UI에서 처리되고 있는지 확인해주세요.
+        - useMutation 후 필요한 쿼리 invalidation이 누락되지 않았는지 확인해주세요.
+        - 커스텀 훅이 과도한 역할로 인해 유지보수가 어려운 경우에만 리뷰해주세요.
+
+    # ─── 스타일 (TailwindCSS) ─────────────────────────────
+    - path: '**/*.css'
+      instructions: |
+        - 하드코딩된 색상·폰트 값이 Tailwind 토큰 대신 사용되고 있지 않은지 확인해주세요.
+        - 반응형 처리가 누락된 UI 요소가 없는지 검토해주세요.
+        - Stylelint는 사용하지 않으니 관련 피드백은 생략해주세요.
+
+    # ─── 테스트 (선택) ────────────────────────────────────
+    - path: '**/*.{test,spec}.{ts,tsx}'
+      instructions: |
+        - 테스트 파일 작성은 필수가 아니며, 존재하는 경우에만 아래를 검토해주세요.
+        - describe/it 설명이 테스트 의도를 명확히 표현하는지 검토해주세요.
+        - 외부 의존성(API 호출 등)이 적절히 모킹되어 있는지 확인해주세요.
+
+  path_filters:
+    - '!**/node_modules/**'
+    - '!**/.next/**'
+    - '!**/dist/**'
+    - '!**/build/**'
+    - '!**/*.lock'
+    - '!**/public/**'
+    - '!**/__snapshots__/**'
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - 'dev'
+
+chat:
+  auto_reply: true
