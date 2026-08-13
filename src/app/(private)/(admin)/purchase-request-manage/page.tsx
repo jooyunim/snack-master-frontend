@@ -69,11 +69,11 @@ export default function PurchaseRequestManagePage() {
               }
             />
 
-            {pagination && (
+            {pagination.page > 1 && (
               <Pagination
                 page={pagination.page}
                 totalPages={pagination.totalPage}
-                onPageChange={(newPage) => setPage(newPage)}
+                onPageChange={setPage}
               />
             )}
           </div>

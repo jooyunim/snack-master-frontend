@@ -247,12 +247,16 @@ export default function PurchaseRequestModal({
             </div>
           </div>
           <div className="flex w-full items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:bg-white max-sm:p-6">
-            <Button variant="line" className="min-w-0 flex-1" onClick={onclose}>
+            <Button
+              variant="line"
+              className="min-w-0 flex-1 cursor-pointer"
+              onClick={onclose}
+            >
               취소
             </Button>
             <Button
               variant="filled"
-              className="min-w-0 flex-1"
+              className="min-w-0 flex-1 cursor-pointer"
               onClick={handleSubmit}
               disabled={isApproveBlock || mutation.isPending}
             >
