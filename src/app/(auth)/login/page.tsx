@@ -53,10 +53,10 @@ const LoginPage = () => {
   };
 
   const onInvalid = () => {
-    setLoginError('null');
+    setLoginError(null);
   };
 
-  const claerLoginError = () => {
+  const clearLoginError = () => {
     if (loginError) setLoginError(null);
   };
 
@@ -86,7 +86,7 @@ const LoginPage = () => {
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <Input
-                    {...register('email', { onChange: claerLoginError })}
+                    {...register('email', { onChange: clearLoginError })}
                     type="text"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
@@ -99,7 +99,7 @@ const LoginPage = () => {
 
                   <div className="flex w-full flex-col gap-2">
                     <Input
-                      {...register('password', { onChange: claerLoginError })}
+                      {...register('password', { onChange: clearLoginError })}
                       type="password"
                       placeholder="비밀번호를 입력해주세요"
                       autoComplete="current-password"
