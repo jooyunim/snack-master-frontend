@@ -5,14 +5,9 @@ import { useState } from 'react';
 import Button from '@/components/Button';
 import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
-import { MemberRole } from '../page';
+import { Member, RoleOption } from '@/features/member/types/members.type';
 
 export type InviteMemberModalMode = 'invite' | 'editRole';
-
-type RoleOption = {
-  value: MemberRole;
-  label: string;
-};
 
 const ROLE_OPTIONS: RoleOption[] = [
   { value: 'USER', label: '일반 사용자' },
@@ -25,12 +20,12 @@ type InviteMemberModalProps = {
   member?: {
     name: string;
     email: string;
-    role?: MemberRole;
+    role?: Member['role'];
   } | null;
   onConfirm: (payload: {
     email: string;
     name: string;
-    role: MemberRole;
+    role: Member['role'];
   }) => void;
   isPending?: boolean;
 };
