@@ -129,7 +129,7 @@ function AuthNav({ userType, pathname }: { userType: Role; pathname: string }) {
   const items = NAV_ITEMS.filter((item) => item.roles.includes(userType));
 
   return (
-    <nav className="flex items-center gap-[30px] max-lg:hidden">
+    <nav className="flex items-center gap-[30px] max-xl:hidden">
       {items.map((item) => {
         const active = isNavActive(pathname, item);
         return (
@@ -222,7 +222,7 @@ function AuthActions({
         type="button"
         aria-label="메뉴 열기"
         onClick={onOpenMenu}
-        className="relative hidden size-6 shrink-0 overflow-hidden max-lg:block"
+        className="relative hidden size-6 shrink-0 overflow-hidden max-xl:block"
       >
         <Image src={icMenu} alt="" fill className="object-contain" />
       </button>
@@ -324,7 +324,7 @@ export default function Gnb({
 
       {isSideMenuOpen ? (
         <div
-          className={`fixed inset-0 z-40 ${isLoggedIn ? 'lg:hidden' : 'sm:hidden'}`}
+          className={`fixed inset-0 z-40 ${isLoggedIn ? 'xl:hidden' : 'sm:hidden'}`}
         >
           <button
             type="button"
