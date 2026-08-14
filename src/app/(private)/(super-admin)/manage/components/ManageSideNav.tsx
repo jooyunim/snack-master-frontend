@@ -39,7 +39,7 @@ type ManageSideNavProps = {
 
 function isActive(pathname: string, item: ManageNavItem) {
   return item.matchPaths.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`),
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
 }
 
@@ -64,15 +64,14 @@ export default function ManageSideNav({ className = '' }: ManageSideNavProps) {
                 ? 'bg-gray-50 max-lg:border-b-2 max-lg:border-gray-950 max-lg:bg-transparent'
                 : 'max-lg:border-gray-200'
             }`}
+            aria-current={active ? 'page' : undefined}
           >
             <span className="relative size-5 shrink-0 overflow-hidden max-lg:size-6 max-sm:size-5">
               <Image src={icon} alt="" fill className="object-contain" />
             </span>
             <span
               className={`text-[16px] tracking-[-0.4px] whitespace-nowrap max-sm:text-[14px] max-sm:tracking-[-0.35px] ${
-                active
-                  ? 'font-bold text-gray-950'
-                  : 'font-normal text-gray-500'
+                active ? 'font-bold text-gray-950' : 'font-normal text-gray-500'
               }`}
             >
               {item.label}
