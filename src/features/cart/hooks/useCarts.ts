@@ -12,5 +12,6 @@ export const useCarts = () => {
     queryKey: cartQueryKeys.list(userId),
     queryFn: () => getCartItems(),
     enabled, //enabled가 true일 때만 쿼리 실행
+    staleTime: Infinity, //직접 호출 또는 쿼리키 바뀌지 않으면 데이터는 계속 fresh한 상태로 유지
   });
 };

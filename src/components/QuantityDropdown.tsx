@@ -10,6 +10,7 @@ type QuantityDropdownProps = {
   onChange: (quantity: number) => void;
   min?: number;
   max?: number;
+  step?: number;
   className?: string;
 };
 
@@ -19,14 +20,18 @@ const VISIBLE_OPTIONS = 5;
 export default function QuantityDropdown({
   value,
   onChange,
-  min = 1,
-  max = 20,
+  min = 10,
+  max = 100,
+  step = 10,
   className = '',
 }: QuantityDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const options = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  const options = Array.from(
+    { length: Math.floor((max - min) / step) + 1 },
+    (_, i) => min + i * step
+  );
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { patchCartItems } from '../services/cart.api';
-import { cartQueryKeys } from '../constants/query-keys';
+import { cartQueryKeys, orderItemsQueryKeys } from '../constants/query-keys';
 import { Cart, CartItem } from '../schemas/cart';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -40,7 +40,8 @@ export const usePatchQuantity = () => {
       );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: cartQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: cartQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: orderItemsQueryKeys.all });
     },
   });
 };
