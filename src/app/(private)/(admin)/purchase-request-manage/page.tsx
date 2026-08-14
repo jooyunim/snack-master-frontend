@@ -1,16 +1,23 @@
 'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
+import Button from '@/components/Button';
+import EmptyState from '@/components/EmptyState';
+import PurchaseRequestModal from './components/PurchaseRequestModal';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
 import {
   ModalState,
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
-import { useState } from 'react';
-import PurchaseRequestModal from './components/PurchaseRequestModal';
-import EmptyState from '@/components/EmptyState';
-import { useRouter } from 'next/navigation';
-import RequestTable from './components/RequestTable';
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+};
 
 const SORT_OPTIONS: SortOption[] = [
   { label: '최신순', value: 'recent' },
@@ -31,7 +38,7 @@ export default function PurchaseRequestManagePage() {
   } = useRequestList(sortBy, page);
 
   if (isPending) return <div>로딩 중...</div>;
-  if (isError) return <div>에러남</div>;
+  if (isError || !requestList) return <div>에러남</div>;
 
   const { items: data, pagination } = requestList;
 
@@ -51,7 +58,7 @@ export default function PurchaseRequestManagePage() {
             }}
           />
         </div>
-        {requests.length == 0 ? (
+        {data.length === 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -214,7 +221,7 @@ export default function PurchaseRequestManagePage() {
             <PurchaseRequestModal
               requestId={modalState.requestId}
               mode={modalState.action}
-              onclose={() => setModalState(null)}
+              onClose={() => setModalState(null)}
             />
           </div>
         )}
