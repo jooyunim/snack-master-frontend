@@ -1,4 +1,4 @@
-import type { OrderStatus } from './purchase.types';
+import type { OrderStatus } from './types/purchase.types';
 
 export function formatWon(amount?: number | null) {
   return `${(amount ?? 0).toLocaleString('ko-KR')}원`;
