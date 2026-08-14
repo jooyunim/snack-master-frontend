@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import Button from '@/components/Button';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
@@ -8,13 +9,45 @@ import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
 
+// PointCalculate 계산 함수 정의 (외부 유틸 파일이 있다면 import해서 사용하세요)
+function calculatePoints({
+  pointBalance,
+  pointAmount,
+  requestAmount,
+  shippingFee,
+  remainedBudget,
+}: {
+  pointBalance: number;
+  pointAmount: number;
+  requestAmount: number;
+  shippingFee: number;
+  remainedBudget: number;
+}) {
+  const totalAmount = requestAmount + shippingFee;
+  const maxPoint = Math.min(pointBalance, totalAmount);
+  const safePointAmount = Math.max(0, Math.min(pointAmount, maxPoint));
+  const previewPaidAmount = totalAmount - safePointAmount;
+  const previewReward = Math.floor(previewPaidAmount * 0.01); // 예시: 1% 적립
+  const previewAfterBudget = remainedBudget - previewPaidAmount;
+  const isOverBudgetAfterPoints = previewAfterBudget < 0;
+
+  return {
+    maxPoint,
+    safePointAmount,
+    previewPaidAmount,
+    previewReward,
+    previewAfterBudget,
+    isOverBudgetAfterPoints,
+  };
+}
+
 export default function PurchaseRequestModal({
   requestId,
-  onclose,
+  onClose,
   mode,
 }: {
   requestId: number;
-  onclose: () => void;
+  onClose: () => void;
   mode: 'approve' | 'reject';
 }) {
   const { data, isPending, isError } = useRequestDetail(requestId);
@@ -26,8 +59,31 @@ export default function PurchaseRequestModal({
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
   const isApprove = mode === 'approve';
-
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation;
+
+  // 데이터 로딩 중이거나 에러 발생 시 처리
+  if (isPending) return <div className="p-10 text-center">로딩중...</div>;
+  if (isError || !data)
+    return <div className="p-10 text-center">에러가 발생했습니다.</div>;
+
+  // 포인트 및 예산 계산
+  const {
+    maxPoint,
+    safePointAmount,
+    previewPaidAmount,
+    previewReward,
+    previewAfterBudget,
+    isOverBudgetAfterPoints,
+  } = calculatePoints({
+    pointBalance,
+    pointAmount,
+    requestAmount: data.orderAmount ?? data.requestAmount ?? 0,
+    shippingFee: data.shippingFee ?? 0,
+    remainedBudget: data.remained ?? 0,
+  });
+
+  const isApproveBlock = isApprove && isOverBudgetAfterPoints;
+  const isShowAlert = isApproveBlock && showAlert;
 
   const handleSubmit = () => {
     mutation.mutate(
@@ -39,7 +95,7 @@ export default function PurchaseRequestModal({
       {
         onSuccess: () => {
           alert('성공했습니다.');
-          onclose();
+          onClose();
         },
         onError: (error) => {
           alert(
@@ -49,27 +105,6 @@ export default function PurchaseRequestModal({
       }
     );
   };
-  if (isPending) return <div>로딩중...</div>;
-
-  if (isError) return <div>에러...</div>;
-
-  const {
-    maxPoint,
-    safePointAmount,
-    previewPaidAmount,
-    previewReward,
-    previewAfterBudget,
-    isOverBudgetAfterPoints,
-  } = PointCalculate({
-    pointBalance,
-    pointAmount,
-    requestAmount: data.requestAmount,
-    shippingFee: data.shippingFee,
-    remainedBudget: data.remained,
-  });
-
-  const isApproveBlock = isApprove && isOverBudgetAfterPoints;
-  const isShowAlert = isApproveBlock && showAlert;
 
   return (
     <>
@@ -111,7 +146,7 @@ export default function PurchaseRequestModal({
               <div className="flex items-center gap-1.5 tracking-[-0.4px] text-gray-950">
                 <p className="text-[16px] font-bold">요청 품목</p>
                 <p className="text-[16px] max-sm:text-[14px] max-sm:tracking-[-0.35px]">
-                  총 {data?.items.length}개
+                  총 {data?.items?.length ?? 0}개
                 </p>
               </div>
             </div>
@@ -119,7 +154,7 @@ export default function PurchaseRequestModal({
             <div className="flex w-full flex-col gap-8">
               <div className="flex w-full flex-col gap-5 rounded-[2px] bg-white px-5 pb-[30px] pt-5 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
                 <ul className="flex w-full flex-col">
-                  {data?.items.map((item) => (
+                  {data?.items?.map((item) => (
                     <li
                       key={item.id}
                       className="flex w-full items-center justify-between border-b border-solid border-gray-100 py-5 pr-2"
@@ -213,7 +248,11 @@ export default function PurchaseRequestModal({
                       총 주문금액
                     </p>
                     <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                      {previewPaidAmount.toLocaleString()}원
+                      {(isApprove
+                        ? previewPaidAmount
+                        : data.orderAmount + data.shippingFee
+                      ).toLocaleString()}
+                      원
                     </p>
                   </div>
                 </div>
@@ -226,7 +265,11 @@ export default function PurchaseRequestModal({
                   남은 예산 금액
                 </p>
                 <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                  {previewAfterBudget.toLocaleString()}원
+                  {(isApprove
+                    ? previewAfterBudget
+                    : data.remained
+                  ).toLocaleString()}
+                  원
                 </p>
               </div>
 
@@ -248,7 +291,7 @@ export default function PurchaseRequestModal({
             </div>
           </div>
           <div className="flex w-full items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:bg-white max-sm:p-6">
-            <Button variant="line" className="min-w-0 flex-1" onClick={onclose}>
+            <Button variant="line" className="min-w-0 flex-1" onClick={onClose}>
               취소
             </Button>
             <Button
