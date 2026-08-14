@@ -45,6 +45,7 @@ export default function QuantityDropdown({
         onClick={() => setOpen((prev) => !prev)}
         aria-label="수량 변경"
         aria-expanded={open}
+        aria-haspopup="listbox"
         className="flex h-10 w-[72px] items-center justify-end gap-1"
       >
         <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">

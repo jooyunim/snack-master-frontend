@@ -46,6 +46,7 @@ export default function SortDropdown({
     <div className={`relative ${className}`.trim()} ref={containerRef}>
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-11 w-[110px] items-center justify-between border border-solid border-gray-100 bg-white px-4 py-2.5"
       >
