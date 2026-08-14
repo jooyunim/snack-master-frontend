@@ -1,18 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
-import {
-  getDashboardSummary,
-  getOrders,
-} from '@/features/purchase/purchase.api';
 import type {
-  DashboardSummary,
   OrderListItem,
   OrderSort,
-} from '@/features/purchase/purchase.types';
+} from '@/features/purchase/types/purchase.types';
 import {
   formatAmount,
   formatDate,
@@ -21,6 +16,8 @@ import {
 import BudgetSummaryCards from './components/BudgetSummaryCards';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
+import { useOrders } from '@/features/purchase/hooks/useOrders';
+import { useDashboardSummary } from '@/features/purchase/hooks/useDashboardSummary';
 
 type PurchaseRow = {
   id: number;
@@ -49,60 +46,30 @@ function toRow(item: OrderListItem): PurchaseRow {
 }
 
 export default function PurchasePage() {
-  const [rows, setRows] = useState<PurchaseRow[]>([]);
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<OrderSort>('latest');
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const pageSize = 10;
   const router = useRouter();
 
-  const handlePageChange = (nextPage: number) => {
-    setLoading(true);
-    setError(null);
-    setPage(nextPage);
-  };
+  const { data: summary } = useDashboardSummary();
+  const { data, isLoading, isError } = useOrders(page, pageSize, sort);
 
-  const handleSortChange = (value: string) => {
-    setLoading(true);
-    setError(null);
-    setPage(1);
-    setSort(value as OrderSort);
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    Promise.all([getOrders({ page, pageSize, sort }), getDashboardSummary()])
-      .then(([list, dash]) => {
-        if (cancelled) return;
-        setRows(list.orders.map(toRow));
-        setTotal(list.total);
-        setSummary(dash);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setError('구매 내역을 불러오지 못했습니다.');
-        setRows([]);
-        setTotal(0);
-        setSummary(null); // 실패 시 요약/목록 안 보이게
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false); // 성공/실패 모두 로딩 종료
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page, sort]);
-
-  const isEmpty = !loading && !error && rows.length === 0;
+  const rows = useMemo(() => (data?.orders ?? []).map(toRow), [data?.orders]);
+  const total = data?.total ?? 0;
+  const isEmpty = !isLoading && !isError && rows.length === 0;
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(total / pageSize)),
     [total]
   );
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
+
+  const handleSortChange = (value: string) => {
+    setPage(1);
+    setSort(value as OrderSort);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -122,8 +89,10 @@ export default function PurchasePage() {
           />
         </div>
 
-        {error ? (
-          <p className="text-[16px] text-gray-500">{error}</p>
+        {isError ? (
+          <p className="text-[16px] text-gray-500">
+            구매 내역을 불러오지 못했습니다.
+          </p>
         ) : (
           <>
             {summary ? <BudgetSummaryCards summary={summary} /> : null}
@@ -146,7 +115,7 @@ export default function PurchasePage() {
                     <span className="w-[122px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       요청인
                     </span>
-                    <span className="w-[180px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                    <span className="w-[220px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       상품 정보
                     </span>
                     <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
@@ -175,7 +144,7 @@ export default function PurchasePage() {
                               {item.requester}
                             </span>
                           </div>
-                          <div className="flex w-[180px] shrink-0 flex-col gap-1">
+                          <div className="flex w-[220px] shrink-0 flex-col gap-1">
                             <span className="text-[16px] tracking-[-0.4px] text-gray-950">
                               {item.product}
                             </span>

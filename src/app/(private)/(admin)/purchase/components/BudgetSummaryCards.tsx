@@ -1,4 +1,4 @@
-import type { DashboardSummary } from '@/features/purchase/purchase.types';
+import type { DashboardSummary } from '@/features/purchase/types/purchase.types';
 import { formatWon } from '@/features/purchase/format';
 import BudgetRemainHoverCard from './BudgetRemainHoverCard';
 
