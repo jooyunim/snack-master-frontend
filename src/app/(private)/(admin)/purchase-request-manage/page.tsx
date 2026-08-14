@@ -1,5 +1,4 @@
 'use client';
-import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
@@ -9,25 +8,18 @@ import {
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useState } from 'react';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
-import Link from 'next/link';
 import EmptyState from '@/components/EmptyState';
 import { useRouter } from 'next/navigation';
+import RequestTable from './components/RequestTable';
+
+const SORT_OPTIONS: SortOption[] = [
+  { label: '최신순', value: 'recent' },
+  { label: '낮은 가격순', value: 'price_asc' },
+  { label: '높은 가격순', value: 'price_desc' },
+];
 
 export default function PurchaseRequestManagePage() {
   const router = useRouter();
-  const SORT_OPTIONS: SortOption[] = [
-    { label: '최신순', value: 'recent' },
-    { label: '낮은 가격순', value: 'price_asc' },
-    { label: '높은 가격순', value: 'price_desc' },
-  ];
-
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  }
 
   const [sortBy, setsortBy] = useState<sortByOption>('recent');
   const [page, setPage] = useState(1);
@@ -59,8 +51,7 @@ export default function PurchaseRequestManagePage() {
             }}
           />
         </div>
-
-        {data.length == 0 ? (
+        {requests.length == 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
