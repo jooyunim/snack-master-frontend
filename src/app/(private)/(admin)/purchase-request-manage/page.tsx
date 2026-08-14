@@ -27,9 +27,6 @@ export default function PurchaseRequestManagePage() {
   const [modalState, setModalState] = useState<ModalState | null>(null);
   const { data, isPending, isError } = useRequestList(sortBy, page);
 
-  if (isPending) return <div>로딩 중...</div>;
-  if (isError || !data) return <div>에러가 발생했습니다.</div>;
-
   const requests = data?.items ?? [];
   const pagination = data?.pagination;
 
@@ -47,7 +44,11 @@ export default function PurchaseRequestManagePage() {
           />
         </div>
 
-        {requests.length === 0 ? (
+        {isPending ? (
+          <div>로딩 중...</div>
+        ) : isError ? (
+          <div>에러가 발생했습니다.</div>
+        ) : requests.length === 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -69,7 +70,7 @@ export default function PurchaseRequestManagePage() {
               }
             />
 
-            {pagination.page > 1 && (
+            {pagination && pagination.totalPage > 1 && (
               <Pagination
                 page={pagination.page}
                 totalPages={pagination.totalPage}

@@ -140,8 +140,17 @@ export default function PurchaseRequestManageDetailPage({
               min={0}
               max={maxPoint}
               value={pointAmount}
-              onChange={(e) => setPointAmount(Number(e.target.value))}
-              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') {
+                  setPointAmount(0);
+                  return;
+                }
+                const num = Number(raw);
+                if (Number.isNaN(num)) return;
+                setPointAmount(Math.min(Math.max(num, 0), maxPoint));
+              }}
+              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <span className="text-[16px] font-bold text-gray-600">
               {`/ ${maxPoint.toLocaleString()} P`}
