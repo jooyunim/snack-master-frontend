@@ -4,8 +4,14 @@ export const cartQueryKeys = {
   all: ['cart'] as const,
   lists: () => [...cartQueryKeys.all, 'list'] as const,
   list: (userId: User['id']) => [...cartQueryKeys.lists(), userId] as const,
-  orderItems: (ids: number[]) =>
-    [...cartQueryKeys.all, 'orderItems', ids] as const,
-  companyBalancePoint: () =>
-    [...cartQueryKeys.all, 'companyBalancePoint'] as const,
+};
+
+export const orderItemsQueryKeys = {
+  all: ['orderItems'] as const,
+  list: (ids: number[]) =>
+    [...orderItemsQueryKeys.all, [...ids].sort((a, b) => a - b)] as const,
+};
+
+export const companyBalancePointQueryKeys = {
+  all: ['companyBalancePoint'] as const,
 };

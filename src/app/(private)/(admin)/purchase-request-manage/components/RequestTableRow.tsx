@@ -47,10 +47,20 @@ const RequestTableRow = ({
       </Link>
 
       <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
-        <Button variant="sub" size="sm" className="w-20" onClick={onReject}>
+        <Button
+          variant="sub"
+          size="sm"
+          className="w-20 cursor-pointer"
+          onClick={onReject}
+        >
           반려
         </Button>
-        <Button variant="filled" size="sm" className="w-20" onClick={onApprove}>
+        <Button
+          variant="filled"
+          size="sm"
+          className="w-20 cursor-pointer"
+          onClick={onApprove}
+        >
           승인
         </Button>
       </div>

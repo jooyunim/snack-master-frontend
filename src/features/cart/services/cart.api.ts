@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/api';
-import { Cart } from '../schemas/cart';
+import { AddToCart, Cart } from '../schemas/cart';
 
 export const getCartItems = async (): Promise<Cart> => {
   const res = await apiFetch<Cart>('/cart');
@@ -38,5 +38,12 @@ export const instantPurchase = async (cartItemIds: number[]) => {
   return apiFetch<InstantPurchaseResult>('/cart/instant', {
     method: 'POST',
     body: JSON.stringify({ cartItemIds }),
+  });
+};
+
+export const addToCart = async (productId: number, quantity: number) => {
+  return apiFetch<AddToCart>('/cart', {
+    method: 'POST',
+    body: JSON.stringify({ productId, quantity }),
   });
 };

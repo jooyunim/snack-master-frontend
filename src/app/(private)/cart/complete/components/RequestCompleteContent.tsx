@@ -48,7 +48,7 @@ export default function RequestCompleteContent({
             </Button>
           </Link>
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1">
-            <Link href="/purchase-requests">
+            <Link href="/purchase-request">
               <Button variant="filled" className="w-full">
                 요청내역 확인
               </Button>
