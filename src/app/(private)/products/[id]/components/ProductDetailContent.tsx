@@ -84,7 +84,7 @@ export default function ProductDetailContent({
   const { data: product, isLoading } = useProduct(productId);
   const { data: categories } = useCategories();
   const { deleteMutation } = useProductMutations();
-  const { mutate: addCartItem } = useAddCartItem();
+  const { mutate: addCartItem, isPending: isAddingCartItem } = useAddCartItem();
 
   const [openSections, setOpenSections] = useState<
     Record<AccordionKey, boolean>
@@ -245,7 +245,11 @@ export default function ProductDetailContent({
           </div>
 
           <div className="flex w-full flex-col gap-2.5">
-            <Button type="button" onClick={handleAddCartItem}>
+            <Button
+              type="button"
+              onClick={handleAddCartItem}
+              disabled={isAddingCartItem}
+            >
               장바구니 담기
             </Button>
 
