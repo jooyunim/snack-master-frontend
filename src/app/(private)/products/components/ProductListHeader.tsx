@@ -5,6 +5,9 @@ import type { ProductSort } from '@/features/product/types/product.types';
 import icChevronRight from '@/assets/icons/ic_chevron__right.svg';
 import icPlus from '@/assets/icons/ic_plus.svg';
 
+const TEXT_STYLE =
+  'text-[16px] tracking-[-0.4px] max-lg:text-[14px] max-lg:tracking-[-0.35px]';
+
 const SORT_OPTIONS: { label: string; value: ProductSort }[] = [
   { label: '최신순', value: 'recent' },
   { label: '판매순', value: 'sales' },
@@ -27,9 +30,6 @@ export default function ProductListHeader({
   onSortChange,
   onRegisterClick,
 }: ProductListHeaderProps) {
-  const textStyle =
-    'text-[16px] tracking-[-0.4px] max-lg:text-[14px] max-lg:tracking-[-0.35px]';
-
   return (
     <header className="relative flex w-full items-center justify-between border-b border-solid border-gray-100 pb-5 max-sm:flex-col max-sm:items-stretch max-sm:gap-1 max-sm:border-b-0 max-sm:pb-0">
       <nav aria-label="breadcrumb">
@@ -37,7 +37,7 @@ export default function ProductListHeader({
           {categoryLabel ? (
             <>
               <li
-                className={`${textStyle} ${subLabel ? 'text-gray-300' : 'text-gray-950'}`}
+                className={`${TEXT_STYLE} ${subLabel ? 'text-gray-300' : 'text-gray-950'}`}
               >
                 {categoryLabel}
               </li>
@@ -53,12 +53,19 @@ export default function ProductListHeader({
                       />
                     </span>
                   </li>
-                  <li className={`${textStyle} text-gray-950`}>{subLabel}</li>
+                  <li
+                    className={`${TEXT_STYLE} text-gray-950`}
+                    aria-current="page"
+                  >
+                    {subLabel}
+                  </li>
                 </>
               )}
             </>
           ) : (
-            <li className={`${textStyle} text-gray-950`}>전체 상품</li>
+            <li className={`${TEXT_STYLE} text-gray-950`} aria-current="page">
+              전체 상품
+            </li>
           )}
         </ol>
       </nav>
