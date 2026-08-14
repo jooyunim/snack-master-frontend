@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useRef, useEffect, useMemo, type ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import AlertModal from '@/components/AlertModal';
@@ -83,8 +83,11 @@ export default function ProductDetailContent({
   const { data: product, isLoading } = useProduct(productId);
   const { data: categories } = useCategories();
   const { deleteMutation } = useProductMutations();
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const [openSections, setOpenSections] = useState<Record<AccordionKey, boolean>>({
+  const [openSections, setOpenSections] = useState<
+    Record<AccordionKey, boolean>
+  >({
     benefit: true,
     shipping: true,
     fee: true,
@@ -92,6 +95,18 @@ export default function ProductDetailContent({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleSection = (key: AccordionKey) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -102,6 +117,12 @@ export default function ProductDetailContent({
     router.push('/products');
   }
 
+  const parentCategory = useMemo(() => {
+    return categories?.find((category) =>
+      category.children.some((child) => child.id === product?.categoryId)
+    );
+  }, [categories, product?.categoryId]);
+
   if (isLoading || !product) {
     return (
       <section className="flex min-w-0 flex-1 items-center justify-center py-20 max-sm:px-6">
@@ -111,10 +132,6 @@ export default function ProductDetailContent({
       </section>
     );
   }
-
-  const parentCategory = categories?.find((category) =>
-    category.children.some((child) => child.id === product.categoryId),
-  );
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-[30px] max-sm:px-6">
@@ -129,7 +146,12 @@ export default function ProductDetailContent({
             </span>
           ) : null}
           <span className="relative size-4 shrink-0 overflow-hidden">
-            <Image src={icChevronRight} alt="" fill className="object-contain" />
+            <Image
+              src={icChevronRight}
+              alt=""
+              fill
+              className="object-contain"
+            />
           </span>
           <span className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
             {product.category.name}
@@ -138,31 +160,33 @@ export default function ProductDetailContent({
       </div>
 
       <div className="flex w-full items-start gap-[30px] max-lg:flex-col max-lg:gap-5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="relative size-[540px] shrink-0 overflow-hidden rounded-[2px] bg-gray-50 object-cover shadow-[4px_4px_10px_rgba(250,247,243,0.25)] max-lg:aspect-square max-lg:h-auto max-lg:w-full"
-        />
+        <div className="relative size-[540px] shrink-0 overflow-hidden rounded-[2px] bg-gray-50 shadow-[4px_4px_10px_rgba(250,247,243,0.25)] max-lg:aspect-square max-lg:h-auto max-lg:w-full">
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 540px"
+          />
+        </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-8 pt-[30px] max-lg:w-full max-lg:shrink-0">
           <div className="flex w-full items-start gap-5">
             <div className="flex min-w-0 flex-1 items-center justify-between gap-5">
-              <div className="flex min-w-0 flex-col gap-2 whitespace-nowrap">
+              <div className="flex min-w-0 flex-col gap-2">
                 <div className="flex items-center gap-2 max-sm:flex-col max-sm:items-start">
-                  <p className="text-[18px] tracking-[-0.45px] text-black">
+                  <p className="text-[18px] tracking-[-0.45px] text-black line-clamp-2 break-all">
                     {product.name}
                   </p>
-                  <p className="text-[14px] font-bold tracking-[-0.35px] text-secondary-500">
+                  <p className="text-[14px] font-bold tracking-[-0.35px] text-secondary-500 whitespace-nowrap shrink-0">
                     {product.totalSold}회 구매
                   </p>
                 </div>
-                <p className="text-[18px] font-extrabold tracking-[-0.45px] text-black">
+                <p className="text-[18px] font-extrabold tracking-[-0.45px] text-black truncate">
                   {formatPrice(product.price)}
                 </p>
               </div>
 
-              {/* 수량 선택은 장바구니 담기 도메인(임주연) 영역이라 UI만 유지, 아직 미연동 */}
               <div className="flex shrink-0 items-center gap-3.5">
                 <span className="text-[16px] tracking-[-0.4px] text-gray-950">
                   수량
@@ -187,24 +211,29 @@ export default function ProductDetailContent({
               </div>
             </div>
 
-            <div className="relative shrink-0">
+            <div className="relative shrink-0" ref={menuRef}>
               <button
                 type="button"
                 aria-label="상품 관리 메뉴"
+                aria-expanded={isMenuOpen}
                 onClick={() => setIsMenuOpen((prev) => !prev)}
                 className="relative flex size-6 shrink-0 overflow-hidden"
               >
                 <Image src={icMenu} alt="" fill className="object-contain" />
               </button>
               {isMenuOpen ? (
-                <div className="absolute top-full right-0 z-10 flex w-[95px] flex-col items-start justify-center overflow-hidden border border-solid border-gray-100 bg-white">
+                <div
+                  role="menu"
+                  className="absolute top-full right-0 z-10 flex w-[95px] flex-col items-start justify-center overflow-hidden border border-solid border-gray-100 bg-white shadow-sm"
+                >
                   <button
                     type="button"
+                    role="menuitem"
                     onClick={() => {
                       setIsMenuOpen(false);
                       setIsEditOpen(true);
                     }}
-                    className="flex h-[50px] w-full items-center py-2 pr-5 pl-4"
+                    className="flex h-[50px] w-full items-center py-2 pr-5 pl-4 hover:bg-gray-50"
                   >
                     <span className="text-center text-[16px] tracking-[-0.4px] text-gray-950">
                       상품 수정
@@ -212,11 +241,12 @@ export default function ProductDetailContent({
                   </button>
                   <button
                     type="button"
+                    role="menuitem"
                     onClick={() => {
                       setIsMenuOpen(false);
                       setIsDeleteConfirmOpen(true);
                     }}
-                    className="flex h-[50px] w-full items-center py-2 pr-5 pl-4"
+                    className="flex h-[50px] w-full items-center py-2 pr-5 pl-4 hover:bg-gray-50"
                   >
                     <span className="text-center text-[16px] tracking-[-0.4px] text-gray-950">
                       상품 삭제
@@ -266,7 +296,10 @@ export default function ProductDetailContent({
 
       {isEditOpen ? (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
-          <ProductModal product={product} onClose={() => setIsEditOpen(false)} />
+          <ProductModal
+            product={product}
+            onClose={() => setIsEditOpen(false)}
+          />
         </div>
       ) : null}
 
@@ -275,7 +308,9 @@ export default function ProductDetailContent({
           <AlertModal
             icon={iconX}
             title="상품 삭제"
-            content={'정말 이 상품을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.'}
+            content={
+              '정말 이 상품을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.'
+            }
             cancelLabel="취소"
             confirmLabel="삭제하기"
             confirmDisabled={deleteMutation.isPending}
