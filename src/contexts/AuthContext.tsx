@@ -15,7 +15,11 @@ import {
 } from 'react';
 import type { LoginFormValues } from '@/features/auth/schemas/auth';
 import { useQueryClient } from '@tanstack/react-query';
-import { cartQueryKeys } from '@/features/cart/constants/query-keys';
+import {
+  cartQueryKeys,
+  companyBalancePointQueryKeys,
+  orderItemsQueryKeys,
+} from '@/features/cart/constants/query-keys';
 
 interface AuthContextType {
   user: User | null;
@@ -58,7 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       localStorage.removeItem('accessToken');
-      queryClient.removeQueries({ queryKey: cartQueryKeys.all }); //로그아웃하면 cart 데이터 초기화
+      // 로그아웃하면 cart / orderItems / point 캐시 초기화
+      queryClient.removeQueries({ queryKey: cartQueryKeys.all });
+      queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
+      queryClient.removeQueries({
+        queryKey: companyBalancePointQueryKeys.all,
+      });
     }
   };
 
