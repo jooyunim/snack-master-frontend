@@ -11,7 +11,7 @@ import Toast from '@/components/Toast';
 import CartStepIndicator, {
   type CartFlow,
 } from './components/CartStepIndicator';
-import QuantityDropdown from './components/QuantityDropdown';
+import QuantityDropdown from '../../../components/QuantityDropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import type { CartItem } from '@/features/cart/schemas/cart';
 import { useRouter } from 'next/navigation';

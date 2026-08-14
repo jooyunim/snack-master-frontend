@@ -9,11 +9,12 @@ import ProductModal from '@/app/(private)/products/components/ProductModal';
 import { useCategories } from '@/features/product/hooks/useCategories';
 import { useProduct } from '@/features/product/hooks/useProduct';
 import { useProductMutations } from '@/features/product/hooks/useProductMutations';
-import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import icChevronRight from '@/assets/icons/ic_chevron__right.svg';
 import iconX from '@/assets/icons/icon_X.svg';
 import icMenu from '@/assets/icons/ic_menu.svg';
 import icPlus from '@/assets/icons/ic_plus.svg';
+import { useAddCartItem } from '@/features/cart/hooks/useAddCartItem';
+import QuantityDropdown from '@/components/QuantityDropdown';
 
 type AccordionKey = 'benefit' | 'shipping' | 'fee';
 
@@ -51,7 +52,7 @@ const ACCORDION_ITEMS: {
     title: '구매혜택',
     content: (
       <p className="text-[16px] tracking-[-0.4px] text-gray-600 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
-        5포인트 적립 예정
+        실 결제액의 1% 적립 예정(배송비 제외)
       </p>
     ),
   },
@@ -83,8 +84,11 @@ export default function ProductDetailContent({
   const { data: product, isLoading } = useProduct(productId);
   const { data: categories } = useCategories();
   const { deleteMutation } = useProductMutations();
+  const { mutate: addCartItem } = useAddCartItem();
 
-  const [openSections, setOpenSections] = useState<Record<AccordionKey, boolean>>({
+  const [openSections, setOpenSections] = useState<
+    Record<AccordionKey, boolean>
+  >({
     benefit: true,
     shipping: true,
     fee: true,
@@ -92,10 +96,28 @@ export default function ProductDetailContent({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [quantity, setQuantity] = useState(10);
+  const [isAddCartItemErrorOpen, setIsAddCartItemErrorOpen] = useState(false);
+  const [addCartErrorMessage, setAddCartErrorMessage] = useState('');
 
   const toggleSection = (key: AccordionKey) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  function handleAddCartItem() {
+    addCartItem(
+      { productId, quantity },
+      {
+        onSuccess: () => {
+          router.push('/cart');
+        },
+        onError: (error: Error) => {
+          setAddCartErrorMessage(error.message);
+          setIsAddCartItemErrorOpen(true);
+        },
+      }
+    );
+  }
 
   async function handleDelete() {
     await deleteMutation.mutateAsync(productId);
@@ -113,7 +135,7 @@ export default function ProductDetailContent({
   }
 
   const parentCategory = categories?.find((category) =>
-    category.children.some((child) => child.id === product.categoryId),
+    category.children.some((child) => child.id === product.categoryId)
   );
 
   return (
@@ -129,7 +151,12 @@ export default function ProductDetailContent({
             </span>
           ) : null}
           <span className="relative size-4 shrink-0 overflow-hidden">
-            <Image src={icChevronRight} alt="" fill className="object-contain" />
+            <Image
+              src={icChevronRight}
+              alt=""
+              fill
+              className="object-contain"
+            />
           </span>
           <span className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
             {product.category.name}
@@ -162,28 +189,18 @@ export default function ProductDetailContent({
                 </p>
               </div>
 
-              {/* 수량 선택은 장바구니 담기 도메인(임주연) 영역이라 UI만 유지, 아직 미연동 */}
               <div className="flex shrink-0 items-center gap-3.5">
                 <span className="text-[16px] tracking-[-0.4px] text-gray-950">
                   수량
                 </span>
-                <button
-                  type="button"
-                  className="flex h-[52px] w-[100px] items-center justify-end gap-1 overflow-hidden rounded-[2px] border border-solid border-gray-300 bg-white p-3.5"
-                  aria-label="수량 선택"
-                >
-                  <span className="text-[16px] tracking-[-0.4px] text-gray-950">
-                    1
-                  </span>
-                  <span className="relative size-6 shrink-0 overflow-hidden">
-                    <Image
-                      src={icChevronDown}
-                      alt=""
-                      fill
-                      className="object-contain"
-                    />
-                  </span>
-                </button>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <QuantityDropdown
+                    value={quantity}
+                    onChange={(quantity) => {
+                      setQuantity(quantity);
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -228,7 +245,9 @@ export default function ProductDetailContent({
           </div>
 
           <div className="flex w-full flex-col gap-2.5">
-            <Button type="button">장바구니 담기</Button>
+            <Button type="button" onClick={handleAddCartItem}>
+              장바구니 담기
+            </Button>
 
             <div className="flex w-full flex-col">
               {ACCORDION_ITEMS.map((item, index) => {
@@ -266,7 +285,10 @@ export default function ProductDetailContent({
 
       {isEditOpen ? (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
-          <ProductModal product={product} onClose={() => setIsEditOpen(false)} />
+          <ProductModal
+            product={product}
+            onClose={() => setIsEditOpen(false)}
+          />
         </div>
       ) : null}
 
@@ -275,12 +297,27 @@ export default function ProductDetailContent({
           <AlertModal
             icon={iconX}
             title="상품 삭제"
-            content={'정말 이 상품을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.'}
+            content={
+              '정말 이 상품을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.'
+            }
             cancelLabel="취소"
             confirmLabel="삭제하기"
             confirmDisabled={deleteMutation.isPending}
             onCancel={() => setIsDeleteConfirmOpen(false)}
             onConfirm={handleDelete}
+          />
+        </div>
+      ) : null}
+
+      {isAddCartItemErrorOpen ? (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 p-6 max-sm:items-end max-sm:p-0">
+          <AlertModal
+            icon={iconX}
+            title="장바구니 담기 실패"
+            content={addCartErrorMessage}
+            confirmLabel="확인"
+            showCancel={false}
+            onConfirm={() => setIsAddCartItemErrorOpen(false)}
           />
         </div>
       ) : null}

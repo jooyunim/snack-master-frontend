@@ -22,3 +22,10 @@ export const cartQuerySchema = z.object({
 });
 
 export type CartQuery = z.infer<typeof cartQuerySchema>;
+
+export const addToCartSchema = z.object({
+  productId: z.number(),
+  quantity: z.number(),
+});
+
+export type AddToCart = z.infer<typeof addToCartSchema>;
