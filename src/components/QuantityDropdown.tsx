@@ -50,7 +50,7 @@ export default function QuantityDropdown({
         onClick={() => setOpen((prev) => !prev)}
         aria-label="수량 변경"
         aria-expanded={open}
-        className="flex h-10 w-[72px] items-center justify-end gap-1"
+        className="flex h-10 w-[72px] cursor-pointer items-center justify-end gap-1"
       >
         <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
           {value}
@@ -78,7 +78,7 @@ export default function QuantityDropdown({
                   onChange(option);
                   setOpen(false);
                 }}
-                className="flex h-10 w-full items-center justify-center text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+                className="flex h-10 w-full cursor-pointer items-center justify-center text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
               >
                 {option}
               </button>

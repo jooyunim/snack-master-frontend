@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
 
 export type SortOption = { label: string; value: string };
@@ -47,18 +48,23 @@ export default function SortDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-11 w-[110px] items-center justify-between border border-solid border-gray-100 bg-white px-4 py-2.5"
+        className="flex h-11 w-[130px] cursor-pointer items-center justify-between border border-solid border-gray-100 bg-white px-4 py-2.5"
       >
         <span className="text-[16px] tracking-[-0.4px] text-gray-950">
           {selectedLabel ?? '정렬'}
         </span>
         <span className="relative size-4 shrink-0 overflow-hidden">
-          <Image src={icChevronUp} alt="" fill className="object-contain" />
+          <Image
+            src={open ? icChevronUp : icChevronDown}
+            alt=""
+            fill
+            className="object-contain"
+          />
         </span>
       </button>
 
       {open ? (
-        <ul className="absolute right-0 top-full z-10 flex w-[110px] flex-col overflow-hidden border border-t-0 border-solid border-gray-100 bg-white max-sm:left-0 max-sm:right-auto">
+        <ul className="absolute right-0 top-full z-10 flex w-[130px] flex-col overflow-hidden border border-t-0 border-solid border-gray-100 bg-white max-sm:left-0 max-sm:right-auto">
           {options.map((option) => (
             <li key={option.value}>
               <button
@@ -67,7 +73,7 @@ export default function SortDropdown({
                   onChange?.(option.value);
                   setOpen(false);
                 }}
-                className="flex h-[50px] w-full items-center py-2 pl-4 pr-5 text-left"
+                className="flex h-[50px] w-full cursor-pointer items-center py-2 pl-4 pr-5 text-left"
               >
                 <span className="text-[16px] tracking-[-0.4px] text-gray-950">
                   {option.label}
