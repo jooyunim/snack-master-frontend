@@ -293,7 +293,7 @@ export default function PurchaseRequestModal({
                 : `요청이 반려되었어요\n목록에서 다른 요청을 확인해보세요`
             }
             confirmLabel={isApprove ? '확인' : '확인'}
-            onCancel={onclose}
+            showCancel={false}
             onConfirm={onclose}
           />
         </div>
