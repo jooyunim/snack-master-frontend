@@ -98,3 +98,7 @@ body {
   color: var(--color-gray-950);
   font-family: 'SUIT', sans-serif;
 }
+
+html {
+  scrollbar-gutter: stable;
+}
