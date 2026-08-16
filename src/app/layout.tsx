@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    url: '/',
     title: '스낵마스터',
     description: '회사별 간식 구매·지출·요청을 한곳에서 관리하는 스낵마스터',
     images: [
