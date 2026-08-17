@@ -8,38 +8,8 @@ import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
-
-// PointCalculate 계산 함수 정의 (외부 유틸 파일이 있다면 import해서 사용하세요)
-function calculatePoints({
-  pointBalance,
-  pointAmount,
-  requestAmount,
-  shippingFee,
-  remainedBudget,
-}: {
-  pointBalance: number;
-  pointAmount: number;
-  requestAmount: number;
-  shippingFee: number;
-  remainedBudget: number;
-}) {
-  const totalAmount = requestAmount + shippingFee;
-  const maxPoint = Math.min(pointBalance, totalAmount);
-  const safePointAmount = Math.max(0, Math.min(pointAmount, maxPoint));
-  const previewPaidAmount = totalAmount - safePointAmount;
-  const previewReward = Math.floor(previewPaidAmount * 0.01); // 예시: 1% 적립
-  const previewAfterBudget = remainedBudget - previewPaidAmount;
-  const isOverBudgetAfterPoints = previewAfterBudget < 0;
-
-  return {
-    maxPoint,
-    safePointAmount,
-    previewPaidAmount,
-    previewReward,
-    previewAfterBudget,
-    isOverBudgetAfterPoints,
-  };
-}
+import PointCalculate from '../utils/PointCalculate';
+import { getInitials } from '../utils/getInitials';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -74,7 +44,7 @@ export default function PurchaseRequestModal({
     previewReward,
     previewAfterBudget,
     isOverBudgetAfterPoints,
-  } = calculatePoints({
+  } = PointCalculate({
     pointBalance,
     pointAmount,
     requestAmount: data.orderAmount ?? data.requestAmount ?? 0,
@@ -135,7 +105,7 @@ export default function PurchaseRequestModal({
               <div className="flex items-center gap-3">
                 <div className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50">
                   <span className="text-[10px] font-medium tracking-[-0.25px] text-black">
-                    {data?.requesterName?.[0] ?? ''}
+                    {getInitials(data.requesterName)}
                   </span>
                 </div>
                 <p className="w-16 text-[16px] font-bold tracking-[-0.4px] text-gray-950">
@@ -291,12 +261,16 @@ export default function PurchaseRequestModal({
             </div>
           </div>
           <div className="flex w-full items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:bg-white max-sm:p-6">
-            <Button variant="line" className="min-w-0 flex-1" onClick={onClose}>
+            <Button
+              variant="line"
+              className="min-w-0 flex-1 cursor-pointer"
+              onClick={onClose}
+            >
               취소
             </Button>
             <Button
               variant="filled"
-              className="min-w-0 flex-1"
+              className="min-w-0 flex-1 cursor-pointer"
               onClick={handleSubmit}
               disabled={isApproveBlock || mutation.isPending}
             >

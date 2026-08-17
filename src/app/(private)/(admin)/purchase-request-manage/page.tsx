@@ -2,22 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
-import Button from '@/components/Button';
 import EmptyState from '@/components/EmptyState';
 import PurchaseRequestModal from './components/PurchaseRequestModal';
+import RequestTable from './components/RequestTable';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
 import {
   ModalState,
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString();
-};
 
 const SORT_OPTIONS: SortOption[] = [
   { label: '최신순', value: 'recent' },
@@ -38,9 +32,10 @@ export default function PurchaseRequestManagePage() {
   } = useRequestList(sortBy, page);
 
   if (isPending) return <div>로딩 중...</div>;
-  if (isError || !requestList) return <div>에러남</div>;
+  if (isError || !requestList) return <div>에러가 발생했습니다.</div>;
 
-  const { items: data, pagination } = requestList;
+  const requests = requestList.items ?? [];
+  const pagination = requestList.pagination;
 
   return (
     <div className="min-h-screen bg-white">
@@ -58,7 +53,8 @@ export default function PurchaseRequestManagePage() {
             }}
           />
         </div>
-        {data.length === 0 ? (
+
+        {requests.length === 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -69,144 +65,15 @@ export default function PurchaseRequestManagePage() {
           />
         ) : (
           <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
-            {/* PC / Tablet table */}
-            <div className="flex w-full flex-col overflow-x-auto max-sm:hidden">
-              <div className="flex w-full min-w-[1100px] items-center gap-20 border-y border-solid border-gray-100 px-10 py-5 max-lg:min-w-[696px] max-lg:justify-between max-lg:gap-0 max-lg:px-0">
-                <span className="w-[142px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-[100px]">
-                  구매 요청일
-                </span>
-                <span className="w-[360px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-[140px]">
-                  상품 정보
-                </span>
-                <span className="w-[142px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-[100px]">
-                  주문 금액
-                </span>
-                <span className="w-[134px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-[108px]">
-                  요청인
-                </span>
-                <span className="w-[180px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-[168px]">
-                  비고
-                </span>
-              </div>
-
-              <ul className="flex w-full min-w-[1100px] flex-col max-lg:min-w-[696px]">
-                {data.map((request) => (
-                  <li
-                    key={request.id}
-                    className="group flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 transition-colors hover:bg-gray-50 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
-                  >
-                    <Link
-                      href={`/purchase-request-manage/${request.id}`}
-                      className="flex flex-1 items-center gap-20"
-                    >
-                      <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                        {formatDate(request.requestedAt)}
-                      </span>
-                      <span className="w-[360px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[140px]">
-                        {request.itemSummary}
-                      </span>
-                      <span className="w-[142px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-[100px]">
-                        {request.totalAmount.toLocaleString()}
-                      </span>
-                      <div className="flex w-[134px] shrink-0 items-center gap-3 max-lg:w-[108px]">
-                        <span className="w-[90px] text-[16px] tracking-[-0.4px] text-gray-950 max-lg:w-16">
-                          {request.requesterName}
-                        </span>
-                      </div>
-                    </Link>
-
-                    <div className="flex w-[180px] shrink-0 items-center gap-2 max-lg:w-[168px]">
-                      <Button
-                        variant="sub"
-                        className="w-20"
-                        onClick={() =>
-                          setModalState({
-                            requestId: request.id,
-                            action: 'reject',
-                          })
-                        }
-                      >
-                        반려
-                      </Button>
-                      <Button
-                        variant="filled"
-                        size="sm"
-                        className="w-20"
-                        onClick={() =>
-                          setModalState({
-                            requestId: request.id,
-                            action: 'approve',
-                          })
-                        }
-                      >
-                        승인
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Mobile card list */}
-            <ul className="hidden w-full flex-col max-sm:flex">
-              {data.map((request) => (
-                <li
-                  key={request.id}
-                  className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
-                >
-                  <Link
-                    href={`/purchase-request-manage/${request.id}`}
-                    className="flex w-full flex-col gap-2.5"
-                  >
-                    <div className="flex w-full items-center justify-between pr-1">
-                      <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-950">
-                        {formatDate(request.requestedAt)}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[14px] tracking-[-0.35px] text-gray-950">
-                          {request.requesterName}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <p className="text-[14px] tracking-[-0.35px] text-gray-950">
-                        {request.itemSummary}
-                      </p>
-                      <p className="text-[20px] font-extrabold tracking-[-0.5px] text-gray-950">
-                        {request.totalAmount.toLocaleString()}
-                      </p>
-                    </div>
-                  </Link>
-                  <div className="flex w-full items-center gap-2">
-                    <Button
-                      variant="sub"
-                      className="min-w-0 flex-1"
-                      onClick={() =>
-                        setModalState({
-                          requestId: request.id,
-                          action: 'reject',
-                        })
-                      }
-                    >
-                      반려
-                    </Button>
-                    <Button
-                      variant="filled"
-                      size="sm"
-                      className="min-w-0 flex-1"
-                      onClick={() =>
-                        setModalState({
-                          requestId: request.id,
-                          action: 'approve',
-                        })
-                      }
-                    >
-                      승인
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <RequestTable
+              requests={requests}
+              onReject={(id) =>
+                setModalState({ action: 'reject', requestId: id })
+              }
+              onApprove={(id) =>
+                setModalState({ action: 'approve', requestId: id })
+              }
+            />
 
             <Pagination
               page={pagination.page}
@@ -215,9 +82,9 @@ export default function PurchaseRequestManagePage() {
             />
           </div>
         )}
+
         {modalState && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            {' '}
             <PurchaseRequestModal
               requestId={modalState.requestId}
               mode={modalState.action}

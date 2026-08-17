@@ -260,7 +260,7 @@ export default function PurchaseRequestManageDetailPage({
         <div className="mx-auto flex h-16 w-full max-w-[616px] items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:h-auto max-sm:max-w-none max-sm:gap-4 max-sm:bg-white max-sm:p-6">
           <Button
             variant="line"
-            className="min-w-0 flex-1"
+            className="min-w-0 flex-1 cursor-pointer"
             onClick={handleReject}
             disabled={isMutating}
           >
@@ -269,7 +269,7 @@ export default function PurchaseRequestManageDetailPage({
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1 max-sm:shrink">
             <Button
               variant="filled"
-              className="w-full"
+              className="w-full cursor-pointer"
               onClick={handleApprove}
               disabled={isOverBudgetAfterPoints || isMutating}
             >
