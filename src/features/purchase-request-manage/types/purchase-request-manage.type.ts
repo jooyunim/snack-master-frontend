@@ -8,16 +8,16 @@ export type purchaseRequestManage = {
   itemSummary: string;
 };
 
-export type paginationInfo = {
+export type Pagination = {
   page: number;
   pageSize: number;
   total: number;
-  totalPage: number;
+  totalPages: number;
 };
 
-export type purchaseRequestManageListResponse = {
+export type purchaseRequestManageList = {
   items: purchaseRequestManage[];
-  pagination: paginationInfo;
+  pagination: Pagination;
 };
 
 export type PurchaseRequestItem = {
@@ -47,8 +47,12 @@ export type purchaseRequestManageDetail = {
 
 export type Action = 'approve' | 'reject';
 
-export type MessageResponse = {
-  message: string;
+// BE approveRequest/rejectRequest 응답의 공통 형태.
+// approveRequest는 pointUsed/reward/paidAmount를 더 포함하지만, 지금 FE는
+// 두 경우 모두 id/status 외엔 안 읽어서 공통 필드만 타입에 반영함.
+export type PurchaseRequestStatusResult = {
+  id: number;
+  status: string;
 };
 
 export type ModalState = {
