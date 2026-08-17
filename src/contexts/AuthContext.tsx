@@ -8,6 +8,7 @@ import {
 import { User } from '@/features/auth/types/auth.types';
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
@@ -20,6 +21,7 @@ import {
   companyBalancePointQueryKeys,
   orderItemsQueryKeys,
 } from '@/features/cart/constants/query-keys';
+import { SESSION_EXPIRED_EVENT } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -53,6 +55,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
   };
 
+  const clearClientSession = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('accessToken');
+    queryClient.removeQueries({ queryKey: cartQueryKeys.all });
+    queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
+    queryClient.removeQueries({
+      queryKey: companyBalancePointQueryKeys.all,
+    });
+  }, [queryClient]);
+
   const logout = async () => {
     if (!isAuthChecked) return;
     try {
@@ -60,16 +72,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      setUser(null);
-      localStorage.removeItem('accessToken');
-      // 로그아웃하면 cart / orderItems / point 캐시 초기화
-      queryClient.removeQueries({ queryKey: cartQueryKeys.all });
-      queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
-      queryClient.removeQueries({
-        queryKey: companyBalancePointQueryKeys.all,
-      });
+      clearClientSession();
     }
   };
+
+  useEffect(() => {
+    const onSessionExpired = () => {
+      clearClientSession();
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    };
+  }, [clearClientSession]);
 
   useEffect(() => {
     let cancelled = false;

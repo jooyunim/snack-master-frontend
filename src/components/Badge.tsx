@@ -4,19 +4,13 @@ import iconTime from '@/assets/icons/icon_time.svg';
 import iconX from '@/assets/icons/icon_X.svg';
 
 type BadgeVariant =
-  | 'label'
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'admin'
-  | 'member'
-  | 'superAdmin';
+  'label' | 'pending' | 'approved' | 'rejected' | 'admin' | 'member';
 
 type BadgeSize = 'lg' | 'sm';
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant;
-  /** admin / member / superAdmin에만 적용 */
+  /** admin / member */
   size?: BadgeSize;
 };
 
@@ -27,7 +21,6 @@ const defaultLabel: Record<BadgeVariant, string> = {
   rejected: '거절',
   admin: '관리자',
   member: '일반',
-  superAdmin: '최고 관리자',
 };
 
 const statusIconSrc: Partial<Record<BadgeVariant, string>> = {
@@ -56,18 +49,11 @@ const variantClassName: Record<BadgeVariant, string> = {
   admin: 'bg-gray-500 text-white',
   // gray-50 배경 / gray-500 글자
   member: 'bg-gray-50 text-gray-500',
-  // gray-700 배경 / white 글자 — 라벨이 길어 admin보다 한 단계 작게
-  superAdmin: 'bg-gray-700 text-white',
 };
 
 const authoritySizeClassName: Record<BadgeSize, string> = {
   lg: 'h-[30px] px-2 py-1.5 text-[14px] tracking-[-0.35px]',
   sm: 'px-2.5 py-1 text-[12px] tracking-[-0.3px]',
-};
-
-const superAdminSizeClassName: Record<BadgeSize, string> = {
-  lg: 'h-[30px] px-2 py-1.5 text-[11px] tracking-[-0.275px]',
-  sm: 'px-2 py-1 text-[10px] tracking-[-0.25px]',
 };
 
 function BadgeIcon({ src }: { src: string }) {
@@ -87,14 +73,9 @@ export default function Badge({
   children,
   ...props
 }: BadgeProps) {
-  const isAuthority =
-    variant === 'admin' || variant === 'member' || variant === 'superAdmin';
+  const isAuthority = variant === 'admin' || variant === 'member';
   const iconSrc = statusIconSrc[variant];
-  const sizeClassName = isAuthority
-    ? variant === 'superAdmin'
-      ? superAdminSizeClassName[size]
-      : authoritySizeClassName[size]
-    : '';
+  const sizeClassName = isAuthority ? authoritySizeClassName[size] : '';
 
   return (
     <span
@@ -109,8 +90,7 @@ export default function Badge({
 
 // label — 즉시 요청 (secondary)
 // pending / approved / rejected — status badge (아이콘 포함, 고정 30px)
-// admin / member / superAdmin — authority badge (size: lg | sm)
-// superAdmin은 '최고 관리자' 라벨 길이 때문에 lg 기준 11px
+// admin / member — authority badge (size: lg | sm)
 
 // import Badge from '@/components/Badge';
 

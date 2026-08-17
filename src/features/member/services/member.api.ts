@@ -13,14 +13,14 @@ export const inviteUsers = async (
 };
 
 export const updateMemberRole = async (id: string, role: Member['role']) => {
-  return await apiFetch<null>(`/members/${id}`, {
+  return await apiFetch<null>(`/members/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
   });
 };
 
 export const deleteMember = async (id: string) => {
-  return await apiFetch<null>(`/members/${id}/delete`, {
+  return await apiFetch<null>(`/members/${id}`, {
     method: 'PATCH',
   });
 };
