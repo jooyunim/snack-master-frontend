@@ -8,19 +8,22 @@ import RequestItemsSection, {
 } from '@/components/RequestItemsSection';
 import RequestMessage from '../../components/RequestMessage';
 import { useRouter } from 'next/navigation';
-import { type CartItem } from '@/features/cart/schemas/cart';
+import {
+  type CartItem,
+  requestMessageSchema,
+} from '@/features/cart/schemas/cart';
 import { useOrderItems } from '@/features/cart/hooks/useOrderItems';
 import { useCreatePurchaseRequest } from '@/features/cart/hooks/useCreatePurchaseRequest';
-
-type CartOrderContentProps = {
-  selectedIds: number[];
-};
+import { CartOrderContentProps } from '@/features/cart/types/cart.type';
 
 export default function CartOrderContent({
   selectedIds,
 }: CartOrderContentProps) {
   const router = useRouter();
   const [requestMessage, setRequestMessage] = useState('');
+  const [requestMessageError, setRequestMessageError] = useState<string | null>(
+    null
+  );
 
   const { data, isLoading, isError, refetch } = useOrderItems(selectedIds);
 
@@ -54,6 +57,25 @@ export default function CartOrderContent({
     selectedIds,
     requestMessage
   );
+
+  const handleRequestMessageChange = (value: string) => {
+    setRequestMessage(value);
+    if (requestMessageError) setRequestMessageError(null);
+  };
+
+  const handleSubmitPurchaseRequest = () => {
+    const result = requestMessageSchema.safeParse({ requestMessage });
+
+    if (!result.success) {
+      setRequestMessageError(
+        result.error.issues[0]?.message ?? '요청 메시지를 입력해주세요.'
+      );
+      return;
+    }
+
+    setRequestMessageError(null);
+    submitPurchaseRequest();
+  };
 
   if (isLoading) {
     return (
@@ -95,7 +117,11 @@ export default function CartOrderContent({
             shippingFee={formatPrice(orderShippingFee)}
             totalAmount={formatPrice(totalAmount)}
           />
-          <RequestMessage value={requestMessage} onChange={setRequestMessage} />
+          <RequestMessage
+            value={requestMessage}
+            onChange={handleRequestMessageChange}
+            error={requestMessageError}
+          />
         </div>
 
         <div className="flex h-16 w-full max-w-[616px] items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:h-auto max-sm:max-w-none max-sm:gap-4 max-sm:bg-white max-sm:p-6">
@@ -111,7 +137,7 @@ export default function CartOrderContent({
               variant="filled"
               className="w-full"
               disabled={isPending || selectedItems.length === 0}
-              onClick={() => submitPurchaseRequest()}
+              onClick={handleSubmitPurchaseRequest}
             >
               구매 요청
             </Button>
