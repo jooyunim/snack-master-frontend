@@ -26,7 +26,6 @@ const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
 
 const getMemberBadgeVariant = (role: Member['role']) => {
   if (role === 'ADMIN') return 'admin';
-  if (role === 'SUPER_ADMIN') return 'superAdmin';
   return 'member';
 };
 
