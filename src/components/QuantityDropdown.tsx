@@ -79,7 +79,7 @@ export default function QuantityDropdown({
                   onChange(option);
                   setOpen(false);
                 }}
-                className="flex h-10 w-full items-center justify-center text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+                className="flex h-10 w-full cursor-pointer items-center justify-center text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
               >
                 {option}
               </button>

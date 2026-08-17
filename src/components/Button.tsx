@@ -9,7 +9,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const baseClassName =
-  'inline-flex items-center justify-center rounded-[2px] text-center whitespace-nowrap transition-colors disabled:cursor-not-allowed';
+  'inline-flex cursor-pointer items-center justify-center rounded-[2px] text-center whitespace-nowrap transition-colors disabled:cursor-not-allowed';
 
 const variantSizeClassName: Record<
   ButtonVariant,
