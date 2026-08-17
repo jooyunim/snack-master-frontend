@@ -108,7 +108,7 @@ const LandingPage = () => {
           className="relative mt-10 w-full sm:mt-16"
           aria-label="서비스 미리보기와 주요 기능"
         >
-          <div className="relative mx-auto w-full max-w-[300px] px-0 sm:max-w-[530px] sm:px-6 lg:max-w-[1300px] xl:px-0">
+          <figure className="relative mx-auto w-full max-w-[300px] px-0 sm:max-w-[530px] sm:px-6 lg:max-w-[1300px] xl:px-0">
             <div className="relative overflow-hidden shadow-[0px_0px_20px_0px_rgba(0,0,0,0.08)] sm:rounded-[6px] lg:rounded-[10px]">
               <Image
                 src={heroImage}
@@ -119,7 +119,7 @@ const LandingPage = () => {
                 className="h-auto w-full"
               />
             </div>
-          </div>
+          </figure>
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[236px] bg-gradient-to-t from-white to-transparent sm:h-[190px] lg:h-[195px]" />
 

@@ -42,6 +42,9 @@ export default function RequestItemsSection({
         <p>총 {itemCount}개</p>
         {showChevron ? (
           <button
+            type="button"
+            aria-expanded={isOpen}
+            aria-label={`${sectionTitle} ${isOpen ? '접기' : '펼치기'}`}
             className="relative size-5 shrink-0 overflow-hidden"
             onClick={() => setIsOpen((prev) => !prev)}
           >
