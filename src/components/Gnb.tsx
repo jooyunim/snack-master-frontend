@@ -174,8 +174,8 @@ function AuthActions({
       <div className="flex items-center gap-5 max-lg:gap-5 xl:gap-[30px]">
         <Link
           href="/cart"
-          aria-label="장바구니"
-          className="relative size-6 shrink-0 overflow-hidden"
+          aria-label={cartCount > 0 ? `장바구니 ${cartCount}개` : '장바구니'}
+          className="relative size-6 shrink-0"
         >
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
             <Image src={icCartBag} alt="" fill className="object-contain" />
@@ -184,8 +184,8 @@ function AuthActions({
             <Image src={icCartHandle} alt="" fill className="object-contain" />
           </span>
           {cartCount > 0 ? (
-            <span className="absolute bottom-[16%] left-[calc(50%-3px)] text-[9px] font-bold tracking-[-0.225px] text-gray-950">
-              {cartCount}
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[9px] font-bold leading-none tracking-[-0.225px] text-white">
+              {cartCount > 99 ? '99+' : cartCount}
             </span>
           ) : null}
         </Link>
