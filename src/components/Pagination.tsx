@@ -19,7 +19,8 @@ export default function Pagination({
   const isLast = page >= totalPages;
 
   return (
-    <div
+    <nav
+      aria-label="페이지 이동"
       className={`flex h-10 w-full items-center justify-between ${className}`.trim()}
     >
       <p className="text-center text-[16px] tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
@@ -28,6 +29,7 @@ export default function Pagination({
       <div className="flex items-center gap-[30px]">
         <button
           type="button"
+          aria-label="이전 페이지"
           disabled={isFirst}
           onClick={() => {
             if (!isFirst) onPageChange(page - 1);
@@ -48,6 +50,7 @@ export default function Pagination({
         </button>
         <button
           type="button"
+          aria-label="다음 페이지"
           disabled={isLast}
           onClick={() => {
             if (!isLast) onPageChange(page + 1);
@@ -72,6 +75,6 @@ export default function Pagination({
           </span>
         </button>
       </div>
-    </div>
+    </nav>
   );
 }

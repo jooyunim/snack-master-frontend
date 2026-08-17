@@ -36,31 +36,34 @@ export default function CartStepIndicator({
   const steps = FLOW_STEPS[flow];
 
   return (
-    <ol className="flex list-none items-center justify-center gap-5 max-sm:flex-col max-sm:gap-2.5">
-      {steps.map(({ step, label }, index) => (
-        <Fragment key={step}>
-          {index > 0 && (
+    <nav aria-label="주문 진행 단계">
+      <ol className="flex list-none items-center justify-center gap-5 max-sm:flex-col max-sm:gap-2.5">
+        {steps.map(({ step, label }, index) => (
+          <Fragment key={step}>
+            {index > 0 && (
+              <li
+                className="relative size-6 shrink-0 overflow-hidden max-sm:hidden"
+                aria-hidden
+              >
+                <Image
+                  src={icChevronRight}
+                  alt=""
+                  fill
+                  className="object-contain"
+                />
+              </li>
+            )}
             <li
-              className="relative size-6 shrink-0 overflow-hidden max-sm:hidden"
-              aria-hidden
+              className={`text-[18px] font-bold tracking-[-0.45px] max-sm:text-[16px] max-sm:tracking-[-0.4px] ${
+                step === currentStep ? 'text-gray-950' : 'text-gray-300'
+              }`}
+              aria-current={step === currentStep ? 'step' : undefined}
             >
-              <Image
-                src={icChevronRight}
-                alt=""
-                fill
-                className="object-contain"
-              />
+              {label}
             </li>
-          )}
-          <li
-            className={`text-[18px] font-bold tracking-[-0.45px] max-sm:text-[16px] max-sm:tracking-[-0.4px] ${
-              step === currentStep ? 'text-gray-950' : 'text-gray-300'
-            }`}
-          >
-            {label}
-          </li>
-        </Fragment>
-      ))}
-    </ol>
+          </Fragment>
+        ))}
+      </ol>
+    </nav>
   );
 }

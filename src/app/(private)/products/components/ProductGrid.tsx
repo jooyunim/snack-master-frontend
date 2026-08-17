@@ -22,18 +22,24 @@ export default function ProductGrid({
 
   if (products.length === 0) {
     return (
-      <div className="flex w-full items-center justify-center py-20">
+      <section
+        className="flex w-full items-center justify-center py-20"
+        aria-live="polite"
+      >
         <p className="text-[16px] tracking-[-0.4px] text-gray-500">
           해당 카테고리에 상품이 없습니다.
         </p>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="flex w-full flex-col gap-[30px] max-lg:gap-10 max-sm:gap-5">
+    <section
+      className="flex w-full flex-col gap-[30px] max-lg:gap-10 max-sm:gap-5"
+      aria-label="상품 목록"
+    >
       <div className="flex w-full flex-col gap-[60px] pb-[30px] max-lg:gap-[50px] max-lg:pb-0 max-sm:gap-10">
-        <div className="grid w-full grid-cols-3 gap-x-10 gap-y-[60px] max-lg:gap-x-3.5 max-lg:gap-y-[50px] max-sm:grid-cols-2 max-sm:gap-x-4 max-sm:gap-y-10">
+        <ul className="grid w-full grid-cols-3 gap-x-10 gap-y-[60px] max-lg:gap-x-3.5 max-lg:gap-y-[50px] max-sm:grid-cols-2 max-sm:gap-x-4 max-sm:gap-y-10">
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -47,7 +53,7 @@ export default function ProductGrid({
               }
             />
           ))}
-        </div>
+        </ul>
       </div>
 
       {hasNext ? (
@@ -64,6 +70,6 @@ export default function ProductGrid({
           </span>
         </Button>
       ) : null}
-    </div>
+    </section>
   );
 }
