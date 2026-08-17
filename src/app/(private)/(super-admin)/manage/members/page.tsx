@@ -14,11 +14,12 @@ import icWarning from '@/assets/icons/ic_!.svg';
 import { useDebounce } from '@/features/member/hooks/useDebounce';
 import { useInviteUser } from '@/features/member/hooks/useInviteUser';
 import { useUpdateUserRole } from '@/features/member/hooks/useUpdateUserRole';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import EmptyState from '@/components/EmptyState';
 import { Member } from '@/features/member/types/members.type';
 import { useDeleteUser } from '@/features/member/hooks/useDeleteUser';
 import { useUsers } from '@/features/member/hooks/useUsers';
+import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
 
 //아바타용 이니셜 뽑는 함수
 const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
@@ -30,8 +31,8 @@ const getMemberBadgeVariant = (role: Member['role']) => {
 };
 
 export default function MembersPage() {
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const { page, setPage, search, setSearch } = useQueryPagination();
+  const [searchInput, setSearchInput] = useState(search);
   const [pageSize] = useState(15);
   const [modalMode, setModalMode] = useState<InviteMemberModalMode | null>(
     null
@@ -44,7 +45,22 @@ export default function MembersPage() {
   >(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const debouncedSearch = useDebounce(search, 300).trim(); // 300ms 딜레이 후 검색 (API 전송 시에만 trim)
+  const debouncedSearch = useDebounce(searchInput, 300).trim();
+  const skipSearchSyncRef = useRef(false);
+
+  useEffect(() => {
+    if (debouncedSearch === search) return;
+    skipSearchSyncRef.current = true;
+    setSearch(debouncedSearch);
+  }, [debouncedSearch, search, setSearch]);
+
+  useEffect(() => {
+    if (skipSearchSyncRef.current) {
+      skipSearchSyncRef.current = false;
+      return;
+    }
+    setSearchInput(search);
+  }, [search]);
 
   const openInviteModal = () => {
     setOpenMenuMemberId(null);
@@ -137,7 +153,7 @@ export default function MembersPage() {
       onSuccess: () => {
         closeDeleteAlert();
         if (MEMBERS.length === 1 && page > 1) {
-          setPage((prev) => prev - 1);
+          setPage(page - 1); // 현재 페이지가 1이면, 이전 페이지로 이동
         }
       },
       onError: (error) => {
@@ -197,11 +213,8 @@ export default function MembersPage() {
             <Image src={icSearch} alt="" fill className="object-contain" />
           </span>
           <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             type="search"
             placeholder="이름/이메일로 검색하세요"
             className="w-full bg-transparent text-[18px] tracking-[-0.45px] text-gray-950 outline-none placeholder:text-gray-400 max-sm:text-[16px] max-sm:tracking-[-0.4px]"
