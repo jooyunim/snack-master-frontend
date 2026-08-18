@@ -11,7 +11,7 @@ import Toast from '@/components/Toast';
 import CartStepIndicator, {
   type CartFlow,
 } from './components/CartStepIndicator';
-import QuantityDropdown from './components/QuantityDropdown';
+import QuantityDropdown from '../../../components/QuantityDropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import type { CartItem } from '@/features/cart/schemas/cart';
 import { useRouter } from 'next/navigation';
@@ -220,6 +220,7 @@ export default function CartPage() {
       ) : null}
 
       <main className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-[70px] px-6 pb-20 pt-20 max-lg:pt-[60px] max-sm:gap-10">
+        <h1 className="sr-only">장바구니</h1>
         {/*  cartFlow(role 기반) 전달 */}
         <CartStepIndicator flow={cartFlow} currentStep={1} />
 

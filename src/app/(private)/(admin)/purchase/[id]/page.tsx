@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import RequestItemsSection, {
   type RequestItem,
@@ -8,12 +8,12 @@ import RequestItemsSection, {
 import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
 import Image from 'next/image';
 import InfoSection from '@/components/InfoSection';
-import { getOrderById } from '@/features/purchase/purchase.api';
-import type { OrderDetail } from '@/features/purchase/purchase.types';
+import type { OrderDetail } from '@/features/purchase/types/purchase.types';
 import { formatDate, formatWon, statusLabel } from '@/features/purchase/format';
 import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
 import PurchaseDetailError from '../components/PurchaseDetailError';
 import PaymentSummary from '@/components/PaymentSummary';
+import { useOrderDetail } from '@/features/purchase/hooks/useOrderDetail';
 
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
@@ -39,63 +39,25 @@ export default function PurchaseDetailPage() {
   const orderId = Number(params.id);
   const isValidId = Number.isInteger(orderId) && orderId >= 1;
 
-  const [order, setOrder] = useState<OrderDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useOrderDetail(orderId, isValidId);
 
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
   const [itemsOpen, setItemsOpen] = useState(true);
-
-  useEffect(() => {
-    if (!isValidId) return;
-
-    let cancelled = false;
-
-    getOrderById(orderId)
-      .then((data) => {
-        if (cancelled) return;
-
-        if (data.id !== orderId) {
-          setOrder(null);
-          setError('구매 내역을 불러오지 못했습니다.');
-          setLoading(false);
-          return;
-        }
-
-        setOrder(data);
-        setError(null);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setOrder(null);
-        setError('구매 내역을 불러오지 못했습니다.');
-        setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [orderId, isValidId]);
 
   if (!isValidId) {
     return <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />;
   }
 
-  if (
-    loading ||
-    (!order && !error) ||
-    (order !== null && order.id !== orderId)
-  ) {
+  if (isLoading || (order != null && order.id !== orderId)) {
     return <PurchaseDetailLoading />;
   }
 
-  if (error) {
-    return <PurchaseDetailError message={error} />;
-  }
-
-  if (!order) {
-    return <PurchaseDetailLoading />;
+  if (isError || !order) {
+    return <PurchaseDetailError message="구매 내역을 불러오지 못했습니다." />;
   }
 
   const itemTotal = calcItemTotal(order);
@@ -143,9 +105,9 @@ export default function PurchaseDetailPage() {
         </div>
 
         <PaymentSummary
-          pointsUsed={`${(order.pointsUsed ?? 0).toLocaleString('ko-KR')} P`}
-          pointsEarned={`${(order.pointsEarned ?? 0).toLocaleString('ko-KR')} P`}
-          paidAmount={formatWon(order.paidAmount)}
+          pointsUsed={order.pointsUsed ?? 0}
+          pointsEarned={order.pointsEarned ?? 0}
+          paidAmount={order.paidAmount ?? 0}
         />
 
         <InfoSection

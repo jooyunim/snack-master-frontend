@@ -19,7 +19,7 @@ export default function AuthLayout({
   }, [isAuthChecked, isLoggedIn, router]);
 
   if (!isAuthChecked || isLoggedIn) {
-    return <div>Loading...</div>;
+    return <main>Loading...</main>;
   }
 
   return <>{children}</>;

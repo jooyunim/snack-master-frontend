@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -129,18 +129,26 @@ function AuthNav({ userType, pathname }: { userType: Role; pathname: string }) {
   const items = NAV_ITEMS.filter((item) => item.roles.includes(userType));
 
   return (
-    <nav className="flex items-center gap-[30px] max-lg:hidden">
+    <nav className="flex items-center gap-[30px] max-xl:hidden">
       {items.map((item) => {
         const active = isNavActive(pathname, item);
         return (
           <Link
             key={item.label}
             href={item.href}
-            className={`flex h-10 items-center justify-center px-2.5 text-[16px] tracking-[-0.4px] text-gray-950 ${
-              active ? 'font-extrabold' : 'font-normal'
-            }`}
+            className="relative flex h-10 items-center justify-center px-1.5 text-[16px] tracking-[-0.4px] text-gray-950 xl:px-2.5"
           >
-            {item.label}
+            {/* ExtraBold 폭을 미리 예약해 활성 전환 시 layout shift 방지 */}
+            <span className="invisible font-extrabold" aria-hidden>
+              {item.label}
+            </span>
+            <span
+              className={`absolute inset-0 flex items-center justify-center ${
+                active ? 'font-extrabold' : 'font-normal'
+              }`}
+            >
+              {item.label}
+            </span>
           </Link>
         );
       })}
@@ -162,9 +170,13 @@ function AuthActions({
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-11 shrink-0 items-center gap-[30px] max-lg:gap-10 max-sm:h-auto max-sm:gap-5">
-      <div className="flex items-center gap-[30px] max-lg:gap-5">
-        <Link href="/cart" className="relative size-6 shrink-0 overflow-hidden">
+    <div className="flex h-11 shrink-0 items-center gap-5 max-lg:gap-8 max-sm:h-auto max-sm:gap-5 xl:gap-[30px]">
+      <div className="flex items-center gap-5 max-lg:gap-5 xl:gap-[30px]">
+        <Link
+          href="/cart"
+          aria-label={cartCount > 0 ? `장바구니 ${cartCount}개` : '장바구니'}
+          className="relative size-6 shrink-0"
+        >
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
             <Image src={icCartBag} alt="" fill className="object-contain" />
           </span>
@@ -172,22 +184,27 @@ function AuthActions({
             <Image src={icCartHandle} alt="" fill className="object-contain" />
           </span>
           {cartCount > 0 ? (
-            <span className="absolute bottom-[16%] left-[calc(50%-3px)] text-[9px] font-bold tracking-[-0.225px] text-gray-950">
-              {cartCount}
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[9px] font-bold leading-none tracking-[-0.225px] text-white">
+              {cartCount > 99 ? '99+' : cartCount}
             </span>
           ) : null}
         </Link>
 
         <Link
           href="/wishlist"
+          aria-label="찜하기"
           className="relative size-6 shrink-0 overflow-hidden max-lg:hidden"
         >
           <Image src={icLike} alt="" fill className="object-contain" />
         </Link>
 
-        <span className="relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden">
+        <Link
+          href="/user"
+          aria-label="프로필"
+          className="relative flex size-6 shrink-0 items-center justify-center cursor-pointer overflow-hidden rounded-full bg-gray-100 text-[10px] tracking-[-0.25px] text-gray-950 max-sm:hidden"
+        >
           {profileName}
-        </span>
+        </Link>
 
         <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" aria-hidden />
 
@@ -213,7 +230,7 @@ function AuthActions({
         type="button"
         aria-label="메뉴 열기"
         onClick={onOpenMenu}
-        className="relative hidden size-6 shrink-0 overflow-hidden max-lg:block"
+        className="relative hidden size-6 shrink-0 overflow-hidden max-xl:block"
       >
         <Image src={icMenu} alt="" fill className="object-contain" />
       </button>
@@ -222,48 +239,57 @@ function AuthActions({
 }
 
 function MobileCategoryDropdown() {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  if (!pathname.startsWith('/products')) {
-    return null;
-  }
+  const [isOpen, setIsOpen] = useState(false);
 
   const activeCategory = searchParams.get('category') ?? 'drink';
   const activeLabel = findCategory(activeCategory)?.label ?? '음료';
 
   return (
     <>
-      <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 max-sm:flex">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-label="카테고리 선택"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 max-sm:flex"
+      >
         <span className="text-[16px] font-bold tracking-[-0.4px] text-black">
           {activeLabel}
         </span>
-        <span className="relative size-5 shrink-0 overflow-hidden">
+        <span
+          className={`relative size-5 shrink-0 overflow-hidden transition-transform ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        >
           <Image src={icChevronDown} alt="" fill className="object-contain" />
         </span>
-      </div>
+      </button>
 
-      <div className="absolute left-0 top-full z-20 hidden w-full flex-col items-center gap-2.5 bg-white/90 py-4 backdrop-blur-[15px] max-sm:flex">
-        {CATEGORIES.map((category) => {
-          const isActive = category.slug === activeCategory;
+      {isOpen ? (
+        <div className="absolute left-0 top-full z-20 hidden w-full flex-col items-center gap-2.5 bg-white/90 py-4 backdrop-blur-[15px] max-sm:flex">
+          {CATEGORIES.map((category) => {
+            const isActive = category.slug === activeCategory;
 
-          return (
-            <Link
-              key={category.slug}
-              href={categoryHref(category.slug)}
-              className="flex items-center justify-center p-2"
-            >
-              <span
-                className={`text-[16px] font-bold tracking-[-0.4px] whitespace-nowrap ${
-                  isActive ? 'text-gray-950' : 'text-gray-400'
-                }`}
+            return (
+              <Link
+                key={category.slug}
+                href={categoryHref(category.slug)}
+                className="flex items-center justify-center p-2"
+                onClick={() => setIsOpen(false)}
               >
-                {category.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+                <span
+                  className={`text-[16px] font-bold tracking-[-0.4px] whitespace-nowrap ${
+                    isActive ? 'text-gray-950' : 'text-gray-400'
+                  }`}
+                >
+                  {category.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
     </>
   );
 }
@@ -271,7 +297,7 @@ function MobileCategoryDropdown() {
 export default function Gnb({
   className = '',
   userType = null,
-  cartCount = 0, //장바구니 api 연동 후 수정
+  cartCount = 0,
   profileName = '',
 }: GnbProps) {
   const pathname = usePathname();
@@ -281,21 +307,30 @@ export default function Gnb({
   return (
     <>
       <header
-        className={`relative flex h-[90px] w-full items-center justify-between bg-white/90 px-[100px] py-8 shadow-[0px_4px_6px_0px_rgba(0,0,0,0.02)] backdrop-blur-[15px] max-lg:h-[100px] max-lg:px-6 max-lg:py-8 max-sm:h-14 max-sm:py-4 max-sm:pl-2.5 max-sm:pr-6 ${className}`.trim()}
+        className={`relative flex h-[90px] w-full items-center justify-between bg-white/90 px-6 py-8 shadow-[0px_4px_6px_0px_rgba(0,0,0,0.02)] backdrop-blur-[15px] lg:px-10 xl:px-[100px] max-lg:h-[100px] max-lg:py-8 max-sm:h-14 max-sm:py-4 max-sm:pl-2.5 max-sm:pr-6 ${className}`.trim()}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-10">
+        <div className="flex min-w-0 flex-1 items-center gap-6 xl:gap-10">
           <Link
-            href="/"
+            href={isLoggedIn ? '/products' : '/'}
             className="relative h-11 w-[102.746px] shrink-0 overflow-hidden"
           >
-            <Image src={logo} alt="Snack" fill className="object-contain" />
+            <Image
+              src={logo}
+              alt="스낵마스터 로고"
+              fill
+              className="object-contain"
+            />
           </Link>
           {isLoggedIn ? (
             <AuthNav userType={userType} pathname={pathname} />
           ) : null}
         </div>
 
-        {isLoggedIn ? <MobileCategoryDropdown /> : null}
+        {isLoggedIn && pathname.startsWith('/products') ? (
+          <Suspense fallback={null}>
+            <MobileCategoryDropdown />
+          </Suspense>
+        ) : null}
 
         {isLoggedIn ? (
           <AuthActions
@@ -310,7 +345,7 @@ export default function Gnb({
 
       {isSideMenuOpen ? (
         <div
-          className={`fixed inset-0 z-40 ${isLoggedIn ? 'lg:hidden' : 'sm:hidden'}`}
+          className={`fixed inset-0 z-40 ${isLoggedIn ? 'xl:hidden' : 'sm:hidden'}`}
         >
           <button
             type="button"

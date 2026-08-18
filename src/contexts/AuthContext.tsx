@@ -8,12 +8,20 @@ import {
 import { User } from '@/features/auth/types/auth.types';
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
   useEffect,
   ReactNode,
 } from 'react';
 import type { LoginFormValues } from '@/features/auth/schemas/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  cartQueryKeys,
+  companyBalancePointQueryKeys,
+  orderItemsQueryKeys,
+} from '@/features/cart/constants/query-keys';
+import { SESSION_EXPIRED_EVENT } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isLoggedIn = !!user;
+  const queryClient = useQueryClient();
 
   const login = async ({
     email,
@@ -46,6 +55,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
   };
 
+  const clearClientSession = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('accessToken');
+    queryClient.removeQueries({ queryKey: cartQueryKeys.all });
+    queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
+    queryClient.removeQueries({
+      queryKey: companyBalancePointQueryKeys.all,
+    });
+  }, [queryClient]);
+
   const logout = async () => {
     if (!isAuthChecked) return;
     try {
@@ -53,10 +72,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      setUser(null);
-      localStorage.removeItem('accessToken');
+      clearClientSession();
     }
   };
+
+  useEffect(() => {
+    const onSessionExpired = () => {
+      clearClientSession();
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    };
+  }, [clearClientSession]);
 
   useEffect(() => {
     let cancelled = false;
