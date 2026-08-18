@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
 import EmptyState from '@/components/EmptyState';
@@ -12,6 +12,7 @@ import {
   ModalState,
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
+import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
 
 const SORT_OPTIONS: SortOption[] = [
   { label: '최신순', value: 'recent' },
@@ -22,9 +23,11 @@ const SORT_OPTIONS: SortOption[] = [
 export default function PurchaseRequestManagePage() {
   const router = useRouter();
 
-  const [sortBy, setsortBy] = useState<sortByOption>('recent');
-  const [page, setPage] = useState(1);
+  const { page, setPage, sort, setSort } = useQueryPagination();
   const [modalState, setModalState] = useState<ModalState | null>(null);
+  const sortBy = SORT_OPTIONS.some((option) => option.value === sort)
+    ? (sort as sortByOption)
+    : 'recent';
   const {
     data: requestList,
     isPending,
@@ -48,8 +51,7 @@ export default function PurchaseRequestManagePage() {
             options={SORT_OPTIONS}
             value={sortBy}
             onChange={(value) => {
-              setsortBy(value as sortByOption);
-              setPage(1);
+              setSort(value);
             }}
           />
         </div>

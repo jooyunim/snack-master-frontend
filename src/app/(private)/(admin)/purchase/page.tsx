@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
 import { useOrders } from '@/features/purchase/hooks/useOrders';
 import { useDashboardSummary } from '@/features/purchase/hooks/useDashboardSummary';
+import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
 
 type PurchaseRow = {
   id: number;
@@ -46,8 +47,10 @@ function toRow(item: OrderListItem): PurchaseRow {
 }
 
 export default function PurchasePage() {
-  const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<OrderSort>('latest');
+  const { page, setPage, sort: sortParam, setSort } = useQueryPagination();
+  const sort = ['latest', 'amountAsc', 'amountDesc'].includes(sortParam)
+    ? (sortParam as OrderSort)
+    : 'latest';
   const pageSize = 10;
   const router = useRouter();
 
@@ -67,8 +70,7 @@ export default function PurchasePage() {
   };
 
   const handleSortChange = (value: string) => {
-    setPage(1);
-    setSort(value as OrderSort);
+    setSort(value);
   };
 
   return (
