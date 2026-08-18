@@ -106,6 +106,7 @@ export default function CartOrderContent({
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-[50px] px-6 pb-20 pt-20 max-lg:pt-[60px] max-sm:gap-10 max-sm:px-[25px] max-sm:pb-[136px] max-sm:pt-10">
+        <h1 className="sr-only">구매 요청</h1>
         {/* user는 order 단계 필요하므로 flow="request" 고정 유지 */}
         <CartStepIndicator flow="request" currentStep={2} />
 

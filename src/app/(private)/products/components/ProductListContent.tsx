@@ -69,6 +69,7 @@ export default function ProductListContent({
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-[30px] max-sm:px-6 max-sm:gap-5">
+      <h1 className="sr-only">상품 목록</h1>
       <ProductListHeader
         categoryLabel={category?.name}
         subLabel={sub?.name}
