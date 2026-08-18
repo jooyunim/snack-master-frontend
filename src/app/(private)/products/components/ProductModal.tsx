@@ -18,6 +18,9 @@ type ProductModalProps = {
   onClose: () => void;
 };
 
+const PRODUCT_NAME_MAX_LENGTH = 100;
+const PRODUCT_PRICE_MAX = 1_000_000_000;
+
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const isEditMode = Boolean(product);
   const { data: categories } = useCategories();
@@ -71,8 +74,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     const trimmedName = name.trim();
     const parsedPrice = Number(price);
 
-    if (!trimmedName) return setErrorMessage('상품명을 입력해주세요.');
-    if (!price || !Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+    if (!trimmedName || trimmedName.length > PRODUCT_NAME_MAX_LENGTH) {
+      return setErrorMessage(
+        `상품명은 ${PRODUCT_NAME_MAX_LENGTH}자 이하여야 합니다.`
+      );
+    }
+    if (
+      !price ||
+      !Number.isInteger(parsedPrice) ||
+      parsedPrice <= 0 ||
+      parsedPrice > PRODUCT_PRICE_MAX
+    ) {
       return setErrorMessage('가격을 올바르게 입력해주세요.');
     }
     if (!subCategory) return setErrorMessage('카테고리를 선택해주세요.');
@@ -187,12 +199,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <Input
             placeholder="상품명을 입력해주세요"
             value={name}
+            maxLength={PRODUCT_NAME_MAX_LENGTH}
             onChange={(event) => setName(event.target.value)}
           />
           <Input
             type="number"
             placeholder="가격을 입력해주세요"
             value={price}
+            min={1}
+            max={PRODUCT_PRICE_MAX}
+            step={1}
             onChange={(event) => setPrice(event.target.value)}
           />
           <Input

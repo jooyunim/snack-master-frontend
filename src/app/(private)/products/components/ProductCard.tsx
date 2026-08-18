@@ -64,8 +64,8 @@ export default function ProductCard({
             </button>
           </div>
 
-          <div className="grid grid-cols-[auto_auto] items-center gap-x-2 gap-y-2 whitespace-nowrap max-lg:grid-cols-1 max-lg:justify-items-start">
-            <p className="text-[18px] tracking-[-0.45px] text-black max-lg:text-[16px] max-lg:tracking-[-0.4px]">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 max-lg:grid-cols-1 max-lg:justify-items-start">
+            <p className="break-words text-[18px] tracking-[-0.45px] text-black max-lg:text-[16px] max-lg:tracking-[-0.4px]">
               {product.name}
             </p>
             <p className="text-[14px] font-bold tracking-[-0.35px] text-secondary-500 max-lg:row-start-3 max-lg:text-[13px] max-lg:tracking-[-0.325px]">

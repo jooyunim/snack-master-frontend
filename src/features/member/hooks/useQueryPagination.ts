@@ -17,6 +17,7 @@ export const useQueryPagination = () => {
   //raw가 정수이고, 1이상이면, 그 숫자고, 아니면 무조건 1로!
   const page = Number.isInteger(raw) && raw >= 1 ? raw : 1;
   const search = searchParams.get('search') ?? '';
+  const sort = searchParams.get('sort') ?? '';
 
   const replaceQuery = useCallback(
     (params: URLSearchParams) => {
@@ -53,5 +54,16 @@ export const useQueryPagination = () => {
     [replaceQuery, searchParams]
   );
 
-  return { page, setPage, search, setSearch };
+  const setSort = useCallback(
+    (nextSort: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (nextSort) params.set('sort', nextSort);
+      else params.delete('sort');
+      params.delete('page');
+      replaceQuery(params);
+    },
+    [replaceQuery, searchParams]
+  );
+
+  return { page, setPage, search, setSearch, sort, setSort };
 };
