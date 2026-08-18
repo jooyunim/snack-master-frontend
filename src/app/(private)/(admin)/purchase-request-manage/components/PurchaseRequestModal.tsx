@@ -92,7 +92,7 @@ export default function PurchaseRequestModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="purchase-request-approval-title"
-        className="flex w-[600px] flex-col items-center gap-8 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:w-full max-sm:gap-0 max-sm:px-0 max-sm:py-0 max-sm:shadow-none"
+        className="flex w-[600px] max-h-[90vh] flex-col items-center gap-8 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:w-full max-sm:max-h-full max-sm:gap-0 max-sm:px-0 max-sm:py-0 max-sm:shadow-none"
       >
         <h2
           id="purchase-request-approval-title"
@@ -106,7 +106,7 @@ export default function PurchaseRequestModal({
             e.preventDefault();
             handleSubmit();
           }}
-          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]"
+          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px] overflow-y-auto"
         >
           <div className="flex w-full flex-col">
             <div className="flex w-full flex-col gap-8 pb-5">
