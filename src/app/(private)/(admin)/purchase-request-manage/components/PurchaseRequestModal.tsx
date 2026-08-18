@@ -202,6 +202,7 @@ export default function PurchaseRequestModal({
                             min={0}
                             max={maxPoint}
                             value={pointAmount}
+                            onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const raw = e.target.value;
                               if (raw === '') {
