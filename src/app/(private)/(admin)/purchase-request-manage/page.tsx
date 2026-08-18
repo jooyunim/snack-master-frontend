@@ -1,17 +1,17 @@
 'use client';
-
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Pagination from '@/components/Pagination';
 import SortDropdown, { SortOption } from '@/components/SortDropdown';
+import EmptyState from '@/components/EmptyState';
+import PurchaseRequestModal from './components/PurchaseRequestModal';
+import RequestTable from './components/RequestTable';
 import { useRequestList } from '@/features/purchase-request-manage/hooks/useRequestList';
 import {
   ModalState,
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
-import { useState } from 'react';
-import PurchaseRequestModal from './components/PurchaseRequestModal';
-import EmptyState from '@/components/EmptyState';
-import { useRouter } from 'next/navigation';
-import RequestTable from './components/RequestTable';
+import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
 
 const SORT_OPTIONS: SortOption[] = [
   { label: '최신순', value: 'recent' },
@@ -21,17 +21,21 @@ const SORT_OPTIONS: SortOption[] = [
 
 export default function PurchaseRequestManagePage() {
   const router = useRouter();
-
-  const [sortBy, setsortBy] = useState<sortByOption>('recent');
-  const [page, setPage] = useState(1);
+  const { page, setPage, sort, setSort } = useQueryPagination();
   const [modalState, setModalState] = useState<ModalState | null>(null);
-  const { data, isPending, isError } = useRequestList(sortBy, page);
 
-  if (isPending) return <div>로딩 중...</div>;
-  if (isError || !data) return <div>에러가 발생했습니다.</div>;
+  const sortBy = SORT_OPTIONS.some((option) => option.value === sort)
+    ? (sort as sortByOption)
+    : 'recent';
 
-  const requests = data?.items ?? [];
-  const pagination = data?.pagination;
+  const {
+    data: requestList,
+    isPending,
+    isError,
+  } = useRequestList(sortBy, page);
+
+  const requests = requestList?.items ?? [];
+  const pagination = requestList?.pagination;
 
   return (
     <div className="min-h-screen bg-white">
@@ -43,11 +47,16 @@ export default function PurchaseRequestManagePage() {
           <SortDropdown
             options={SORT_OPTIONS}
             value={sortBy}
-            onChange={(value) => setsortBy(value as sortByOption)}
+            onChange={(value) => {
+              setSort(value);
+            }}
           />
         </div>
-
-        {requests.length === 0 ? (
+        {isPending ? (
+          <div>로딩 중...</div>
+        ) : isError ? (
+          <div>에러가 발생했습니다.</div>
+        ) : requests.length === 0 ? (
           <EmptyState
             title="요청 내역이 없어요"
             description="상품 리스트를 둘러보고 상품을 담아보세요"
@@ -58,7 +67,6 @@ export default function PurchaseRequestManagePage() {
           />
         ) : (
           <div className="flex w-full flex-col items-end gap-[30px] max-sm:gap-5">
-            {/* PC / Tablet table */}
             <RequestTable
               requests={requests}
               onReject={(id) =>
@@ -68,23 +76,21 @@ export default function PurchaseRequestManagePage() {
                 setModalState({ action: 'approve', requestId: id })
               }
             />
-
-            {pagination.page > 1 && (
+            {pagination && pagination.totalPages > 1 && (
               <Pagination
                 page={pagination.page}
-                totalPages={pagination.totalPage}
+                totalPages={pagination.totalPages}
                 onPageChange={setPage}
               />
             )}
           </div>
         )}
-
         {modalState && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <PurchaseRequestModal
               requestId={modalState.requestId}
               mode={modalState.action}
-              onclose={() => setModalState(null)}
+              onClose={() => setModalState(null)}
             />
           </div>
         )}

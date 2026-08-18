@@ -4,6 +4,8 @@ import { refreshAccessToken } from '@/features/auth/services/auth.api';
 // (sample.api.ts, purchase-request.api.ts는 아직 미완성 참고용 코드라 NEXT_PUBLIC_API_URL을 씀 — 실제 동작하는 쪽 기준으로 통일)
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
 
+export const SESSION_EXPIRED_EVENT = 'auth:session-expired';
+
 export class ApiError extends Error {
   status: number;
 
@@ -19,6 +21,12 @@ export function getAccessToken(): string | null {
   return localStorage.getItem('accessToken');
 }
 
+function expireSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('accessToken');
+  window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+}
+
 function buildHeaders(options: RequestInit, token: string | null): HeadersInit {
   return {
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -32,7 +40,7 @@ function buildHeaders(options: RequestInit, token: string | null): HeadersInit {
 // refreshAccessToken만 재사용해서 동일한 흐름을 여기서도 구현함).
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<T> {
   let token = getAccessToken();
 
@@ -51,16 +59,23 @@ export async function apiFetch<T>(
         headers: buildHeaders(options, token),
       });
     } catch {
-      // refresh 실패 시 원래 401 응답으로 계속 진행해서 아래에서 ApiError로 던짐
+      expireSession();
+      throw new ApiError(401, '세션이 만료되었습니다.');
     }
   }
 
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
+    // 로그인 중 토큰이 사라진 경우. refresh에 성공한 뒤의 401은
+    // (예: 현재 비밀번호 불일치) 세션 만료가 아니므로 여기서 끊지 않음.
+    if (response.status === 401 && !token) {
+      expireSession();
+    }
+
     throw new ApiError(
       response.status,
-      body?.message ?? '요청 처리 중 오류가 발생했습니다.',
+      body?.message ?? '요청 처리 중 오류가 발생했습니다.'
     );
   }
 

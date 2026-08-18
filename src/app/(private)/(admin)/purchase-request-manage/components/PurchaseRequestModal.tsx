@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import Button from '@/components/Button';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
@@ -6,16 +7,19 @@ import { useRequestMutations } from '@/features/purchase-request-manage/hooks/us
 import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
+import { ApiError } from '@/lib/api';
 import PointCalculate from '../utils/PointCalculate';
 import { getInitials } from '../utils/getInitials';
+import AlertModal from '@/components/AlertModal';
+import icAlert from '@/assets/icons/ic_!.svg';
 
 export default function PurchaseRequestModal({
   requestId,
-  onclose,
+  onClose,
   mode,
 }: {
   requestId: number;
-  onclose: () => void;
+  onClose: () => void;
   mode: 'approve' | 'reject';
 }) {
   const { data, isPending, isError } = useRequestDetail(requestId);
@@ -23,35 +27,19 @@ export default function PurchaseRequestModal({
   const [resultMessage, setResultMessage] = useState('');
   const [showAlert, setShowAlert] = useState(true);
   const [pointAmount, setPointAmount] = useState(0);
+  const [showResultModal, setShowResultModal] = useState(false);
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
   const isApprove = mode === 'approve';
-
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation;
 
-  const handleSubmit = () => {
-    mutation.mutate(
-      {
-        id: requestId,
-        resultMessage,
-        requestPointAmount: isApprove ? safePointAmount : 0,
-      },
-      {
-        onSuccess: () => {
-          alert('성공했습니다.');
-          onclose();
-        },
-        onError: () => {
-          alert('에러가 발생했습니다.');
-        },
-      }
-    );
-  };
-  if (isPending) return <div>로딩중...</div>;
+  // 데이터 로딩 중이거나 에러 발생 시 처리
+  if (isPending) return <div className="p-10 text-center">로딩중...</div>;
+  if (isError || !data)
+    return <div className="p-10 text-center">에러가 발생했습니다.</div>;
 
-  if (isError) return <div>에러...</div>;
-
+  // 포인트 및 예산 계산
   const {
     maxPoint,
     safePointAmount,
@@ -62,13 +50,33 @@ export default function PurchaseRequestModal({
   } = PointCalculate({
     pointBalance,
     pointAmount,
-    requestAmount: data.requestAmount,
-    shippingFee: data.shippingFee,
-    remainedBudget: data.remained,
+    requestAmount: data.orderAmount ?? data.requestAmount ?? 0,
+    shippingFee: data.shippingFee ?? 0,
+    remainedBudget: data.remained ?? 0,
   });
 
   const isApproveBlock = isApprove && isOverBudgetAfterPoints;
   const isShowAlert = isApproveBlock && showAlert;
+
+  const handleSubmit = () => {
+    mutation.mutate(
+      {
+        id: requestId,
+        resultMessage,
+        requestPointAmount: isApprove ? safePointAmount : 0,
+      },
+      {
+        onSuccess: () => {
+          setShowResultModal(true);
+        },
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -93,7 +101,13 @@ export default function PurchaseRequestModal({
           {isApprove ? '구매 요청 승인' : '구매 요청 반려'}
         </h2>
 
-        <div className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]"
+        >
           <div className="flex w-full flex-col">
             <div className="flex w-full flex-col gap-8 pb-5">
               <div className="flex items-center gap-3">
@@ -110,7 +124,7 @@ export default function PurchaseRequestModal({
               <div className="flex items-center gap-1.5 tracking-[-0.4px] text-gray-950">
                 <p className="text-[16px] font-bold">요청 품목</p>
                 <p className="text-[16px] max-sm:text-[14px] max-sm:tracking-[-0.35px]">
-                  총 {data?.items.length}개
+                  총 {data?.items?.length ?? 0}개
                 </p>
               </div>
             </div>
@@ -118,7 +132,7 @@ export default function PurchaseRequestModal({
             <div className="flex w-full flex-col gap-8">
               <div className="flex w-full flex-col gap-5 rounded-[2px] bg-white px-5 pb-[30px] pt-5 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
                 <ul className="flex w-full flex-col">
-                  {data?.items.map((item) => (
+                  {data?.items?.map((item) => (
                     <li
                       key={item.id}
                       className="flex w-full items-center justify-between border-b border-solid border-gray-100 py-5 pr-2"
@@ -188,10 +202,19 @@ export default function PurchaseRequestModal({
                             min={0}
                             max={maxPoint}
                             value={pointAmount}
-                            onChange={(e) =>
-                              setPointAmount(Number(e.target.value))
-                            }
-                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                setPointAmount(0);
+                                return;
+                              }
+                              const num = Number(raw);
+                              if (Number.isNaN(num)) return;
+                              setPointAmount(
+                                Math.min(Math.max(num, 0), maxPoint)
+                              );
+                            }}
+                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
                           <span className="text-[16px] font-bold text-gray-600">
                             {`/ ${maxPoint.toLocaleString()} P`}
@@ -212,7 +235,11 @@ export default function PurchaseRequestModal({
                       총 주문금액
                     </p>
                     <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                      {previewPaidAmount.toLocaleString()}원
+                      {(isApprove
+                        ? previewPaidAmount
+                        : data.orderAmount + data.shippingFee
+                      ).toLocaleString()}
+                      원
                     </p>
                   </div>
                 </div>
@@ -225,7 +252,11 @@ export default function PurchaseRequestModal({
                   남은 예산 금액
                 </p>
                 <p className="text-[24px] font-extrabold tracking-[-0.6px] max-sm:text-[20px] max-sm:tracking-[-0.5px]">
-                  {previewAfterBudget.toLocaleString()}원
+                  {(isApprove
+                    ? previewAfterBudget
+                    : data.remained
+                  ).toLocaleString()}
+                  원
                 </p>
               </div>
 
@@ -250,21 +281,37 @@ export default function PurchaseRequestModal({
             <Button
               variant="line"
               className="min-w-0 flex-1 cursor-pointer"
-              onClick={onclose}
+              onClick={onClose}
             >
               취소
             </Button>
             <Button
               variant="filled"
               className="min-w-0 flex-1 cursor-pointer"
-              onClick={handleSubmit}
+              type="submit"
               disabled={isApproveBlock || mutation.isPending}
             >
               {isApprove ? '승인하기' : '반려하기'}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
+      {showResultModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
+          <AlertModal
+            icon={icAlert}
+            title={isApprove ? undefined : '요청 반려'}
+            content={
+              isApprove
+                ? undefined
+                : `요청이 반려되었어요\n목록에서 다른 요청을 확인해보세요`
+            }
+            confirmLabel={isApprove ? '확인' : '확인'}
+            showCancel={false}
+            onConfirm={onClose}
+          />
+        </div>
+      )}
     </>
   );
 }

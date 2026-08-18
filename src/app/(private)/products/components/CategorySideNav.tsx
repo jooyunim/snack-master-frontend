@@ -55,6 +55,7 @@ export default function CategorySideNav({
             >
               <Link
                 href={href}
+                aria-current={isExpanded || isLeafActive ? 'page' : undefined}
                 className={`flex h-[50px] w-full items-center justify-between p-3.5 ${
                   isExpanded ? 'border-t-2 border-solid border-gray-950' : ''
                 } ${
@@ -86,12 +87,14 @@ export default function CategorySideNav({
                 ? category.children.map((child) => {
                     const childHref = categoryHref(category.slug, child.slug);
                     const isActive =
-                      activeCategory === category.slug && activeSub === child.slug;
+                      activeCategory === category.slug &&
+                      activeSub === child.slug;
 
                     return (
                       <Link
                         key={child.slug}
                         href={childHref}
+                        aria-current={isActive ? 'page' : undefined}
                         className="flex h-[50px] w-full items-center px-[30px] py-2.5 max-sm:h-[52px] max-sm:w-auto max-sm:shrink-0 max-sm:justify-center max-sm:px-2 max-sm:py-3.5"
                       >
                         <span

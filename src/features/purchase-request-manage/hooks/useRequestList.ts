@@ -4,7 +4,7 @@ import { getPurchaseRequestManageList } from '../services/purchase-request-manag
 import { sortByOption } from '../types/purchase-request-manage.type';
 import { purchaseRequestManageKeys } from '../constants/query-keys';
 
-export function useRequestList(sortBy: sortByOption, page: number) {
+export function useRequestList(sortBy: sortByOption, page = 1) {
   return useQuery({
     queryKey: purchaseRequestManageKeys.list(sortBy, page),
     queryFn: () => getPurchaseRequestManageList(sortBy, page),

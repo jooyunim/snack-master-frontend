@@ -20,7 +20,7 @@ export const createPurchaseRequest = async (
     method: 'POST',
     body: JSON.stringify({
       cartItemIds: selectedIds,
-      requestMessage: requestMessage.trim() || undefined,
+      requestMessage: requestMessage.trim(),
     }),
   });
 };

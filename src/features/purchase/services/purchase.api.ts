@@ -4,7 +4,7 @@ import type {
   OrderDetail,
   OrderSort,
   OrdersResponse,
-} from './purchase.types';
+} from '../types/purchase.types';
 
 export function getOrders(params?: {
   page?: number;
@@ -31,7 +31,5 @@ export function getOrderById(id: number) {
 }
 
 export function getDashboardSummary() {
-  return apiFetch<DashboardSummary>('/dashboard/summary', {
-    cache: 'no-store',
-  });
+  return apiFetch<DashboardSummary>('/dashboard/summary');
 }

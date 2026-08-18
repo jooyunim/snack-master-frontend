@@ -125,6 +125,7 @@ export default function CartPurchaseContent({
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-[50px] px-6 pb-20 pt-20 max-lg:pt-[60px] max-sm:gap-10 max-sm:px-[25px] max-sm:pb-[136px] max-sm:pt-10">
+        <h1 className="sr-only">구매</h1>
         <CartStepIndicator flow="purchase" currentStep={2} />
 
         <div className="flex w-full flex-col gap-10">

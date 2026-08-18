@@ -22,15 +22,11 @@ export default function BudgetRemainHoverCard({
 
   return (
     <>
-      <button
-        type="button"
-        aria-expanded={isVisible}
-        aria-controls={panelId}
-        aria-label="남은 예산 상세 보기"
-        onClick={() => setOpen((prev) => !prev)}
+      <div
+        aria-hidden
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="absolute inset-0 z-[1] cursor-pointer rounded bg-transparent"
+        className="absolute inset-0 z-[1] rounded bg-transparent"
       />
 
       <div

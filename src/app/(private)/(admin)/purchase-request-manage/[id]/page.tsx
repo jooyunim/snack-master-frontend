@@ -1,9 +1,10 @@
 'use client';
+
 import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import InfoSection from '@/components/InfoSection';
 import icAlert from '@/assets/icons/ic_!.svg';
-
+import PointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
 import RequestItemsSection, {
   RequestItem,
 } from '@/components/RequestItemsSection';
@@ -13,7 +14,7 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
-import PointCalculate from '../utils/PointCalculate';
+import { ApiError } from '@/lib/api';
 
 export default function PurchaseRequestManageDetailPage({
   params,
@@ -34,10 +35,11 @@ export default function PurchaseRequestManageDetailPage({
   );
   const [showAlert, setShowAlert] = useState(true);
   const [pointAmount, setPointAmount] = useState(0);
+  const [resultMessage, setResultMessage] = useState('');
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
-
   const router = useRouter();
+
   function formatDate(dateString: string) {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -45,6 +47,7 @@ export default function PurchaseRequestManageDetailPage({
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}.${month}.${day}`;
   }
+
   const isMutating =
     patchApproveMutation.isPending || patchRejectMutation.isPending;
 
@@ -53,8 +56,7 @@ export default function PurchaseRequestManageDetailPage({
   }
 
   if (isPending) return <div>로딩중...</div>;
-
-  if (isError) return <div>에러...</div>;
+  if (isError) return <div>에러가 발생했습니다.</div>;
 
   const mappedItems: RequestItem[] = data.items.map((item) => ({
     id: item.id,
@@ -84,36 +86,43 @@ export default function PurchaseRequestManageDetailPage({
 
   const handleApprove = () => {
     patchApproveMutation.mutate(
-      { id: requestId, resultMessage: '', requestPointAmount: safePointAmount },
+      { id: requestId, resultMessage, requestPointAmount: safePointAmount },
       {
         onSuccess: () => {
           setResultModal('approve');
         },
-        onError: () => {
-          alert('에러가 발생했습니다.');
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
         },
       }
     );
   };
+
   const handleReject = () => {
     patchRejectMutation.mutate(
-      { id: requestId, resultMessage: '' },
+      { id: requestId, resultMessage },
       {
         onSuccess: () => {
           setResultModal('reject');
         },
-        onError: () => {
-          alert('에러가 발생했습니다.');
+        onError: (error) => {
+          alert(
+            error instanceof ApiError ? error.message : '에러가 발생했습니다.'
+          );
         },
       }
     );
   };
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-[30px] px-6 pb-20 pt-[60px] max-lg:pt-[30px] max-sm:pb-[136px]">
         <h1 className="w-full text-[18px] font-bold tracking-[-0.45px] text-gray-950">
           구매 요청 상세
         </h1>
+
         {isOverBudget && (
           <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] w-[1152px]">
             <Toast
@@ -132,16 +141,28 @@ export default function PurchaseRequestManageDetailPage({
           showChevron={true}
         />
 
-        <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
+        <section className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
           <div className="flex w-full items-center justify-end gap-2">
+            <label htmlFor="pointInput" className="sr-only">
+              사용 포인트
+            </label>
             <input
+              id="pointInput"
               type="number"
-              aria-label="사용 포인트"
               min={0}
               max={maxPoint}
               value={pointAmount}
-              onChange={(e) => setPointAmount(Number(e.target.value))}
-              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') {
+                  setPointAmount(0);
+                  return;
+                }
+                const num = Number(raw);
+                if (Number.isNaN(num)) return;
+                setPointAmount(Math.min(Math.max(num, 0), maxPoint));
+              }}
+              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <span className="text-[16px] font-bold text-gray-600">
               {`/ ${maxPoint.toLocaleString()} P`}
@@ -153,7 +174,23 @@ export default function PurchaseRequestManageDetailPage({
               실결제액: {previewPaidAmount.toLocaleString()}원
             </p>
           </div>
-        </div>
+        </section>
+
+        <section className="flex w-full flex-col gap-3">
+          <label
+            htmlFor="processMessageInput"
+            className="text-[16px] font-bold tracking-[-0.4px] text-gray-950"
+          >
+            처리 메시지
+          </label>
+          <textarea
+            id="processMessageInput"
+            placeholder="승인/반려 메시지를 입력해주세요"
+            className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
+            value={resultMessage}
+            onChange={(e) => setResultMessage(e.target.value)}
+          />
+        </section>
 
         <InfoSection
           title="요청 정보"
@@ -175,16 +212,20 @@ export default function PurchaseRequestManageDetailPage({
             },
           ]}
         />
+
         {resultModal === 'approve' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
             <AlertModal
               icon={icAlert}
+              title="요청 승인 완료"
+              content="구매 요청이 성공적으로 승인되었습니다."
               confirmLabel="구매내역 보기"
               onCancel={() => router.push('/')}
               onConfirm={() => router.push('/purchase')}
             />
           </div>
         )}
+
         {resultModal === 'reject' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
             <AlertModal
@@ -197,6 +238,7 @@ export default function PurchaseRequestManageDetailPage({
             />
           </div>
         )}
+
         <InfoSection
           title="예산 정보"
           rows={[

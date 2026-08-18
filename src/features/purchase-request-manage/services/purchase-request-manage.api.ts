@@ -1,23 +1,24 @@
 import { apiFetch } from '@/lib/api';
 import {
   Action,
-  MessageResponse,
+  PurchaseRequestStatusResult,
   purchaseRequestManageDetail,
-  purchaseRequestManageListResponse,
+  purchaseRequestManageList,
   sortByOption,
 } from '../types/purchase-request-manage.type';
 
 export async function getPurchaseRequestManageList(
   sortBy?: sortByOption,
-  page: number = 1,
-  pageSize: number = 10
-): Promise<purchaseRequestManageListResponse> {
-  const params = new URLSearchParams();
-  if (sortBy) params.set('sortBy', sortBy);
-  params.set('page', String(page));
-  params.set('pageSize', String(pageSize));
-  return apiFetch<purchaseRequestManageListResponse>(
-    `/purchase-requests?${params}`
+  page = 1,
+  pageSize = 10
+): Promise<purchaseRequestManageList> {
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (sortBy) query.set('sortBy', sortBy);
+  return apiFetch<purchaseRequestManageList>(
+    `/purchase-requests/?${query.toString()}`
   );
 }
 
@@ -32,11 +33,14 @@ async function patchStatus(
   resultMessage: string,
   action: Action,
   requestPointAmount?: number
-): Promise<MessageResponse> {
-  return apiFetch<MessageResponse>(`/purchase-requests/${id}/${action}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ resultMessage, requestPointAmount }),
-  });
+): Promise<PurchaseRequestStatusResult> {
+  return apiFetch<PurchaseRequestStatusResult>(
+    `/purchase-requests/${id}/${action}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ resultMessage, requestPointAmount }),
+    }
+  );
 }
 
 export const patchApprove = async ({

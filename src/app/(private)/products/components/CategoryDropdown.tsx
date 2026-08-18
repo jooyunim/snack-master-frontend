@@ -48,6 +48,8 @@ export default function CategoryDropdown({
       <button
         type="button"
         disabled={disabled}
+        aria-expanded={open}
+        aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-14 w-full items-center justify-between border border-solid border-gray-600 bg-white px-4 py-2.5 disabled:border-gray-200 disabled:bg-gray-50"
       >
