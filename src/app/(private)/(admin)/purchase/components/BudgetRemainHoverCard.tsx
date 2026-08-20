@@ -11,11 +11,10 @@ export default function BudgetRemainHoverCard({
   remainingBudget,
   lastMonthRemaining,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const panelId = useId();
 
-  const isVisible = open || hovered;
+  const isVisible = hovered;
 
   const diff =
     lastMonthRemaining == null ? null : lastMonthRemaining - remainingBudget;

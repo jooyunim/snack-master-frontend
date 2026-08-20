@@ -8,11 +8,17 @@ import {
   updateProduct,
   uploadProductImage,
 } from '../services/product.api';
-import type { CreateProductInput, UpdateProductInput } from '../types/product.types';
+import type {
+  CreateProductInput,
+  UpdateProductInput,
+} from '../types/product.types';
 
 /** 이미지 파일이 있으면 presigned URL 발급 → S3 업로드까지 처리하고 s3Key/filename을 돌려준다 */
 async function resolveImage(file: File) {
-  const { uploadUrl, s3Key } = await getProductImageUploadUrl(file.name);
+  const { uploadUrl, s3Key } = await getProductImageUploadUrl(
+    file.name,
+    file.type
+  );
   await uploadProductImage(uploadUrl, file);
   return { s3Key, filename: file.name };
 }
@@ -27,7 +33,9 @@ export function useProductMutations() {
 
   const createMutation = useMutation({
     mutationFn: async (
-      input: Omit<CreateProductInput, 's3Key' | 'filename'> & { imageFile: File },
+      input: Omit<CreateProductInput, 's3Key' | 'filename'> & {
+        imageFile: File;
+      }
     ) => {
       const { s3Key, filename } = await resolveImage(input.imageFile);
       return createProduct({ ...input, s3Key, filename });
@@ -49,7 +57,9 @@ export function useProductMutations() {
     },
     onSuccess: (_data, variables) => {
       invalidateLists();
-      queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.id),
+      });
     },
   });
 
