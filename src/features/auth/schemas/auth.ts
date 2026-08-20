@@ -72,3 +72,5 @@ export const inviteSignupSchema = z
     message: '비밀번호와 비밀번호 확인 값이 일치하지 않습니다.',
     path: ['passwordConfirm'],
   });
+
+export type InviteSignupFormValues = z.infer<typeof inviteSignupSchema>;
