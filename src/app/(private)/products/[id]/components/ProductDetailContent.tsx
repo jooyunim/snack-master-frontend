@@ -190,14 +190,20 @@ export default function ProductDetailContent({
           />
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-8 pt-[30px] max-lg:w-full max-lg:shrink-0">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleAddCartItem();
+          }}
+          className="flex min-w-0 flex-1 flex-col gap-8 pt-[30px] max-lg:w-full max-lg:shrink-0"
+        >
           <div className="flex w-full items-start gap-5">
             <div className="flex min-w-0 flex-1 items-center justify-between gap-5">
               <div className="flex min-w-0 flex-col gap-2">
                 <div className="flex items-center gap-2 max-sm:flex-col max-sm:items-start">
-                  <p className="text-[18px] tracking-[-0.45px] text-black line-clamp-2 break-all">
+                  <h1 className="break-words text-[18px] tracking-[-0.45px] text-black">
                     {product.name}
-                  </p>
+                  </h1>
                   <p className="text-[14px] font-bold tracking-[-0.35px] text-secondary-500 whitespace-nowrap shrink-0">
                     {product.totalSold}회 구매
                   </p>
@@ -269,11 +275,7 @@ export default function ProductDetailContent({
           </div>
 
           <div className="flex w-full flex-col gap-2.5">
-            <Button
-              type="button"
-              onClick={handleAddCartItem}
-              disabled={isAddingCartItem}
-            >
+            <Button type="submit" disabled={isAddingCartItem}>
               장바구니 담기
             </Button>
 
@@ -308,7 +310,7 @@ export default function ProductDetailContent({
               })}
             </div>
           </div>
-        </div>
+        </form>
       </div>
 
       {isEditOpen ? (

@@ -10,6 +10,8 @@ import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
 import PointCalculate from '../utils/PointCalculate';
 import { getInitials } from '../utils/getInitials';
+import AlertModal from '@/components/AlertModal';
+import icAlert from '@/assets/icons/ic_!.svg';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -25,6 +27,7 @@ export default function PurchaseRequestModal({
   const [resultMessage, setResultMessage] = useState('');
   const [showAlert, setShowAlert] = useState(true);
   const [pointAmount, setPointAmount] = useState(0);
+  const [showResultModal, setShowResultModal] = useState(false);
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
@@ -64,8 +67,7 @@ export default function PurchaseRequestModal({
       },
       {
         onSuccess: () => {
-          alert('성공했습니다.');
-          onClose();
+          setShowResultModal(true);
         },
         onError: (error) => {
           alert(
@@ -99,7 +101,13 @@ export default function PurchaseRequestModal({
           {isApprove ? '구매 요청 승인' : '구매 요청 반려'}
         </h2>
 
-        <div className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]"
+        >
           <div className="flex w-full flex-col">
             <div className="flex w-full flex-col gap-8 pb-5">
               <div className="flex items-center gap-3">
@@ -194,10 +202,19 @@ export default function PurchaseRequestModal({
                             min={0}
                             max={maxPoint}
                             value={pointAmount}
-                            onChange={(e) =>
-                              setPointAmount(Number(e.target.value))
-                            }
-                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500"
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                setPointAmount(0);
+                                return;
+                              }
+                              const num = Number(raw);
+                              if (Number.isNaN(num)) return;
+                              setPointAmount(
+                                Math.min(Math.max(num, 0), maxPoint)
+                              );
+                            }}
+                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
                           <span className="text-[16px] font-bold text-gray-600">
                             {`/ ${maxPoint.toLocaleString()} P`}
@@ -271,14 +288,30 @@ export default function PurchaseRequestModal({
             <Button
               variant="filled"
               className="min-w-0 flex-1 cursor-pointer"
-              onClick={handleSubmit}
+              type="submit"
               disabled={isApproveBlock || mutation.isPending}
             >
               {isApprove ? '승인하기' : '반려하기'}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
+      {showResultModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
+          <AlertModal
+            icon={icAlert}
+            title={isApprove ? undefined : '요청 반려'}
+            content={
+              isApprove
+                ? undefined
+                : `요청이 반려되었어요\n목록에서 다른 요청을 확인해보세요`
+            }
+            confirmLabel={isApprove ? '확인' : '확인'}
+            showCancel={false}
+            onConfirm={onClose}
+          />
+        </div>
+      )}
     </>
   );
 }

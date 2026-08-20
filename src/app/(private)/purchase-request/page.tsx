@@ -11,6 +11,7 @@ import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useC
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
 import iconX from '@/assets/icons/icon_X.svg';
+import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
 
 const STATUS_BADGE = {
   PENDING: { variant: 'pending', label: '대기 중' },
@@ -46,14 +47,16 @@ function getStatusBadge(status: PurchaseRequestStatus) {
 }
 
 export default function PurchaseRequestPage() {
-  const page = 1;
-  const [sortBy, setSortBy] = useState('recent');
+  const { page, setPage, sort, setSort } = useQueryPagination();
+  const sortBy = ['recent', 'price_asc', 'price_desc'].includes(sort)
+    ? sort
+    : 'recent';
   const [cancelRequestId, setCancelRequestId] = useState<number | null>(null);
   const pageSize = 10;
   const cancelMutation = useCancelPurchaseRequest();
 
   const handleSortChange = (nextSortBy: string) => {
-    setSortBy(nextSortBy);
+    setSort(nextSortBy);
   };
 
   const openCancelModal = (purchaseRequestId: number) => {
@@ -261,7 +264,11 @@ export default function PurchaseRequestPage() {
               })}
           </ul>
 
-          <Pagination page={1} totalPages={1} onPageChange={() => {}} />
+          <Pagination
+            page={data?.pagination.page ?? page}
+            totalPages={data?.pagination.totalPages ?? 1}
+            onPageChange={setPage}
+          />
         </div>
       </main>
 
