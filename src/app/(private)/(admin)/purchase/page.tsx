@@ -52,7 +52,7 @@ export default function PurchasePage() {
   const router = useRouter();
 
   const { data: summary } = useDashboardSummary();
-  const { data, isLoading, isError } = useOrders(page, pageSize, sort);
+  const { data, isLoading, isError } = useOrders({ page, pageSize, sort });
 
   const rows = useMemo(() => (data?.orders ?? []).map(toRow), [data?.orders]);
   const total = data?.total ?? 0;

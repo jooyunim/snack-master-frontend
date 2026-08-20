@@ -39,11 +39,7 @@ export default function PurchaseDetailPage() {
   const orderId = Number(params.id);
   const isValidId = Number.isInteger(orderId) && orderId >= 1;
 
-  const {
-    data: order,
-    isLoading,
-    isError,
-  } = useOrderDetail(orderId, isValidId);
+  const { data: order, isLoading, isError } = useOrderDetail(orderId);
 
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
   const [itemsOpen, setItemsOpen] = useState(true);
