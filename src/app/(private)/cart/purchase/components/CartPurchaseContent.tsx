@@ -113,6 +113,7 @@ export default function CartPurchaseContent({
           장바구니 조회에 실패하였습니다. 다시 시도해주세요.
         </p>
         <button
+          type="button"
           onClick={() => refetch()}
           className="text-[16px] tracking-[-0.4px] text-gray-600 underline max-sm:text-[14px] max-sm:tracking-[-0.35px] cursor-pointer"
         >
@@ -138,18 +139,19 @@ export default function CartPurchaseContent({
           />
         </div>
         <form
+          id="purchase-form"
           onSubmit={handleSubmit(onValid)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-            }
-          }}
           className="flex w-full flex-row items-center justify-end gap-2"
         >
+          <label htmlFor="request-point" className="sr-only">
+            사용할 포인트
+          </label>
           <input
-            type="text"
+            id="request-point"
+            type="number"
             min={0}
             max={point}
+            step={1}
             {...register('requestPointAmount', { valueAsNumber: true })}
             className="w-1/8 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] leading-none tracking-[-0.35px] text-gray-600 outline-none focus:border-gray-500 max-sm:text-[13px] max-sm:tracking-[-0.325px]"
           />
@@ -178,10 +180,11 @@ export default function CartPurchaseContent({
           </Button>
           <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1 max-sm:shrink">
             <Button
+              type="submit"
+              form="purchase-form"
               variant="filled"
               className="w-full"
               disabled={isPending || selectedItems.length === 0}
-              onClick={() => handleSubmit(onValid)()}
             >
               구매하기
             </Button>
