@@ -32,7 +32,7 @@ export function getProducts(params: ListProductsParams = {}) {
 }
 
 export function getMyProducts(
-  params: { sort?: ProductSort; cursor?: string; limit?: number } = {},
+  params: { sort?: ProductSort; cursor?: string; limit?: number } = {}
 ) {
   const query = buildQuery({
     sort: params.sort,
@@ -50,10 +50,13 @@ export function getCategories() {
   return apiFetch<CategoryWithChildren[]>('/categories');
 }
 
-export function getProductImageUploadUrl(filename: string) {
+export function getProductImageUploadUrl(
+  filename: string,
+  contentType: string
+) {
   return apiFetch<ImageUploadUrlResponse>('/products/image-upload-url', {
     method: 'POST',
-    body: JSON.stringify({ filename }),
+    body: JSON.stringify({ filename, contentType }),
   });
 }
 
