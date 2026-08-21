@@ -5,7 +5,10 @@ import Button from '@/components/Button';
 import SortDropdown from '@/components/SortDropdown';
 import { useCategories } from '@/features/product/hooks/useCategories';
 import { useMyProducts } from '@/features/product/hooks/useMyProducts';
-import type { Product, ProductSort } from '@/features/product/types/product.types';
+import type {
+  Product,
+  ProductSort,
+} from '@/features/product/types/product.types';
 
 const SORT_OPTIONS: { label: string; value: ProductSort }[] = [
   { label: '최신순', value: 'recent' },
@@ -17,7 +20,7 @@ const SORT_OPTIONS: { label: string; value: ProductSort }[] = [
 function formatDate(iso: string) {
   const date = new Date(iso);
   return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(
-    date.getDate(),
+    date.getDate()
   ).padStart(2, '0')}`;
 }
 
@@ -33,16 +36,22 @@ export default function ProductRegisterPage() {
 
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
-    [data],
+    [data]
   );
   const totalCount = data?.pages[0]?.totalCount ?? 0;
 
+  const categoryNames = useMemo(
+    () =>
+      new Map(
+        categories?.flatMap((parent) =>
+          parent.children.map((child) => [child.id, child.name] as const)
+        ) ?? []
+      ),
+    [categories]
+  );
+
   function categoryName(product: Product) {
-    for (const parent of categories ?? []) {
-      const child = parent.children.find((item) => item.id === product.categoryId);
-      if (child) return child.name;
-    }
-    return '-';
+    return categoryNames.get(product.categoryId) ?? '-';
   }
 
   return (

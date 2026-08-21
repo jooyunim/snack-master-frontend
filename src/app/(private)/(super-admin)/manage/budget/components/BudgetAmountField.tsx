@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 type BudgetAmountFieldProps = {
   label: string;
   placeholder?: string;
@@ -15,16 +17,24 @@ export default function BudgetAmountField({
   onChange,
   className = '',
 }: BudgetAmountFieldProps) {
+  const inputId = useId();
+
   return (
     <div
       className={`flex w-full max-w-[447px] flex-col gap-3 max-lg:max-w-[340px] max-sm:max-w-none ${className}`.trim()}
     >
-      <p className="text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
+      <label
+        htmlFor={inputId}
+        className="text-[16px] font-bold tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+      >
         {label}
-      </p>
+      </label>
       <div className="flex w-full items-center gap-1 border-b-2 border-solid border-gray-800 pb-3">
         <input
+          id={inputId}
           type="number"
+          min={0}
+          step={1}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
