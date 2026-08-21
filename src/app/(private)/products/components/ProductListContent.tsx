@@ -13,6 +13,7 @@ type ProductListContentProps = {
   categorySlug?: string;
   subSlug?: string;
   sortParam?: string;
+  searchParam?: string;
 };
 
 const PRODUCT_SORTS: ProductSort[] = [
@@ -26,6 +27,7 @@ export default function ProductListContent({
   categorySlug,
   subSlug,
   sortParam,
+  searchParam,
 }: ProductListContentProps) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const router = useRouter();
@@ -48,6 +50,7 @@ export default function ProductListContent({
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts({
     categoryId,
+    search: searchParam?.trim() || undefined,
     sort,
     limit: 12, // 한 번에 가져올 상품 수
   });
@@ -67,6 +70,17 @@ export default function ProductListContent({
     router.replace(`${pathname}${params.size ? `?${params}` : ''}`);
   };
 
+  const handleSearchSubmit = (search: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const normalizedSearch = search.trim();
+    if (normalizedSearch) {
+      params.set('q', normalizedSearch);
+    } else {
+      params.delete('q');
+    }
+    router.replace(`${pathname}${params.size ? `?${params}` : ''}`);
+  };
+
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-[30px] max-sm:px-6 max-sm:gap-5">
       <h1 className="sr-only">상품 목록</h1>
@@ -74,7 +88,9 @@ export default function ProductListContent({
         categoryLabel={category?.name}
         subLabel={sub?.name}
         sort={sort}
+        search={searchParam}
         onSortChange={handleSortChange}
+        onSearchSubmit={handleSearchSubmit}
         onRegisterClick={() => setIsRegisterOpen(true)}
       />
       <ProductGrid
