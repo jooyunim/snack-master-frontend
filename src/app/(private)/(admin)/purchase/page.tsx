@@ -33,11 +33,13 @@ type PurchaseRow = {
   quantityCompact: string;
   amount: string;
   approvedDate: string;
+  refundedDate: string;
   manager: string;
   status: OrderStatus;
 };
 
 function toRow(item: OrderListItem): PurchaseRow {
+  const isRefunded = item.status === 'REFUNDED';
   return {
     id: item.id,
     requestDate: formatDate(item.requestedAt),
@@ -47,6 +49,7 @@ function toRow(item: OrderListItem): PurchaseRow {
     quantityCompact: `총수량 ${item.totalQuantity}개`,
     amount: formatAmount(item.totalAmount),
     approvedDate: formatDate(item.resolvedAt),
+    refundedDate: formatDate(item.refundedAt ?? null),
     manager: item.resolverName ?? '-',
     status: item.status,
   };
@@ -132,6 +135,9 @@ export default function PurchasePage() {
                     <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       구매 승인일
                     </span>
+                    <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      환불일
+                    </span>
                     <span className="w-[100px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       담당자
                     </span>
@@ -171,6 +177,9 @@ export default function PurchasePage() {
                           <span className="w-[130px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
                             {item.approvedDate}
                           </span>
+                          <span className="w-[130px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
+                            {item.refundedDate}
+                          </span>
                           <span className="w-[100px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
                             {item.manager}
                           </span>
@@ -208,16 +217,9 @@ export default function PurchasePage() {
                               </span>
                             ) : null}
                           </div>
-
-                          {/* 금액 왼쪽: 구매완료(파랑) / 환불(빨강) */}
-                          <div className="flex shrink-0 items-center gap-2">
-                            <Badge variant={statusBadgeVariant(item.status)}>
-                              {statusLabel(item.status)}
-                            </Badge>
-                            <span className="text-[16px] font-extrabold tracking-[-0.4px] text-gray-950">
-                              {item.amount}원
-                            </span>
-                          </div>
+                          <span className="text-[16px] font-extrabold tracking-[-0.4px] text-gray-950">
+                            {item.amount}원
+                          </span>
                         </div>
 
                         {/* 요청일·요청인 / 승인일·담당자 */}
@@ -273,6 +275,35 @@ export default function PurchasePage() {
                               <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-solid border-gray-100 px-5 py-2">
                                 <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-900">
                                   {item.manager}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* 상태 | 환불일 */}
+                          <div className="flex w-full items-center">
+                            <div className="flex min-w-0 flex-1 items-center">
+                              <div className="flex h-[50px] w-[140px] shrink-0 items-center border-b border-r border-solid border-gray-100 p-2">
+                                <span className="text-[16px] tracking-[-0.4px] text-gray-950">
+                                  상태
+                                </span>
+                              </div>
+                              <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-r border-solid border-gray-100 px-5 py-2">
+                                <Badge
+                                  variant={statusBadgeVariant(item.status)}
+                                >
+                                  {statusLabel(item.status)}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex min-w-0 flex-1 items-center">
+                              <div className="flex h-[50px] w-[140px] shrink-0 items-center border-b border-r border-solid border-gray-100 px-5 py-2">
+                                <span className="text-[16px] tracking-[-0.4px] text-gray-950">
+                                  환불일
+                                </span>
+                              </div>
+                              <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-solid border-gray-100 px-5 py-2">
+                                <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-900">
+                                  {item.refundedDate}
                                 </span>
                               </div>
                             </div>
@@ -377,6 +408,18 @@ export default function PurchasePage() {
                                 >
                                   {statusLabel(item.status)}
                                 </Badge>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex w-full items-start">
+                            <div className="flex w-[140px] shrink-0 items-start border-b border-r border-solid border-gray-100 px-2 py-4">
+                              <span className="text-[14px] tracking-[-0.35px] text-gray-950">
+                                환불일
+                              </span>
+                            </div>
+                            <div className="flex min-w-0 flex-1 items-start border-b border-solid border-gray-100 p-4">
+                              <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-900">
+                                {item.refundedDate}
                               </span>
                             </div>
                           </div>

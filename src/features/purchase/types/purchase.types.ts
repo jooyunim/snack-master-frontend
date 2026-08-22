@@ -7,6 +7,7 @@ export type OrderListItem = {
   id: number;
   requestedAt: string;
   resolvedAt: string | null;
+  refundedAt?: string | null;
   requesterName: string;
   resolverName: string | null;
   items: { productName: string }[];
@@ -32,6 +33,8 @@ export type OrderDetail = {
   resolver: { id: string; name: string } | null;
   requestMessage: string | null;
   resultMessage: string | null;
+  refundReason?: string | null;
+  refundedAt?: string | null;
   shippingFee: number;
   pointsUsed: number;
   totalAmount: number;

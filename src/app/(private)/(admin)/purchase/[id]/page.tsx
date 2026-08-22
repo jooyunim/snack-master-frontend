@@ -106,6 +106,7 @@ export default function PurchaseDetailPage() {
         </div>
 
         <PaymentSummary
+          variant={isRefunded ? 'refund' : 'order'}
           pointsUsed={order.pointsUsed ?? 0}
           pointsEarned={order.pointsEarned ?? 0}
           paidAmount={order.paidAmount ?? 0}
@@ -142,21 +143,26 @@ export default function PurchaseDetailPage() {
                 value: order.resolver?.name ?? '-',
               },
               right: {
-                label: '승인 날짜',
-                value: formatDate(order.resolvedAt),
+                label: isRefunded ? '환불 날짜' : '승인 날짜',
+                value: formatDate(
+                  isRefunded ? (order.refundedAt ?? null) : order.resolvedAt
+                ),
               },
             },
             {
               type: 'pair',
               left: { label: '상태', value: statusLabel(order.status) },
               right: {
-                label: '결과 메시지',
-                value: order.resultMessage?.trim() || '-',
+                label: isRefunded ? '환불 사유' : '결과 메시지', // 라벨도 바꾸려면
+                value: isRefunded
+                  ? order.refundReason?.trim() || '-'
+                  : order.resultMessage?.trim() || '-',
               },
             },
           ]}
         />
-        <div className="flex w-full items-center gap-5 max-sm:gap-3">
+
+        <div className="mx-auto flex h-16 w-full max-w-[616px] items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:h-auto max-sm:max-w-none max-sm:gap-4 max-sm:bg-white max-sm:p-6">
           {isApproved ? (
             <>
               <Button

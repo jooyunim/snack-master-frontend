@@ -67,7 +67,7 @@ export default function PurchaseRefundPage() {
     return <PurchaseDetailError message="구매 내역을 불러오지 못했습니다." />;
   }
 
-  if (order.status !== 'APPROVED') {
+  if (order.status !== 'APPROVED' && !successOpen) {
     return (
       <PurchaseDetailError message="승인 완료 상태인 구매만 환불할 수 있습니다." />
     );
@@ -143,30 +143,10 @@ export default function PurchaseRefundPage() {
         </div>
 
         <PaymentSummary
+          variant="refund" // ★ 이것만 추가
           pointsUsed={order.pointsUsed ?? 0}
           pointsEarned={order.pointsEarned ?? 0}
           paidAmount={order.paidAmount ?? 0}
-        />
-
-        <InfoSection
-          title="요청 정보"
-          rows={[
-            {
-              type: 'pair',
-              left: { label: '요청인', value: order.requester.name },
-              right: {
-                label: '요청 날짜',
-                value: formatDate(order.requestedAt),
-              },
-            },
-            {
-              type: 'single',
-              field: {
-                label: '요청 메시지',
-                value: order.requestMessage?.trim() || '-',
-              },
-            },
-          ]}
         />
 
         {/* 환불 사유 */}
