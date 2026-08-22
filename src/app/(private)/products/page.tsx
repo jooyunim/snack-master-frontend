@@ -1,7 +1,12 @@
 import ProductListContent from '@/app/(private)/products/components/ProductListContent';
 
 type ProductsPageProps = {
-  searchParams: Promise<{ category?: string; sub?: string; sort?: string }>;
+  searchParams: Promise<{
+    category?: string;
+    sub?: string;
+    sort?: string;
+    q?: string;
+  }>;
 };
 
 export default async function ProductsPage({
@@ -14,6 +19,7 @@ export default async function ProductsPage({
       categorySlug={params.category}
       subSlug={params.sub}
       sortParam={params.sort}
+      searchParam={params.q}
     />
   );
 }

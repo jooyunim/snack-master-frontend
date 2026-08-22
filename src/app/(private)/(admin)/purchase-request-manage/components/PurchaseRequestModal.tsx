@@ -12,6 +12,9 @@ import PointCalculate from '../utils/PointCalculate';
 import { getInitials } from '../utils/getInitials';
 import AlertModal from '@/components/AlertModal';
 import icAlert from '@/assets/icons/ic_!.svg';
+import { usePurchaseResultForm } from '@/features/purchase-request-manage/hooks/usePurchaseResultForm';
+import { PurchaseResultFormValues } from '@/features/purchase-request-manage/schemas/purchaseResultForm.schema';
+import { Controller } from 'react-hook-form';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -24,12 +27,22 @@ export default function PurchaseRequestModal({
 }) {
   const { data, isPending, isError } = useRequestDetail(requestId);
   const { patchApproveMutation, patchRejectMutation } = useRequestMutations();
-  const [resultMessage, setResultMessage] = useState('');
   const [showAlert, setShowAlert] = useState(true);
-  const [pointAmount, setPointAmount] = useState(0);
   const [showResultModal, setShowResultModal] = useState(false);
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
+
+  const maxPoint = Math.min(pointBalance, data?.requestAmount ?? 0);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+  } = usePurchaseResultForm(maxPoint);
+
+  const pointAmount = watch('pointAmount');
 
   const isApprove = mode === 'approve';
   const mutation = isApprove ? patchApproveMutation : patchRejectMutation;
@@ -41,7 +54,6 @@ export default function PurchaseRequestModal({
 
   // 포인트 및 예산 계산
   const {
-    maxPoint,
     safePointAmount,
     previewPaidAmount,
     previewReward,
@@ -50,7 +62,7 @@ export default function PurchaseRequestModal({
   } = PointCalculate({
     pointBalance,
     pointAmount,
-    requestAmount: data.orderAmount ?? data.requestAmount ?? 0,
+    requestAmount: data.requestAmount,
     shippingFee: data.shippingFee ?? 0,
     remainedBudget: data.remained ?? 0,
   });
@@ -58,11 +70,11 @@ export default function PurchaseRequestModal({
   const isApproveBlock = isApprove && isOverBudgetAfterPoints;
   const isShowAlert = isApproveBlock && showAlert;
 
-  const handleSubmit = () => {
+  const onSubmit = (formData: PurchaseResultFormValues) => {
     mutation.mutate(
       {
         id: requestId,
-        resultMessage,
+        resultMessage: formData.resultMessage ?? '',
         requestPointAmount: isApprove ? safePointAmount : 0,
       },
       {
@@ -92,7 +104,7 @@ export default function PurchaseRequestModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="purchase-request-approval-title"
-        className="flex w-[600px] flex-col items-center gap-8 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:w-full max-sm:gap-0 max-sm:px-0 max-sm:py-0 max-sm:shadow-none"
+        className="flex w-[600px] max-h-[90vh] flex-col items-center gap-8 rounded-[2px] bg-white px-[60px] py-10 shadow-[0_0_20px_rgba(0,0,0,0.1)] max-sm:w-full max-sm:max-h-full max-sm:gap-0 max-sm:px-0 max-sm:py-0 max-sm:shadow-none"
       >
         <h2
           id="purchase-request-approval-title"
@@ -102,11 +114,8 @@ export default function PurchaseRequestModal({
         </h2>
 
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px]"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex w-full flex-col gap-9 max-sm:gap-8 max-sm:px-6 max-sm:pb-[112px] overflow-y-auto"
         >
           <div className="flex w-full flex-col">
             <div className="flex w-full flex-col gap-8 pb-5">
@@ -196,26 +205,38 @@ export default function PurchaseRequestModal({
                     <>
                       <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
                         <div className="flex w-full items-center justify-end gap-2">
-                          <input
-                            type="number"
-                            aria-label="사용 포인트"
-                            min={0}
-                            max={maxPoint}
-                            value={pointAmount}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              if (raw === '') {
-                                setPointAmount(0);
-                                return;
-                              }
-                              const num = Number(raw);
-                              if (Number.isNaN(num)) return;
-                              setPointAmount(
-                                Math.min(Math.max(num, 0), maxPoint)
-                              );
-                            }}
-                            className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          <Controller
+                            name="pointAmount"
+                            control={control}
+                            render={({ field }) => (
+                              <input
+                                type="number"
+                                aria-label="사용 포인트"
+                                min={0}
+                                max={maxPoint}
+                                value={field.value}
+                                onFocus={(e) => e.target.select()}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                    field.onChange(0);
+                                    return;
+                                  }
+                                  const num = Number(raw);
+                                  if (Number.isNaN(num)) return;
+                                  field.onChange(
+                                    Math.min(Math.max(num, 0), maxPoint)
+                                  );
+                                }}
+                                className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
+                            )}
                           />
+                          {errors.pointAmount && (
+                            <p className="text-right text-[13px] text-red-500">
+                              {errors.pointAmount.message}
+                            </p>
+                          )}
                           <span className="text-[16px] font-bold text-gray-600">
                             {`/ ${maxPoint.toLocaleString()} P`}
                           </span>
@@ -271,9 +292,13 @@ export default function PurchaseRequestModal({
                       : '반려 사유를 입력해주세요'
                   }
                   className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
-                  value={resultMessage}
-                  onChange={(e) => setResultMessage(e.target.value)}
+                  {...register('resultMessage')}
                 />
+                {errors.resultMessage && (
+                  <p className="text-[13px] text-red-500">
+                    {errors.resultMessage.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
