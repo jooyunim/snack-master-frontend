@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
@@ -14,6 +14,7 @@ import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
 import PurchaseDetailError from '../components/PurchaseDetailError';
 import PaymentSummary from '@/components/PaymentSummary';
 import { useOrderDetail } from '@/features/purchase/hooks/useOrderDetail';
+import Button from '@/components/Button';
 
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
@@ -36,6 +37,7 @@ function calcTotalQuantity(order: OrderDetail) {
 
 export default function PurchaseDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const orderId = Number(params.id);
   const isValidId = Number.isInteger(orderId) && orderId >= 1;
 
@@ -58,6 +60,9 @@ export default function PurchaseDetailPage() {
 
   const itemTotal = calcItemTotal(order);
   const totalQuantity = calcTotalQuantity(order);
+
+  const isApproved = order.status === 'APPROVED';
+  const isRefunded = order.status === 'REFUNDED';
 
   return (
     <div className="min-h-screen bg-white">
@@ -151,6 +156,37 @@ export default function PurchaseDetailPage() {
             },
           ]}
         />
+        <div className="flex w-full items-center gap-5 max-sm:gap-3">
+          {isApproved ? (
+            <>
+              <Button
+                variant="line"
+                className="min-w-0 flex-1"
+                onClick={() => router.push(`/purchase/${order.id}/refund`)}
+              >
+                환불하기
+              </Button>
+              <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1">
+                <Button
+                  variant="filled"
+                  className="w-full"
+                  onClick={() => router.push('/purchase')}
+                >
+                  목록으로
+                </Button>
+              </div>
+            </>
+          ) : null}
+          {isRefunded ? (
+            <Button
+              variant="filled"
+              className="w-full"
+              onClick={() => router.push('/purchase')}
+            >
+              목록으로
+            </Button>
+          ) : null}
+        </div>
       </main>
     </div>
   );
