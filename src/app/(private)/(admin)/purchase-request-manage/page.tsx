@@ -12,6 +12,9 @@ import {
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import Button from '@/components/Button';
+import icSearch from '@/assets/icons/ic_search.svg';
+import Image from 'next/image';
 
 const SORT_OPTIONS: SortOption[] = [
   { label: '최신순', value: 'recent' },
@@ -21,8 +24,10 @@ const SORT_OPTIONS: SortOption[] = [
 
 export default function PurchaseRequestManagePage() {
   const router = useRouter();
-  const { page, setPage, sort, setSort } = useQueryPagination();
+  const { page, setPage, sort, setSort, search, setSearch } =
+    useQueryPagination();
   const [modalState, setModalState] = useState<ModalState | null>(null);
+  const [searchInput, setSearchInput] = useState(search);
 
   const sortBy = SORT_OPTIONS.some((option) => option.value === sort)
     ? (sort as sortByOption)
@@ -32,7 +37,10 @@ export default function PurchaseRequestManagePage() {
     data: requestList,
     isPending,
     isError,
-  } = useRequestList(sortBy, page);
+  } = useRequestList(sortBy, page, search);
+  const handleSearchSubmit = () => {
+    setSearch(searchInput);
+  };
 
   const requests = requestList?.items ?? [];
   const pagination = requestList?.pagination;
@@ -40,17 +48,54 @@ export default function PurchaseRequestManagePage() {
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-10 px-6 pb-20 pt-20 max-lg:gap-5 max-lg:pt-[60px] max-sm:gap-3 max-sm:pt-10">
-        <div className="relative flex w-full items-center justify-between">
+        <div className="relative flex w-full items-center justify-between max-sm:flex-col max-sm:items-stretch max-sm:gap-3">
           <h1 className="text-[18px] font-bold tracking-[-0.45px] text-black max-sm:text-[16px] max-sm:tracking-[-0.4px]">
             구매 요청 관리
           </h1>
-          <SortDropdown
-            options={SORT_OPTIONS}
-            value={sortBy}
-            onChange={(value) => {
-              setSort(value);
-            }}
-          />
+
+          <div className="flex items-center gap-4 max-sm:flex-col max-sm:items-stretch">
+            <form
+              className="flex h-11 items-center gap-2 border-b border-gray-300 px-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSearchSubmit();
+              }}
+            >
+              <label htmlFor="requester-search" className="sr-only">
+                요청인 이름 검색
+              </label>
+              <span
+                aria-hidden="true"
+                className="relative size-4 shrink-0 overflow-hidden"
+              >
+                <Image src={icSearch} alt="" fill className="object-contain" />
+              </span>
+              <input
+                id="requester-search"
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="요청인 이름 검색"
+                className="min-w-0 bg-transparent text-[14px] tracking-[-0.35px] text-gray-950 outline-none placeholder:text-gray-400"
+              />
+              <Button
+                type="submit"
+                variant="line"
+                size="sm"
+                className="h-8 px-2 text-[12px]"
+              >
+                검색
+              </Button>
+            </form>
+
+            <SortDropdown
+              options={SORT_OPTIONS}
+              value={sortBy}
+              onChange={(value) => {
+                setSort(value);
+              }}
+            />
+          </div>
         </div>
         {isPending ? (
           <div>로딩 중...</div>
