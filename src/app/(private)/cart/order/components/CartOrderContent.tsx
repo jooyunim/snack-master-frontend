@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Button from '@/components/Button';
 import CartStepIndicator from '../../components/CartStepIndicator';
 import RequestItemsSection, {
@@ -10,20 +10,31 @@ import RequestMessage from '../../components/RequestMessage';
 import { useRouter } from 'next/navigation';
 import {
   type CartItem,
+  type RequestMessage as RequestMessageFormValues,
   requestMessageSchema,
 } from '@/features/cart/schemas/cart';
 import { useOrderItems } from '@/features/cart/hooks/useOrderItems';
 import { useCreatePurchaseRequest } from '@/features/cart/hooks/useCreatePurchaseRequest';
 import { CartOrderContentProps } from '@/features/cart/types/cart.type';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function CartOrderContent({
   selectedIds,
 }: CartOrderContentProps) {
   const router = useRouter();
-  const [requestMessage, setRequestMessage] = useState('');
-  const [requestMessageError, setRequestMessageError] = useState<string | null>(
-    null
-  );
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<RequestMessageFormValues>({
+    resolver: zodResolver(requestMessageSchema),
+    defaultValues: {
+      requestMessage: '',
+    },
+  });
 
   const { data, isLoading, isError, refetch } = useOrderItems(selectedIds);
 
@@ -53,28 +64,18 @@ export default function CartOrderContent({
   const orderShippingFee = selectedItems.length > 0 ? shippingFee : 0;
   const totalAmount = orderAmount + orderShippingFee;
 
-  const { mutate: submitPurchaseRequest, isPending } = useCreatePurchaseRequest(
-    selectedIds,
-    requestMessage
-  );
+  const { mutate: submitPurchaseRequest, isPending } =
+    useCreatePurchaseRequest(selectedIds);
 
-  const handleRequestMessageChange = (value: string) => {
-    setRequestMessage(value);
-    if (requestMessageError) setRequestMessageError(null);
-  };
+  const requestMessage = useWatch({
+    control,
+    name: 'requestMessage',
+    defaultValue: '',
+  });
 
-  const handleSubmitPurchaseRequest = () => {
-    const result = requestMessageSchema.safeParse({ requestMessage });
-
-    if (!result.success) {
-      setRequestMessageError(
-        result.error.issues[0]?.message ?? '요청 메시지를 입력해주세요.'
-      );
-      return;
-    }
-
-    setRequestMessageError(null);
-    submitPurchaseRequest();
+  const onValid = (data: RequestMessageFormValues) => {
+    if (isPending) return;
+    submitPurchaseRequest(data.requestMessage);
   };
 
   if (isLoading) {
@@ -119,9 +120,9 @@ export default function CartOrderContent({
             totalAmount={formatPrice(totalAmount)}
           />
           <RequestMessage
-            value={requestMessage}
-            onChange={handleRequestMessageChange}
-            error={requestMessageError}
+            {...register('requestMessage')}
+            characterCount={requestMessage?.length ?? 0}
+            error={errors.requestMessage?.message}
           />
         </div>
 
@@ -138,9 +139,9 @@ export default function CartOrderContent({
               variant="filled"
               className="w-full"
               disabled={isPending || selectedItems.length === 0}
-              onClick={handleSubmitPurchaseRequest}
+              onClick={handleSubmit(onValid)}
             >
-              구매 요청
+              {isPending ? '요청 중...' : '구매 요청'}
             </Button>
           </div>
         </div>

@@ -9,43 +9,35 @@ import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { inviteSignupSchema } from '@/features/auth/schemas/auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  inviteSignupSchema,
+  type InviteSignupFormValues,
+} from '@/features/auth/schemas/auth';
 import { useInviteSignup } from '@/features/auth/hooks/useInviteSignup';
 import { useEmailName } from '@/features/auth/hooks/useEmailName';
-
-const parseInvitePassword = (password: string, passwordConfirm: string) => {
-  const result = inviteSignupSchema.safeParse({ password, passwordConfirm });
-  if (result.success) {
-    return { success: true as const, data: result.data };
-  }
-
-  const issue = result.error.issues[0];
-  const field =
-    issue?.path[0] === 'passwordConfirm' ? 'passwordConfirm' : 'password';
-
-  return {
-    success: false as const,
-    error: {
-      field: field as 'password' | 'passwordConfirm',
-      message: issue?.message ?? '비밀번호를 확인해 주세요.',
-    },
-  };
-};
 
 const SignupPage = () => {
   //이메일 쿼리 파라미터 가져오기
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordConfirmError, setPasswordConfirmError] = useState<
-    string | null
-  >(null);
   const [signupError, setSignupError] = useState<string | null>(null);
 
   const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<InviteSignupFormValues>({
+    resolver: zodResolver(inviteSignupSchema),
+    defaultValues: {
+      password: '',
+      passwordConfirm: '',
+    },
+  });
 
   const { data, isPending, isError, error } = useEmailName({ token });
 
@@ -60,38 +52,24 @@ const SignupPage = () => {
     },
     onError: (error) => {
       setSignupError(error.message);
-      setPasswordError(null);
-      setPasswordConfirmError(null);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (inviteSignupMutation.isPending || !token) {
-      return;
-    }
-
-    const parsed = parseInvitePassword(password, passwordConfirm);
-    if (!parsed.success) {
-      setSignupError(null);
-      setPasswordError(null);
-      setPasswordConfirmError(null);
-
-      if (parsed.error.field === 'password') {
-        setPasswordError(parsed.error.message);
-      } else {
-        setPasswordConfirmError(parsed.error.message);
-      }
-      return;
-    }
-
-    setPasswordError(null);
-    setPasswordConfirmError(null);
+  const onValid = (values: InviteSignupFormValues) => {
+    if (inviteSignupMutation.isPending || !token) return;
+    setSignupError(null);
     inviteSignupMutation.mutate({
       token,
-      password: parsed.data.password,
-      passwordConfirm: parsed.data.passwordConfirm,
+      ...values,
     });
+  };
+
+  const onInvalid = () => {
+    setSignupError(null);
+  };
+
+  const clearSignupError = () => {
+    if (signupError) setSignupError(null);
   };
 
   return (
@@ -123,52 +101,42 @@ const SignupPage = () => {
             </div>
 
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit(onValid, onInvalid)}
               className="flex w-full flex-col items-center gap-6"
             >
               <div className="flex w-full flex-col gap-[30px]">
                 <div className="flex w-full flex-col gap-5">
                   <Input floatingLabel="이메일" disabled value={data?.email} />
                   <Input
+                    {...register('password', { onChange: clearSignupError })}
                     type="password"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setSignupError(null);
-                      setPasswordError(null);
-                      setPasswordConfirmError(null);
-                    }}
                     placeholder="비밀번호를 입력해주세요"
                     showPasswordToggle
                     autoComplete="new-password"
                   />
-                  {passwordError ? (
+                  {errors.password ? (
                     <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                      {passwordError}
+                      {errors.password.message}
                     </p>
                   ) : null}
                   <div className="flex w-full flex-col gap-2">
                     <Input
+                      {...register('passwordConfirm', {
+                        onChange: clearSignupError,
+                      })}
                       type="password"
-                      value={passwordConfirm}
-                      onChange={(e) => {
-                        setPasswordConfirm(e.target.value);
-                        setSignupError(null);
-                        setPasswordError(null);
-                        setPasswordConfirmError(null);
-                      }}
                       placeholder="비밀번호를 한 번 더 입력해주세요"
                       showPasswordToggle
                       autoComplete="new-password"
                     />
-                    {passwordConfirmError ? (
+                    {errors.passwordConfirm ? (
                       <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-                        {passwordConfirmError}
+                        {errors.passwordConfirm.message}
                       </p>
                     ) : null}
                   </div>
                 </div>
-                {signupError ? (
+                {!errors.password && !errors.passwordConfirm && signupError ? (
                   <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
                     {signupError}
                   </p>
