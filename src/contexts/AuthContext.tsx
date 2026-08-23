@@ -57,7 +57,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearClientSession = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('accessToken');
     queryClient.removeQueries({ queryKey: cartQueryKeys.all });
     queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
     queryClient.removeQueries({
@@ -91,22 +90,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const checkAuth = async () => {
       try {
-        if (!localStorage.getItem('accessToken')) {
-          if (!cancelled) {
-            setUser(null);
-          }
-          return;
-        }
-
         const user = await getUserApi();
         if (!cancelled) {
           setUser(user);
         }
       } catch {
-        // 로그인 직후 늦게 도착한 실패가 세션을 덮어쓰지 않도록 함
-        if (!cancelled && !localStorage.getItem('accessToken')) {
-          setUser(null);
-        }
+        // accessToken 쿠키 없음/만료 — user는 null 유지
+        // login()은 isAuthChecked 이후에만 호출되므로 race 없음
       } finally {
         if (!cancelled) {
           setIsAuthChecked(true);

@@ -15,48 +15,38 @@ export class ApiError extends Error {
   }
 }
 
-// 실제 로그인 구현 확인 완료: localStorage.setItem('accessToken', ...) 그대로 씀
-export function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken');
-}
-
 function expireSession() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('accessToken');
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 }
 
-function buildHeaders(options: RequestInit, token: string | null): HeadersInit {
+function buildHeaders(options: RequestInit): HeadersInit {
   return {
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 }
 
-// features/auth/services/auth.api.ts의 authFetch와 같은 401 -> refresh -> 1회 재시도 흐름을
-// 그대로 따름 (해당 함수는 auth 모듈 내부 전용이라 export가 안 돼 있어, 이미 export된
-// refreshAccessToken만 재사용해서 동일한 흐름을 여기서도 구현함).
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  let token = getAccessToken();
+  let refreshed = false;
 
   let response = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: 'include',
-    headers: buildHeaders(options, token),
+    headers: buildHeaders(options),
   });
 
-  if (response.status === 401 && token) {
+  if (response.status === 401) {
     try {
-      token = await refreshAccessToken();
+      await refreshAccessToken();
+      refreshed = true;
       response = await fetch(`${API_BASE}${path}`, {
         ...options,
         credentials: 'include',
-        headers: buildHeaders(options, token),
+        headers: buildHeaders(options),
       });
     } catch {
       expireSession();
@@ -67,9 +57,8 @@ export async function apiFetch<T>(
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // 로그인 중 토큰이 사라진 경우. refresh에 성공한 뒤의 401은
-    // (예: 현재 비밀번호 불일치) 세션 만료가 아니므로 여기서 끊지 않음.
-    if (response.status === 401 && !token) {
+    // refresh 성공 후 401은 세션 만료가 아님 (예: 현재 비밀번호 불일치)
+    if (response.status === 401 && !refreshed) {
       expireSession();
     }
 
