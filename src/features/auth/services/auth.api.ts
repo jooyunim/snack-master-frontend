@@ -21,32 +21,24 @@ export const loginApi = async (
   }
   const data = await res.json();
 
-  if (!data.user) {
+  if (!data.data?.user) {
     throw new Error('로그인에 실패하였습니다.');
   }
-  if (typeof data.accessToken !== 'string' || !data.accessToken) {
-    throw new Error('토큰이 없습니다.');
-  }
 
-  localStorage.setItem('accessToken', data.accessToken);
-  return data.user;
+  return data.data?.user;
 };
 
 export const logoutApi = async (): Promise<void> => {
-  try {
-    const res = await fetch(`${API_BASE}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => null);
-      throw new Error(error?.message || '로그아웃에 실패했습니다.');
-    }
-  } finally {
-    localStorage.removeItem('accessToken');
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '로그아웃에 실패했습니다.');
   }
 };
 
@@ -65,9 +57,9 @@ export const getUserApi = async (): Promise<User> => {
   return res.user;
 };
 
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<void> | null = null;
 
-export const refreshAccessToken = async (): Promise<string> => {
+export const refreshAccessToken = async (): Promise<void> => {
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -84,15 +76,6 @@ export const refreshAccessToken = async (): Promise<string> => {
     if (!res.ok) {
       throw new Error('access token 재발급에 실패했습니다.');
     }
-
-    const data = await res.json();
-    const accessToken = data?.data?.accessToken;
-    if (typeof accessToken !== 'string' || !accessToken) {
-      throw new Error('access token 재발급에 실패했습니다.');
-    }
-
-    localStorage.setItem('accessToken', accessToken);
-    return accessToken;
   })().finally(() => (refreshPromise = null));
   return refreshPromise;
 };
