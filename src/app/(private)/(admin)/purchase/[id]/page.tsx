@@ -104,13 +104,23 @@ export default function PurchaseDetailPage() {
             </div>
           ) : null}
         </div>
+        <div className="flex w-full flex-col gap-5">
+          <PaymentSummary
+            variant="order"
+            pointsUsed={order.pointsUsed ?? 0}
+            pointsEarned={order.pointsEarned ?? 0}
+            paidAmount={order.paidAmount ?? 0}
+          />
 
-        <PaymentSummary
-          variant={isRefunded ? 'refund' : 'order'}
-          pointsUsed={order.pointsUsed ?? 0}
-          pointsEarned={order.pointsEarned ?? 0}
-          paidAmount={order.paidAmount ?? 0}
-        />
+          {isRefunded ? (
+            <PaymentSummary
+              variant="refund"
+              pointsUsed={order.pointsUsed ?? 0}
+              pointsEarned={order.pointsEarned ?? 0}
+              paidAmount={order.paidAmount ?? 0}
+            />
+          ) : null}
+        </div>
 
         <InfoSection
           title="요청 정보"
@@ -134,7 +144,7 @@ export default function PurchaseDetailPage() {
         />
 
         <InfoSection
-          title="승인 정보"
+          title={isRefunded ? '환불 정보' : '승인 정보'}
           rows={[
             {
               type: 'pair',
