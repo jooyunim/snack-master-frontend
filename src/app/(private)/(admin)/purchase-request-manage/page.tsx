@@ -28,6 +28,12 @@ export default function PurchaseRequestManagePage() {
     useQueryPagination();
   const [modalState, setModalState] = useState<ModalState | null>(null);
   const [searchInput, setSearchInput] = useState(search);
+  const [prevSearch, setPrevSearch] = useState(search);
+
+  if (search !== prevSearch) {
+    setPrevSearch(search);
+    setSearchInput(search);
+  }
 
   const sortBy = SORT_OPTIONS.some((option) => option.value === sort)
     ? (sort as sortByOption)
