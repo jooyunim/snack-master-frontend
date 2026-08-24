@@ -65,6 +65,8 @@ export default function PurchaseRequestDetailPage() {
     );
   }
 
+  const isRefunded = data.resolutionInfo.status === 'REFUNDED';
+
   const detailItems: readonly RequestItem[] = data.items.map((item) => ({
     id: item.id,
     name: item.productName,
@@ -115,28 +117,36 @@ export default function PurchaseRequestDetailPage() {
         />
 
         <InfoSection
-          title="승인 정보"
+          title={isRefunded ? '환불 정보' : '승인 정보'}
           rows={[
             {
               type: 'pair',
               left: {
                 label: '담당자',
-                value: data.resolutionInfo.resolver?.name ?? '-',
+                value: isRefunded
+                  ? (data.resolutionInfo.refundedBy?.name ?? '-')
+                  : (data.resolutionInfo.resolver?.name ?? '-'),
               },
               right: {
-                label: '승인 날짜',
-                value: formatDate(data.resolutionInfo.resolvedAt),
+                label: isRefunded ? '환불 날짜' : '승인 날짜',
+                value: formatDate(
+                  isRefunded
+                    ? (data.resolutionInfo.refundedAt ?? null)
+                    : data.resolutionInfo.resolvedAt
+                ),
               },
             },
             {
               type: 'pair',
               left: {
                 label: '상태',
-                value: STATUS_LABEL[data.resolutionInfo.status],
+                value: STATUS_LABEL[data.resolutionInfo.status], // REFUNDED → '환불'
               },
               right: {
-                label: '결과 메시지',
-                value: data.resolutionInfo.message ?? '-',
+                label: isRefunded ? '환불 사유' : '결과 메시지',
+                value: isRefunded
+                  ? data.resolutionInfo.refundReason?.trim() || '-'
+                  : (data.resolutionInfo.message ?? '-'),
               },
             },
           ]}
