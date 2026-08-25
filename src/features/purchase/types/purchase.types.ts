@@ -9,7 +9,7 @@ export type OrderListItem = {
   resolvedAt: string | null;
   refundedAt?: string | null;
   requesterName: string;
-  resolverName: string | null;
+  managerName: string | null;
   items: { productName: string }[];
   totalQuantity: number;
   totalAmount: number;
@@ -31,6 +31,7 @@ export type OrderDetail = {
   status: OrderStatus;
   requester: { id: string; name: string; email: string };
   resolver: { id: string; name: string } | null;
+  refundedBy?: { id: string; name: string } | null;
   requestMessage: string | null;
   resultMessage: string | null;
   refundReason?: string | null;

@@ -150,7 +150,9 @@ export default function PurchaseDetailPage() {
               type: 'pair',
               left: {
                 label: '담당자',
-                value: order.resolver?.name ?? '-',
+                value: isRefunded
+                  ? (order.refundedBy?.name ?? '-')
+                  : (order.resolver?.name ?? '-'),
               },
               right: {
                 label: isRefunded ? '환불 날짜' : '승인 날짜',

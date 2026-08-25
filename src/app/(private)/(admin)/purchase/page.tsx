@@ -50,7 +50,7 @@ function toRow(item: OrderListItem): PurchaseRow {
     amount: formatAmount(item.totalAmount),
     approvedDate: formatDate(item.resolvedAt),
     refundedDate: formatDate(item.refundedAt ?? null),
-    manager: item.resolverName ?? '-',
+    manager: item.managerName ?? '-',
     status: item.status,
   };
 }
