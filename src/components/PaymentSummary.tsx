@@ -17,7 +17,7 @@ export default function PaymentSummary({
   const isRefund = variant === 'refund';
   const row1Label = isRefund ? '적립금 차감액' : '포인트 사용액';
   const row2Label = isRefund ? '적립금 환불액' : '적립액';
-  const totalLabel = isRefund ? '총환불금액' : '실결제액';
+  const totalLabel = isRefund ? '총 환불금액' : '실결제액';
   const ariaLabel = isRefund ? '환불 요약' : '결제 요약';
   // 환불: 차감=적립 회수(pointsEarned), 환불액=사용 복구(pointsUsed), 총액=실결제(paidAmount)
   const row1Value = isRefund
