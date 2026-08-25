@@ -4,14 +4,14 @@ import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import InfoSection from '@/components/InfoSection';
 import icAlert from '@/assets/icons/ic_!.svg';
-import PointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
+import pointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
 import RequestItemsSection, {
   RequestItem,
 } from '@/components/RequestItemsSection';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
 import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
 import { use, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
@@ -52,11 +52,13 @@ export default function PurchaseRequestManageDetailPage({
     patchApproveMutation.isPending || patchRejectMutation.isPending;
 
   if (requestId === null) {
-    return <div>잘못된 구매 요청입니다.</div>;
+    notFound();
   }
 
   if (isPending) return <div>로딩중...</div>;
-  if (isError) return <div>에러가 발생했습니다.</div>;
+  if (isError || !data) {
+    notFound();
+  }
 
   const mappedItems: RequestItem[] = data.items.map((item) => ({
     id: item.id,
@@ -74,7 +76,7 @@ export default function PurchaseRequestManageDetailPage({
     previewReward,
     previewAfterBudget,
     isOverBudgetAfterPoints,
-  } = PointCalculate({
+  } = pointCalculate({
     pointBalance,
     pointAmount,
     requestAmount: data.requestAmount,

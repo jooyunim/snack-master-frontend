@@ -2,18 +2,25 @@
 
 import { useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
 import ProductGrid from '@/app/(private)/products/components/ProductGrid';
 import ProductListHeader from '@/app/(private)/products/components/ProductListHeader';
 import ProductModal from '@/app/(private)/products/components/ProductModal';
-import { useCategories } from '@/features/product/hooks/useCategories';
 import { useProducts } from '@/features/product/hooks/useProducts';
-import type { ProductSort } from '@/features/product/types/product.types';
+import type {
+  CategoryWithChildren,
+  CursorPage,
+  Product,
+  ProductSort,
+} from '@/features/product/types/product.types';
 
 type ProductListContentProps = {
   categorySlug?: string;
   subSlug?: string;
   sortParam?: string;
   searchParam?: string;
+  categories?: CategoryWithChildren[];
+  initialProducts?: CursorPage<Product>;
 };
 
 const PRODUCT_SORTS: ProductSort[] = [
@@ -28,6 +35,8 @@ export default function ProductListContent({
   subSlug,
   sortParam,
   searchParam,
+  categories,
+  initialProducts,
 }: ProductListContentProps) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const router = useRouter();
@@ -36,7 +45,6 @@ export default function ProductListContent({
   const sort = PRODUCT_SORTS.includes(sortParam as ProductSort)
     ? (sortParam as ProductSort)
     : 'recent';
-  const { data: categories } = useCategories();
 
   const category = categorySlug
     ? categories?.find((item) => item.slug === categorySlug)
@@ -45,15 +53,16 @@ export default function ProductListContent({
     ? category?.children.find((child) => child.slug === subSlug)
     : undefined;
 
-  // 소분류가 선택되면 그 id로, 대분류만 선택되면 대분류 id로(BE가 하위 전체 포함 조회)
   const categoryId = sub?.id ?? category?.id;
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts({
-    categoryId,
-    search: searchParam?.trim() || undefined,
-    sort,
-    limit: 12, // 한 번에 가져올 상품 수
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts(
+    {
+      categoryId,
+      search: searchParam?.trim() || undefined,
+      sort,
+      limit: 12,
+    },
+    initialProducts
+  );
 
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
