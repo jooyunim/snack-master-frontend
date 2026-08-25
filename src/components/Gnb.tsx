@@ -9,7 +9,7 @@ import icLock from '@/assets/icons/ic_lock.svg';
 import icManager from '@/assets/icons/ic_manager.svg';
 import icCartBag from '@/assets/icons/Vector 2593.svg';
 import icCartHandle from '@/assets/icons/Rectangle 22732.svg';
-import icLike from '@/assets/icons/Property 1=normal-1.svg';
+import icLike from '@/assets/icons/ic_like_normal.svg';
 import icMenu from '@/assets/icons/ic_menu2.svg';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import SideMenu from '@/components/SideMenu';
@@ -72,6 +72,8 @@ type GnbProps = {
   userType?: Role | null;
   cartCount?: number;
   profileName?: string;
+  /** user 로딩 중 private 라우트용 — 오른쪽 액션 영역 레이아웃 시프트 방지 */
+  isAuthPending?: boolean;
 };
 
 function isNavActive(pathname: string, item: NavItem) {
@@ -87,6 +89,21 @@ function categoryHref(categorySlug: string) {
     params.set('sub', category.children[0].slug);
   }
   return `/products?${params.toString()}`;
+}
+
+function AuthShellActions() {
+  return (
+    <div
+      className="flex h-11 shrink-0 items-center gap-5 max-lg:gap-8 xl:gap-[30px]"
+      aria-hidden="true"
+    >
+      <div className="size-6 shrink-0 rounded-sm bg-gray-100" />
+      <div className="size-6 shrink-0 rounded-full bg-gray-100 max-lg:hidden" />
+      <div className="size-6 shrink-0 rounded-full bg-gray-100 max-sm:hidden" />
+      <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" />
+      <div className="h-4 w-12 rounded-sm bg-gray-100 max-sm:hidden" />
+    </div>
+  );
 }
 
 function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
@@ -299,6 +316,7 @@ export default function Gnb({
   userType = null,
   cartCount = 0,
   profileName = '',
+  isAuthPending = false,
 }: GnbProps) {
   const pathname = usePathname();
   const isLoggedIn = userType != null;
@@ -311,13 +329,14 @@ export default function Gnb({
       >
         <div className="flex min-w-0 flex-1 items-center gap-6 xl:gap-10">
           <Link
-            href={isLoggedIn ? '/products' : '/'}
+            href={isLoggedIn || isAuthPending ? '/products' : '/'}
             className="relative h-11 w-[102.746px] shrink-0 overflow-hidden"
           >
             <Image
               src={logo}
               alt="스낵마스터 로고"
               fill
+              fetchPriority="low"
               className="object-contain"
             />
           </Link>
@@ -332,7 +351,9 @@ export default function Gnb({
           </Suspense>
         ) : null}
 
-        {isLoggedIn ? (
+        {isAuthPending ? (
+          <AuthShellActions />
+        ) : isLoggedIn ? (
           <AuthActions
             cartCount={cartCount}
             profileName={profileName}
@@ -343,7 +364,7 @@ export default function Gnb({
         )}
       </header>
 
-      {isSideMenuOpen ? (
+      {isSideMenuOpen && !isAuthPending ? (
         <div
           className={`fixed inset-0 z-40 ${isLoggedIn ? 'xl:hidden' : 'sm:hidden'}`}
         >
