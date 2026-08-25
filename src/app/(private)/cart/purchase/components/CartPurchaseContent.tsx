@@ -140,27 +140,26 @@ export default function CartPurchaseContent({
         </div>
         <form
           id="purchase-form"
+          noValidate
           onSubmit={handleSubmit(onValid)}
-          className="flex w-full flex-row items-center justify-end gap-2"
+          className="flex w-full flex-col items-end gap-1"
         >
-          <label htmlFor="request-point" className="sr-only">
-            사용할 포인트
-          </label>
-          <input
-            id="request-point"
-            type="number"
-            min={0}
-            max={point}
-            step={1}
-            {...register('requestPointAmount', { valueAsNumber: true })}
-            className="w-1/8 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] leading-none tracking-[-0.35px] text-gray-600 outline-none focus:border-gray-500 max-sm:text-[13px] max-sm:tracking-[-0.325px]"
-          />
-          <span className="text-[16px] font-bold leading-none tracking-[-0.4px] text-gray-600 max-sm:text-[14px] max-sm:tracking-[-0.35px]">{`/ ${point} P`}</span>
-          {errors.requestPointAmount && (
-            <p className="px-1 text-[14px] tracking-[-0.35px] text-red-500">
-              {errors.requestPointAmount.message}
-            </p>
-          )}
+          <div className="flex w-full flex-row items-center justify-end gap-2">
+            <label htmlFor="request-point" className="sr-only">
+              사용할 포인트
+            </label>
+            <input
+              id="request-point"
+              type="number"
+              step={1}
+              {...register('requestPointAmount', { valueAsNumber: true })}
+              className="w-1/8 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] leading-none tracking-[-0.35px] text-gray-600 outline-none focus:border-gray-500 max-sm:text-[13px] max-sm:tracking-[-0.325px]"
+            />
+            <span className="text-[16px] font-bold leading-none tracking-[-0.4px] text-gray-600 max-sm:text-[14px] max-sm:tracking-[-0.35px]">{`/ ${point.toLocaleString('ko-KR')} P`}</span>
+          </div>
+          <p className="min-h-[20px] px-1 text-[14px] leading-5 tracking-[-0.35px] text-red-500">
+            {errors.requestPointAmount?.message ?? ''}
+          </p>
         </form>
 
         <div className="flex flex-col w-full justify-end gap-2 text-[16px] font-bold tracking-[-0.4px] text-gray-700 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
