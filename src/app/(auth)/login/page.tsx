@@ -5,7 +5,6 @@ import Link from 'next/link';
 import logo from '@/assets/icons/logo.svg';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
@@ -21,11 +20,10 @@ const LoginPage = () => {
 
   const { isAuthChecked } = useAuth();
 
-  const router = useRouter();
-
   const { loginMutation } = useLogin({
     onSuccess: () => {
-      router.push('/products');
+      // soft nav는 proxy가 새 쿠키를 못 읽는 경우가 있어 hard navigation 사용
+      window.location.assign('/products');
     },
     onError: (error) => {
       setLoginError(error.message);
