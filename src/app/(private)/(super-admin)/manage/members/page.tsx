@@ -19,7 +19,7 @@ import EmptyState from '@/components/EmptyState';
 import { Member } from '@/features/member/types/members.type';
 import { useDeleteUser } from '@/features/member/hooks/useDeleteUser';
 import { useUsers } from '@/features/member/hooks/useUsers';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
 
 //아바타용 이니셜 뽑는 함수
 const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
@@ -32,7 +32,7 @@ const getMemberBadgeVariant = (role: Member['role']) => {
 export default function MembersPage() {
   const { page, setPage, search, setSearch } = useQueryPagination();
   const [searchInput, setSearchInput] = useState(search);
-  const [pageSize] = useState(15);
+  const pageSize = 10;
   const [modalMode, setModalMode] = useState<InviteMemberModalMode | null>(
     null
   );

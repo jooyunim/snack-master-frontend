@@ -11,7 +11,7 @@ import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useC
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
 import iconX from '@/assets/icons/icon_X.svg';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
 
 const STATUS_BADGE = {
   PENDING: { variant: 'pending', label: '대기 중' },

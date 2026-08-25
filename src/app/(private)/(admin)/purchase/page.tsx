@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
 import { useOrders } from '@/features/purchase/hooks/useOrders';
 import { useDashboardSummary } from '@/features/purchase/hooks/useDashboardSummary';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
 
 type PurchaseRow = {
   id: number;

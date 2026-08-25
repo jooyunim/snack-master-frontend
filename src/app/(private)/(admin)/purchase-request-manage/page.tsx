@@ -11,7 +11,7 @@ import {
   ModalState,
   sortByOption,
 } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
 import Button from '@/components/Button';
 import icSearch from '@/assets/icons/ic_search.svg';
 import Image from 'next/image';
