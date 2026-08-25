@@ -4,7 +4,7 @@ import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import InfoSection from '@/components/InfoSection';
 import icAlert from '@/assets/icons/ic_!.svg';
-import PointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
+import pointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
 import RequestItemsSection, {
   RequestItem,
 } from '@/components/RequestItemsSection';
@@ -74,7 +74,7 @@ export default function PurchaseRequestManageDetailPage({
     previewReward,
     previewAfterBudget,
     isOverBudgetAfterPoints,
-  } = PointCalculate({
+  } = pointCalculate({
     pointBalance,
     pointAmount,
     requestAmount: data.requestAmount,

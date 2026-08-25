@@ -3,7 +3,7 @@ import { purchaseRequestManage } from '@/features/purchase-request-manage/types/
 import Link from 'next/link';
 import React from 'react';
 import { getInitials } from '../utils/getInitials';
-import { formatDate } from '../utils/formatData';
+import { formatDate } from '../utils/formatDate';
 
 type RequestTableRowProps = {
   request: purchaseRequestManage;
@@ -17,10 +17,7 @@ const RequestTableRow = ({
   onApprove,
 }: RequestTableRowProps) => {
   return (
-    <li
-      key={request.id}
-      className="group flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 transition-colors hover:bg-gray-50 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
-    >
+    <li className="group flex h-[100px] w-full items-center gap-20 border-b border-solid border-gray-100 px-10 transition-colors hover:bg-gray-50 max-lg:justify-between max-lg:gap-0 max-lg:px-0">
       <Link
         href={`/purchase-request-manage/${request.id}`}
         className="flex flex-1 items-center gap-20"
