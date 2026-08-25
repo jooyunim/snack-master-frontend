@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import icLikeActive from '@/assets/icons/Property 1=active-1.svg';
-import icLikeNormal from '@/assets/icons/Property 1=normal-1.svg';
+import icLikeActive from '@/assets/icons/ic_like_active.svg';
+import icLikeNormal from '@/assets/icons/ic_like_normal.svg';
 
 // products(useProducts 등 실제 API)와 wishlist 양쪽에서 같이 쓰기 때문에,
 // 전체 Product 도메인 타입 대신 실제로 렌더링에 쓰는 필드만 최소 요구한다.
