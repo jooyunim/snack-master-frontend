@@ -21,10 +21,6 @@ const LoginPage = () => {
   const { isAuthChecked } = useAuth();
 
   const { loginMutation } = useLogin({
-    onSuccess: () => {
-      // soft nav는 proxy가 새 쿠키를 못 읽는 경우가 있어 hard navigation 사용
-      window.location.assign('/products');
-    },
     onError: (error) => {
       setLoginError(error.message);
     },

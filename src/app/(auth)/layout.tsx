@@ -1,8 +1,6 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function AuthLayout({
   children,
@@ -10,16 +8,15 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   const { isAuthChecked, isLoggedIn } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (isAuthChecked && isLoggedIn) {
-      router.replace('/products');
-    }
-  }, [isAuthChecked, isLoggedIn, router]);
+  // 초기 인증 확인 전만 대기. 로그인 직후 isLoggedIn은
+  // window.location.assign 직전 상태이므로 Loading UI를 띄우지 않는다.
+  if (!isAuthChecked) {
+    return null;
+  }
 
-  if (!isAuthChecked || isLoggedIn) {
-    return <main>Loading...</main>;
+  if (isLoggedIn) {
+    return null;
   }
 
   return <>{children}</>;
