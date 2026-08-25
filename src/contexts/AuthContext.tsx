@@ -21,7 +21,7 @@ import {
   companyBalancePointQueryKeys,
   orderItemsQueryKeys,
 } from '@/features/cart/constants/query-keys';
-import { SESSION_EXPIRED_EVENT } from '@/lib/api';
+import { SESSION_EXPIRED_EVENT, setApiAuthSession } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -33,11 +33,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+export const AuthProvider = ({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser?: User | null;
+}) => {
+  const [user, setUser] = useState<User | null>(initialUser ?? null);
+  const [isAuthChecked, setIsAuthChecked] = useState(initialUser !== undefined);
   const isLoggedIn = !!user;
   const queryClient = useQueryClient();
+
+  // apiFetch가 401→refresh를 로그인 중에만 시도하도록 동기화
+  useEffect(() => {
+    setApiAuthSession(isLoggedIn);
+  }, [isLoggedIn]);
 
   const login = async ({
     email,
@@ -51,11 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const user = await loginApi(email, password);
-
+    setApiAuthSession(true);
     setUser(user);
   };
 
   const clearClientSession = useCallback(() => {
+    setApiAuthSession(false);
     setUser(null);
     queryClient.removeQueries({ queryKey: cartQueryKeys.all });
     queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
@@ -77,7 +89,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const onSessionExpired = () => {
-      clearClientSession();
+      void (async () => {
+        try {
+          await logoutApi();
+        } catch {
+          //쿠키 삭제 실패해도 비로그인 처리
+        } finally {
+          clearClientSession();
+          const path = window.location.pathname;
+          // 이미 로그인/가입 페이지면 replace 루프(깜빡임/무한 로딩) 방지
+          if (path !== '/login' && !path.startsWith('/signup')) {
+            window.location.replace('/login');
+          }
+        }
+      })();
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
     return () => {
@@ -88,15 +113,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let cancelled = false;
 
+    if (initialUser !== undefined) {
+      return;
+    }
     const checkAuth = async () => {
-      try {
-        const user = await getUserApi();
+      const path = window.location.pathname;
+      const isAuthPage = path === '/login' || path.startsWith('/signup');
+
+      // 로그인/회원가입은 세션 체크 스킵.
+      // API 호스트에만 쿠키가 있어도 getUser는 성공하는데, 그때 /products로 보내면
+      // FE proxy가 쿠키를 못 보고 다시 /login으로 보내는 루프가 난다.
+      if (isAuthPage) {
         if (!cancelled) {
-          setUser(user);
+          setIsAuthChecked(true);
+        }
+        return;
+      }
+
+      try {
+        const nextUser = await getUserApi();
+        if (!cancelled) {
+          setUser(nextUser);
         }
       } catch {
         // accessToken 쿠키 없음/만료 — user는 null 유지
-        // login()은 isAuthChecked 이후에만 호출되므로 race 없음
       } finally {
         if (!cancelled) {
           setIsAuthChecked(true);
@@ -109,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialUser]);
 
   return (
     <AuthContext.Provider
