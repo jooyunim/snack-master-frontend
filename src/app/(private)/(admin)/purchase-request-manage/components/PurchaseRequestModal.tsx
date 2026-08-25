@@ -8,13 +8,14 @@ import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
-import pointCalculate from '../utils/PointCalculate';
+
 import { getInitials } from '../utils/getInitials';
 import AlertModal from '@/components/AlertModal';
 import icAlert from '@/assets/icons/ic_!.svg';
 import { usePurchaseResultForm } from '@/features/purchase-request-manage/hooks/usePurchaseResultForm';
 import { PurchaseResultFormValues } from '@/features/purchase-request-manage/schemas/purchaseResultForm.schema';
 import { Controller } from 'react-hook-form';
+import pointCalculate from '../utils/pointCalculate';
 
 export default function PurchaseRequestModal({
   requestId,
@@ -32,7 +33,7 @@ export default function PurchaseRequestModal({
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
 
-  const maxPoint = Math.min(pointBalance, data?.requestAmount ?? 0);
+  const maxPoint = pointBalance;
 
   const {
     register,
@@ -40,7 +41,7 @@ export default function PurchaseRequestModal({
     control,
     watch,
     formState: { errors },
-  } = usePurchaseResultForm(maxPoint);
+  } = usePurchaseResultForm(maxPoint, data?.requestAmount ?? 0);
 
   const pointAmount = watch('pointAmount');
 
@@ -224,9 +225,7 @@ export default function PurchaseRequestModal({
                                   }
                                   const num = Number(raw);
                                   if (Number.isNaN(num)) return;
-                                  field.onChange(
-                                    Math.min(Math.max(num, 0), maxPoint)
-                                  );
+                                  field.onChange(num); // 클램핑 제거
                                 }}
                                 className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               />
@@ -314,7 +313,12 @@ export default function PurchaseRequestModal({
               variant="filled"
               className="min-w-0 flex-1 cursor-pointer"
               type="submit"
-              disabled={isApproveBlock || mutation.isPending}
+              disabled={
+                isApproveBlock ||
+                mutation.isPending ||
+                !!errors.pointAmount ||
+                !!errors.resultMessage
+              }
             >
               {isApprove ? '승인하기' : '반려하기'}
             </Button>
