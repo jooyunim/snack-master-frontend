@@ -55,5 +55,6 @@ export const config = {
     '/manage/:path*',
     '/product-register',
     '/product-register/:path*',
+    '/unauthorized',
   ],
 };

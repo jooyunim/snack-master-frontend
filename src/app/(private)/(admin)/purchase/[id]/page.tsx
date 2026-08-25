@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
@@ -11,7 +11,6 @@ import InfoSection from '@/components/InfoSection';
 import type { OrderDetail } from '@/features/purchase/types/purchase.types';
 import { formatDate, formatWon, statusLabel } from '@/features/purchase/format';
 import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
-import PurchaseDetailError from '../components/PurchaseDetailError';
 import PaymentSummary from '@/components/PaymentSummary';
 import { useOrderDetail } from '@/features/purchase/hooks/useOrderDetail';
 import Button from '@/components/Button';
@@ -47,7 +46,7 @@ export default function PurchaseDetailPage() {
   const [itemsOpen, setItemsOpen] = useState(true);
 
   if (!isValidId) {
-    return <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />;
+    notFound();
   }
 
   if (isLoading || (order != null && order.id !== orderId)) {
@@ -55,7 +54,7 @@ export default function PurchaseDetailPage() {
   }
 
   if (isError || !order) {
-    return <PurchaseDetailError message="구매 내역을 불러오지 못했습니다." />;
+    notFound();
   }
 
   const itemTotal = calcItemTotal(order);

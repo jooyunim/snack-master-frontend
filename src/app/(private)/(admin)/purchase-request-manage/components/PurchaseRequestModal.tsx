@@ -8,7 +8,7 @@ import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
-import PointCalculate from '../utils/PointCalculate';
+import pointCalculate from '../utils/PointCalculate';
 import { getInitials } from '../utils/getInitials';
 import AlertModal from '@/components/AlertModal';
 import icAlert from '@/assets/icons/ic_!.svg';
@@ -59,7 +59,7 @@ export default function PurchaseRequestModal({
     previewReward,
     previewAfterBudget,
     isOverBudgetAfterPoints,
-  } = PointCalculate({
+  } = pointCalculate({
     pointBalance,
     pointAmount,
     requestAmount: data.requestAmount,

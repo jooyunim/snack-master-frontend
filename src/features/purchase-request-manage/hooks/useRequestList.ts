@@ -4,9 +4,14 @@ import { getPurchaseRequestManageList } from '../services/purchase-request-manag
 import { sortByOption } from '../types/purchase-request-manage.type';
 import { purchaseRequestManageKeys } from '../constants/query-keys';
 
-export function useRequestList(sortBy: sortByOption, page = 1) {
+export function useRequestList(
+  sortBy: sortByOption,
+  page = 1,
+  requesterName?: string
+) {
   return useQuery({
-    queryKey: purchaseRequestManageKeys.list(sortBy, page),
-    queryFn: () => getPurchaseRequestManageList(sortBy, page),
+    queryKey: purchaseRequestManageKeys.list(sortBy, page, requesterName),
+    queryFn: () =>
+      getPurchaseRequestManageList(sortBy, page, 10, requesterName),
   });
 }
