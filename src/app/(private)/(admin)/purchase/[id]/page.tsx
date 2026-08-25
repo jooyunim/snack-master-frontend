@@ -188,7 +188,7 @@ export default function PurchaseDetailPage() {
                 <Button
                   variant="filled"
                   className="w-full"
-                  onClick={() => router.push('/purchase')}
+                  onClick={() => router.back()}
                 >
                   목록으로
                 </Button>
@@ -201,7 +201,7 @@ export default function PurchaseDetailPage() {
               <Button
                 variant="filled"
                 className="w-full"
-                onClick={() => router.push('/purchase')}
+                onClick={() => router.back()}
               >
                 목록으로
               </Button>

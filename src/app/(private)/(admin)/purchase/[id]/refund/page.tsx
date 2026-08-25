@@ -20,6 +20,8 @@ import { useRefundOrder } from '@/features/purchase/hooks/useRefundOrder';
 import PurchaseDetailLoading from '../../components/PurchaseDetailLoading';
 import PurchaseDetailError from '../../components/PurchaseDetailError';
 
+const REFUND_REASON_MAX = 100;
+
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
     id: item.id,
@@ -80,6 +82,10 @@ export default function PurchaseRefundPage() {
     const reason = refundReason.trim();
     if (!reason) {
       setErrorMessage('환불 사유를 입력해주세요.');
+      return;
+    }
+    if (reason.length > REFUND_REASON_MAX) {
+      setErrorMessage('환불 사유는 100자 이하여야 합니다.');
       return;
     }
 
@@ -162,9 +168,13 @@ export default function PurchaseRefundPage() {
             value={refundReason}
             onChange={(e) => setRefundReason(e.target.value)}
             placeholder="환불 사유를 입력해주세요"
-            maxLength={500}
+            maxLength={REFUND_REASON_MAX}
+
             className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
           />
+          <p className="text-right text-[14px] text-gray-400">
+            {refundReason.length}/{REFUND_REASON_MAX}
+          </p>
         </section>
 
         {/* 버튼: 취소(흰) / 환불하기(검정) */}
