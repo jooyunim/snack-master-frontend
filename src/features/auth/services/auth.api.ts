@@ -1,4 +1,3 @@
-import { SESSION_EXPIRED_EVENT } from '@/lib/api';
 import { User } from '../types/auth.types';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
@@ -51,7 +50,8 @@ export const getUserApi = async (options?: {
     credentials: 'include',
   });
 
-  //초기 세션 체크 : 401이면 그냥 '비로그인'으로 끝
+  // 초기 세션 체크: 401/refresh 실패는 비로그인으로만 처리.
+  // SESSION_EXPIRED는 apiFetch(로그인 중 API 호출)에서만 발생시킨다.
   if (res.status === 401 && tryRefresh) {
     try {
       await refreshAccessToken();
@@ -59,7 +59,6 @@ export const getUserApi = async (options?: {
         credentials: 'include',
       });
     } catch {
-      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
       throw new Error('세션이 만료되었습니다.');
     }
   }
