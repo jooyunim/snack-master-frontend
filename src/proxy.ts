@@ -3,12 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function proxy(req: NextRequest) {
-  console.log('[proxy]', {
-    pathname: req.nextUrl.pathname,
-    hasAccessToken: !!req.cookies.get('accessToken')?.value,
-    hasRefreshToken: !!req.cookies.get('refreshToken')?.value,
-  });
-
   if (process.env.NODE_ENV === 'development') {
     return NextResponse.next();
   }
