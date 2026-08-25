@@ -115,7 +115,13 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icLock} alt="" fill className="object-contain" />
+            <Image
+              src={icLock}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           로그인
         </Link>
@@ -124,7 +130,13 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icManager} alt="" fill className="object-contain" />
+            <Image
+              src={icManager}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           기업 담당자 회원가입
         </Link>
@@ -136,7 +148,7 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
         onClick={onOpenMenu}
         className="relative size-6 shrink-0 overflow-hidden sm:hidden"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image src={icMenu} alt="" fill priority className="object-contain" />
       </button>
     </>
   );
@@ -195,10 +207,22 @@ function AuthActions({
           className="relative size-6 shrink-0"
         >
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
-            <Image src={icCartBag} alt="" fill className="object-contain" />
+            <Image
+              src={icCartBag}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           <span className="absolute left-1/2 top-[3px] h-[5.947px] w-[7.411px] -translate-x-1/2">
-            <Image src={icCartHandle} alt="" fill className="object-contain" />
+            <Image
+              src={icCartHandle}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           {cartCount > 0 ? (
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[9px] font-bold leading-none tracking-[-0.225px] text-white">
@@ -212,7 +236,7 @@ function AuthActions({
           aria-label="찜하기"
           className="relative size-6 shrink-0 overflow-hidden max-lg:hidden"
         >
-          <Image src={icLike} alt="" fill className="object-contain" />
+          <Image src={icLike} alt="" fill priority className="object-contain" />
         </Link>
 
         <Link
@@ -249,7 +273,7 @@ function AuthActions({
         onClick={onOpenMenu}
         className="relative hidden size-6 shrink-0 overflow-hidden max-xl:block"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image src={icMenu} alt="" fill priority className="object-contain" />
       </button>
     </div>
   );
