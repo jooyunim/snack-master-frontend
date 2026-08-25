@@ -21,7 +21,7 @@ import {
   companyBalancePointQueryKeys,
   orderItemsQueryKeys,
 } from '@/features/cart/constants/query-keys';
-import { SESSION_EXPIRED_EVENT } from '@/lib/api';
+import { SESSION_EXPIRED_EVENT, setApiAuthSession } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -33,11 +33,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+export const AuthProvider = ({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser?: User | null;
+}) => {
+  const [user, setUser] = useState<User | null>(initialUser ?? null);
+  const [isAuthChecked, setIsAuthChecked] = useState(initialUser !== undefined);
   const isLoggedIn = !!user;
   const queryClient = useQueryClient();
+
+  // apiFetch가 401→refresh를 로그인 중에만 시도하도록 동기화
+  useEffect(() => {
+    setApiAuthSession(isLoggedIn);
+  }, [isLoggedIn]);
 
   const login = async ({
     email,
@@ -51,11 +62,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const user = await loginApi(email, password);
-
+    setApiAuthSession(true);
     setUser(user);
   };
 
   const clearClientSession = useCallback(() => {
+    setApiAuthSession(false);
     setUser(null);
     queryClient.removeQueries({ queryKey: cartQueryKeys.all });
     queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
@@ -77,7 +89,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const onSessionExpired = () => {
-      clearClientSession();
+      void (async () => {
+        try {
+          await logoutApi();
+        } catch {
+          //쿠키 삭제 실패해도 비로그인 처리
+        } finally {
+          clearClientSession();
+          window.location.replace('/login');
+        }
+      })();
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
     return () => {
@@ -88,7 +109,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let cancelled = false;
 
+    if (initialUser !== undefined) {
+      return;
+    }
     const checkAuth = async () => {
+      const path = window.location.pathname;
+      const isAuthPage = path === '/login' || path.startsWith('/signup');
+
+      // 로그인/회원가입은 세션 체크 자체가 불필요.
+      // GET /auth/user는 authenticate라 비로그인이면 401 → 콘솔 노이즈만 남음.
+      if (isAuthPage) {
+        if (!cancelled) {
+          setIsAuthChecked(true);
+        }
+        return;
+      }
+
       try {
         const user = await getUserApi();
         if (!cancelled) {
@@ -109,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialUser]);
 
   return (
     <AuthContext.Provider

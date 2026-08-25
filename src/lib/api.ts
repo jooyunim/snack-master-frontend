@@ -6,6 +6,14 @@ const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
 
 export const SESSION_EXPIRED_EVENT = 'auth:session-expired';
 
+// AuthContext isLoggedIn과 동기화 — httpOnly 쿠키는 JS로 못 읽어서
+// "로그인된 상태"일 때만 401→refresh를 시도한다.
+let apiAuthSessionActive = false;
+
+export function setApiAuthSession(active: boolean) {
+  apiAuthSessionActive = active;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -17,6 +25,7 @@ export class ApiError extends Error {
 
 function expireSession() {
   if (typeof window === 'undefined') return;
+  apiAuthSessionActive = false;
   window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 }
 
@@ -39,7 +48,8 @@ export async function apiFetch<T>(
     headers: buildHeaders(options),
   });
 
-  if (response.status === 401) {
+  // 로그인 세션이 있을 때만 refresh (비로그인 401에서 /auth/refresh 401 노이즈 방지)
+  if (response.status === 401 && apiAuthSessionActive) {
     try {
       await refreshAccessToken();
       refreshed = true;
@@ -57,8 +67,9 @@ export async function apiFetch<T>(
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // refresh 성공 후 401은 세션 만료가 아님 (예: 현재 비밀번호 불일치)
-    if (response.status === 401 && !refreshed) {
+    // 비로그인 401은 세션 만료가 아님. refresh를 시도한 뒤에만 만료 처리.
+    // refresh 성공 후 401도 세션 만료가 아님 (예: 현재 비밀번호 불일치)
+    if (response.status === 401 && !refreshed && apiAuthSessionActive) {
       expireSession();
     }
 
