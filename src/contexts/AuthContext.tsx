@@ -97,8 +97,10 @@ export const AuthProvider = ({
         } finally {
           clearClientSession();
           const path = window.location.pathname;
-          // 이미 로그인/가입 페이지면 replace 루프(깜빡임/무한 로딩) 방지
-          if (path !== '/login' && !path.startsWith('/signup')) {
+          // 공개 페이지는 강제 이동하지 않음. private 비로그인은 layout 가드가 처리.
+          const isPublicPage =
+            path === '/' || path === '/login' || path.startsWith('/signup');
+          if (!isPublicPage) {
             window.location.replace('/login');
           }
         }

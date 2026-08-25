@@ -22,7 +22,7 @@ export default function AdminLayout({
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return redirect('/products');
+    return redirect('/unauthorized');
   }
 
   return <>{children}</>;
