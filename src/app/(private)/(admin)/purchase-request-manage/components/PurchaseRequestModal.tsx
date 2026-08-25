@@ -206,6 +206,11 @@ export default function PurchaseRequestModal({
                     <>
                       <div className="flex w-full flex-col gap-3 rounded-[2px] bg-white p-6 shadow-[0_0_5px_rgba(0,0,0,0.12)]">
                         <div className="flex w-full items-center justify-end gap-2">
+                          {errors.pointAmount && (
+                            <p className="text-right text-[13px] text-red-500">
+                              {errors.pointAmount.message}
+                            </p>
+                          )}
                           <Controller
                             name="pointAmount"
                             control={control}
@@ -231,11 +236,7 @@ export default function PurchaseRequestModal({
                               />
                             )}
                           />
-                          {errors.pointAmount && (
-                            <p className="text-right text-[13px] text-red-500">
-                              {errors.pointAmount.message}
-                            </p>
-                          )}
+
                           <span className="text-[16px] font-bold text-gray-600">
                             {`/ ${maxPoint.toLocaleString()} P`}
                           </span>

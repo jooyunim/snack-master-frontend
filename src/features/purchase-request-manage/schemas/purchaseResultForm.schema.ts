@@ -14,10 +14,10 @@ export const createPurchaseResultFormSchema = (
       .min(0, '포인트는 0 이상이어야 합니다.')
       .max(
         maxPoint,
-        `보유 포인트(${maxPoint.toLocaleString()}P)를 초과했습니다.`
+        `${maxPoint.toLocaleString('ko-KR')} P 이하로 입력해주세요.`
       )
       .refine((val) => val <= requestAmount, {
-        message: `결제 금액(${requestAmount.toLocaleString()}원)보다 많은 포인트를 사용할 수 없습니다.`,
+        message: '결제 금액을 초과할 수 없습니다.',
       }),
   });
 
