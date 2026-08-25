@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api';
+import { SESSION_EXPIRED_EVENT } from '@/lib/api';
 import { User } from '../types/auth.types';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
@@ -42,19 +42,40 @@ export const logoutApi = async (): Promise<void> => {
   }
 };
 
-export const getUserApi = async (): Promise<User> => {
-  const res = await apiFetch<{ user: User }>('/auth/user', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+export const getUserApi = async (options?: {
+  tryRefresh?: boolean;
+}): Promise<User> => {
+  const tryRefresh = options?.tryRefresh ?? true;
+
+  let res = await fetch(`${API_BASE}/auth/user`, {
     credentials: 'include',
   });
 
-  if (!res?.user) {
+  //초기 세션 체크 : 401이면 그냥 '비로그인'으로 끝
+  if (res.status === 401 && tryRefresh) {
+    try {
+      await refreshAccessToken();
+      res = await fetch(`${API_BASE}/auth/user`, {
+        credentials: 'include',
+      });
+    } catch {
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      throw new Error('세션이 만료되었습니다.');
+    }
+  }
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '유저 정보를 가져오는데 실패했습니다.');
+  }
+
+  const data = await res.json();
+
+  if (!data.data?.user) {
     throw new Error('유저 정보를 가져오는데 실패했습니다.');
   }
 
-  return res.user;
+  return data.data?.user;
 };
 
 let refreshPromise: Promise<void> | null = null;
