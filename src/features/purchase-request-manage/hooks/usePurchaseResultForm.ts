@@ -4,10 +4,16 @@ import {
   createPurchaseResultFormSchema,
   PurchaseResultFormValues,
 } from '../schemas/purchaseResultForm.schema';
+import { useMemo } from 'react';
 
 export function usePurchaseResultForm(maxPoint: number) {
+  const resolver = useMemo(
+    () => zodResolver(createPurchaseResultFormSchema(maxPoint)),
+    [maxPoint]
+  );
+
   return useForm<PurchaseResultFormValues>({
-    resolver: zodResolver(createPurchaseResultFormSchema(maxPoint)),
+    resolver,
     defaultValues: { resultMessage: '', pointAmount: 0 },
   });
 }

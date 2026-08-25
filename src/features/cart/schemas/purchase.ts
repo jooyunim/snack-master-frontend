@@ -10,7 +10,10 @@ export const createPurchaseSchema = (
         .number({ error: '숫자를 입력해주세요.' })
         .int('정수만 입력해주세요.')
         .min(0, '0 이상이어야 합니다.')
-        .max(pointBalance, `잔액(${pointBalance}P)을 초과할 수 없습니다.`),
+        .max(
+          pointBalance,
+          `${pointBalance.toLocaleString('ko-KR')} P 이하로 입력해주세요.`
+        ),
     })
     .refine((v) => v.requestPointAmount <= totalAmount, {
       message: '결제 금액을 초과할 수 없습니다.',

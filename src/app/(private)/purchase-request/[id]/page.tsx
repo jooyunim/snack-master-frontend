@@ -5,7 +5,7 @@ import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
 import InfoSection from '../../../../components/InfoSection';
-import { useParams, useRouter } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import { useMyPurchaseRequest } from '@/features/purchase-request/hooks/useMyPurchaseRequest';
 
 function formatPrice(price: number) {
@@ -40,6 +40,10 @@ export default function PurchaseRequestDetailPage() {
     REFUNDED: '환불',
   } as const;
 
+  if (!Number.isInteger(purchaseRequestId) || purchaseRequestId < 1) {
+    notFound();
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -50,19 +54,8 @@ export default function PurchaseRequestDetailPage() {
     );
   }
 
-  if (
-    isError ||
-    !data ||
-    !Number.isInteger(purchaseRequestId) ||
-    purchaseRequestId < 1
-  ) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">
-          구매 요청 상세 정보를 불러오지 못했습니다.
-        </p>
-      </div>
-    );
+  if (isError || !data) {
+    notFound();
   }
 
   const isRefunded = data.resolutionInfo.status === 'REFUNDED';
