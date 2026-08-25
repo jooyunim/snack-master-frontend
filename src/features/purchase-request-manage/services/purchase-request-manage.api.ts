@@ -10,13 +10,15 @@ import {
 export async function getPurchaseRequestManageList(
   sortBy?: sortByOption,
   page = 1,
-  pageSize = 10
+  pageSize = 10,
+  requesterName?: string
 ): Promise<purchaseRequestManageList> {
   const query = new URLSearchParams({
     page: String(page),
     pageSize: String(pageSize),
   });
   if (sortBy) query.set('sortBy', sortBy);
+  if (requesterName) query.set('requesterName', requesterName);
   return apiFetch<purchaseRequestManageList>(
     `/purchase-requests/?${query.toString()}`
   );
