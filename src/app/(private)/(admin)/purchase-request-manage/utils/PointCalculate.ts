@@ -15,7 +15,7 @@ export interface PurchaseCalculationResult {
   isOverBudgetAfterPoints: boolean;
 }
 
-const PointCalculate = ({
+const pointCalculate = ({
   pointBalance,
   pointAmount,
   requestAmount,
@@ -43,4 +43,4 @@ const PointCalculate = ({
   };
 };
 
-export default PointCalculate;
+export default pointCalculate;
