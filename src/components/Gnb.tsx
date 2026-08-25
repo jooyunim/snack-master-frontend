@@ -336,7 +336,7 @@ export default function Gnb({
               src={logo}
               alt="스낵마스터 로고"
               fill
-              fetchPriority="low"
+              priority
               className="object-contain"
             />
           </Link>
