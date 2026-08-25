@@ -21,10 +21,10 @@ export async function proxy(req: NextRequest) {
 
   const isAuthPage = pathname === '/login' || pathname.startsWith('/signup');
 
+  // 쿠키 존재 ≠ 유효 세션. /login→/products 강제 리다이렉트는
+  // 만료·무효 쿠키 + SESSION_EXPIRED(/login)와 맞물려 무한 루프가 난다.
+  // 로그인/회원가입은 항상 통과시키고, 보호 라우트만 쿠키 유무로 가드한다.
   if (isAuthPage) {
-    if (hasSession) {
-      return NextResponse.redirect(new URL('/products', req.url));
-    }
     return NextResponse.next();
   }
 

@@ -96,7 +96,11 @@ export const AuthProvider = ({
           //쿠키 삭제 실패해도 비로그인 처리
         } finally {
           clearClientSession();
-          window.location.replace('/login');
+          const path = window.location.pathname;
+          // 이미 로그인/가입 페이지면 replace 루프(깜빡임/무한 로딩) 방지
+          if (path !== '/login' && !path.startsWith('/signup')) {
+            window.location.replace('/login');
+          }
         }
       })();
     };
@@ -116,8 +120,9 @@ export const AuthProvider = ({
       const path = window.location.pathname;
       const isAuthPage = path === '/login' || path.startsWith('/signup');
 
-      // 로그인/회원가입은 세션 체크 자체가 불필요.
-      // GET /auth/user는 authenticate라 비로그인이면 401 → 콘솔 노이즈만 남음.
+      // 로그인/회원가입은 세션 체크 스킵.
+      // API 호스트에만 쿠키가 있어도 getUser는 성공하는데, 그때 /products로 보내면
+      // FE proxy가 쿠키를 못 보고 다시 /login으로 보내는 루프가 난다.
       if (isAuthPage) {
         if (!cancelled) {
           setIsAuthChecked(true);
@@ -126,13 +131,12 @@ export const AuthProvider = ({
       }
 
       try {
-        const user = await getUserApi();
+        const nextUser = await getUserApi();
         if (!cancelled) {
-          setUser(user);
+          setUser(nextUser);
         }
       } catch {
         // accessToken 쿠키 없음/만료 — user는 null 유지
-        // login()은 isAuthChecked 이후에만 호출되므로 race 없음
       } finally {
         if (!cancelled) {
           setIsAuthChecked(true);
