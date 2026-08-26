@@ -4,17 +4,21 @@ import AlertModal from '@/components/AlertModal';
 import Button from '@/components/Button';
 import InfoSection from '@/components/InfoSection';
 import icAlert from '@/assets/icons/ic_!.svg';
-import pointCalculate from '@/app/(private)/(admin)/purchase-request-manage/utils/PointCalculate';
+
 import RequestItemsSection, {
   RequestItem,
 } from '@/components/RequestItemsSection';
 import { useRequestDetail } from '@/features/purchase-request-manage/hooks/useRequestDetail';
 import { useRequestMutations } from '@/features/purchase-request-manage/hooks/useRequestMutation';
+import { usePurchaseResultForm } from '@/features/purchase-request-manage/hooks/usePurchaseResultForm';
+import { Controller } from 'react-hook-form';
 import { use, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
 import { usePoints } from '@/features/cart/hooks/usePoints';
 import { ApiError } from '@/lib/api';
+import pointCalculate from '../utils/pointCalculate';
+import { formatDate } from '../utils/formatDate';
 
 export default function PurchaseRequestManageDetailPage({
   params,
@@ -34,19 +38,22 @@ export default function PurchaseRequestManageDetailPage({
     null
   );
   const [showAlert, setShowAlert] = useState(true);
-  const [pointAmount, setPointAmount] = useState(0);
-  const [resultMessage, setResultMessage] = useState('');
+
   const { data: balancePointData } = usePoints();
   const pointBalance = balancePointData?.balancePointAmount ?? 0;
   const router = useRouter();
 
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  }
+  const maxPoint = pointBalance;
+
+  const {
+    register,
+    control,
+    watch,
+    formState: { errors },
+  } = usePurchaseResultForm(maxPoint, data?.requestAmount ?? 0);
+
+  const pointAmount = watch('pointAmount');
+  const resultMessage = watch('resultMessage');
 
   const isMutating =
     patchApproveMutation.isPending || patchRejectMutation.isPending;
@@ -54,7 +61,6 @@ export default function PurchaseRequestManageDetailPage({
   if (requestId === null) {
     notFound();
   }
-
   if (isPending) return <div>로딩중...</div>;
   if (isError || !data) {
     notFound();
@@ -70,7 +76,6 @@ export default function PurchaseRequestManageDetailPage({
   }));
 
   const {
-    maxPoint,
     safePointAmount,
     previewPaidAmount,
     previewReward,
@@ -87,12 +92,16 @@ export default function PurchaseRequestManageDetailPage({
   const isOverBudget = showAlert && isOverBudgetAfterPoints;
 
   const handleApprove = () => {
+    if (errors.pointAmount || errors.resultMessage) return;
+
     patchApproveMutation.mutate(
-      { id: requestId, resultMessage, requestPointAmount: safePointAmount },
       {
-        onSuccess: () => {
-          setResultModal('approve');
-        },
+        id: requestId,
+        resultMessage: resultMessage ?? '',
+        requestPointAmount: safePointAmount,
+      },
+      {
+        onSuccess: () => setResultModal('approve'),
         onError: (error) => {
           alert(
             error instanceof ApiError ? error.message : '에러가 발생했습니다.'
@@ -103,12 +112,12 @@ export default function PurchaseRequestManageDetailPage({
   };
 
   const handleReject = () => {
+    if (errors.resultMessage) return;
+
     patchRejectMutation.mutate(
-      { id: requestId, resultMessage },
+      { id: requestId, resultMessage: resultMessage ?? '' },
       {
-        onSuccess: () => {
-          setResultModal('reject');
-        },
+        onSuccess: () => setResultModal('reject'),
         onError: (error) => {
           alert(
             error instanceof ApiError ? error.message : '에러가 발생했습니다.'
@@ -148,29 +157,43 @@ export default function PurchaseRequestManageDetailPage({
             <label htmlFor="pointInput" className="sr-only">
               사용 포인트
             </label>
-            <input
-              id="pointInput"
-              type="number"
-              min={0}
-              max={maxPoint}
-              value={pointAmount}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === '') {
-                  setPointAmount(0);
-                  return;
-                }
-                const num = Number(raw);
-                if (Number.isNaN(num)) return;
-                setPointAmount(Math.min(Math.max(num, 0), maxPoint));
-              }}
-              className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+
+            <Controller
+              name="pointAmount"
+              control={control}
+              render={({ field }) => (
+                <input
+                  id="pointInput"
+                  type="number"
+                  min={0}
+                  max={maxPoint}
+                  value={field.value}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === '') {
+                      field.onChange(0);
+                      return;
+                    }
+                    const num = Number(raw);
+                    if (Number.isNaN(num)) return;
+                    field.onChange(num);
+                  }}
+                  className="w-24 rounded border border-gray-300 bg-transparent px-2 py-1 text-right text-[14px] outline-none focus:border-gray-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              )}
             />
             <span className="text-[16px] font-bold text-gray-600">
               {`/ ${maxPoint.toLocaleString()} P`}
             </span>
           </div>
+
+          {errors.pointAmount && (
+            <p className="text-right text-[13px] text-red-500">
+              {errors.pointAmount.message}
+            </p>
+          )}
+
           <div className="flex flex-col items-end gap-1 text-[16px] font-bold text-gray-700">
             <p>적립 예정: {previewReward.toLocaleString()} P</p>
             <p className="text-[20px] font-extrabold text-black">
@@ -190,9 +213,13 @@ export default function PurchaseRequestManageDetailPage({
             id="processMessageInput"
             placeholder="승인/반려 메시지를 입력해주세요"
             className="h-[140px] w-full resize-none rounded-[2px] border border-solid border-gray-200 bg-white p-6 text-[16px] leading-[1.6] tracking-[-0.4px] text-gray-950 outline-none placeholder:text-gray-400"
-            value={resultMessage}
-            onChange={(e) => setResultMessage(e.target.value)}
+            {...register('resultMessage')}
           />
+          {errors.resultMessage && (
+            <p className="text-[13px] text-red-500">
+              {errors.resultMessage.message}
+            </p>
+          )}
         </section>
 
         <InfoSection
@@ -208,10 +235,7 @@ export default function PurchaseRequestManageDetailPage({
             },
             {
               type: 'single',
-              field: {
-                label: '요청 메시지',
-                value: data.requestMessage,
-              },
+              field: { label: '요청 메시지', value: data.requestMessage },
             },
           ]}
         />
@@ -228,7 +252,6 @@ export default function PurchaseRequestManageDetailPage({
             />
           </div>
         )}
-
         {resultModal === 'reject' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[5px]">
             <AlertModal
@@ -274,7 +297,7 @@ export default function PurchaseRequestManageDetailPage({
             variant="line"
             className="min-w-0 flex-1 cursor-pointer"
             onClick={handleReject}
-            disabled={isMutating}
+            disabled={isMutating || !!errors.resultMessage}
           >
             요청 반려
           </Button>
@@ -283,7 +306,12 @@ export default function PurchaseRequestManageDetailPage({
               variant="filled"
               className="w-full cursor-pointer"
               onClick={handleApprove}
-              disabled={isOverBudgetAfterPoints || isMutating}
+              disabled={
+                isOverBudgetAfterPoints ||
+                isMutating ||
+                !!errors.pointAmount ||
+                !!errors.resultMessage
+              }
             >
               요청 승인
             </Button>

@@ -37,3 +37,9 @@ export function formatProductName(items: { productName: string }[]) {
   if (items.length === 1) return items[0].productName;
   return `${items[0].productName} 외 ${items.length - 1}건`;
 }
+
+export function statusBadgeVariant(
+  status: OrderStatus
+): 'approved' | 'rejected' {
+  return status === 'REFUNDED' ? 'rejected' : 'approved';
+}
