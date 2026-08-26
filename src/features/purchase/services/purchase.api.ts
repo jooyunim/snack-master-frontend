@@ -33,3 +33,16 @@ export function getOrderById(id: number) {
 export function getDashboardSummary() {
   return apiFetch<DashboardSummary>('/dashboard/summary');
 }
+
+export function refundOrder(id: number, refundReason: string) {
+  return apiFetch<{
+    id: number;
+    status: 'REFUNDED';
+    paidAmount: number;
+    pointsUsedRestored: number;
+    earnRevoked: number;
+  }>(`/refunds/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ refundReason }),
+  });
+}

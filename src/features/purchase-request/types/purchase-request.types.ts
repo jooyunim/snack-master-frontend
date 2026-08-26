@@ -111,6 +111,9 @@ export type MyPurchaseRequestDetail = {
   resolutionInfo: {
     resolvedAt: string | null;
     resolver: PurchaseRequestUser | null;
+    refundedBy?: PurchaseRequestUser | null;
+    refundedAt?: string | null;
+    refundReason?: string | null;
     status: PurchaseRequestStatus;
     message: string | null;
   };

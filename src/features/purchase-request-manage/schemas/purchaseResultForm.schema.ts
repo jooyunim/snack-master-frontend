@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-export const createPurchaseResultFormSchema = (maxPoint: number) =>
+export const createPurchaseResultFormSchema = (
+  maxPoint: number,
+  requestAmount: number
+) =>
   z.object({
     resultMessage: z
       .string()
@@ -9,7 +12,13 @@ export const createPurchaseResultFormSchema = (maxPoint: number) =>
     pointAmount: z
       .number()
       .min(0, '포인트는 0 이상이어야 합니다.')
-      .max(maxPoint, '사용 가능한 포인트를 초과했습니다.'),
+      .max(
+        maxPoint,
+        `${maxPoint.toLocaleString('ko-KR')} P 이하로 입력해주세요.`
+      )
+      .refine((val) => val <= requestAmount, {
+        message: '결제 금액을 초과할 수 없습니다.',
+      }),
   });
 
 export type PurchaseResultFormValues = z.infer<
