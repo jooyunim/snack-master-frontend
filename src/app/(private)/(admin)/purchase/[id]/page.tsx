@@ -1,11 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-<<<<<<<<< Temporary merge branch 1
-
-=========
 import { notFound, useParams, useRouter } from 'next/navigation';
->>>>>>>>> Temporary merge branch 2
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
