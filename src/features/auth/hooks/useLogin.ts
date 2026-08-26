@@ -6,7 +6,7 @@ export const useLogin = ({
   onSuccess,
   onError,
 }: {
-  onSuccess: () => void;
+  onSuccess?: () => void;
   onError: (error: Error) => void;
 }) => {
   const { login } = useAuth();
