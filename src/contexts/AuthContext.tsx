@@ -29,19 +29,14 @@ interface AuthContextType {
   isAuthChecked: boolean;
   login: (data: LoginFormValues) => Promise<void>;
   logout: () => Promise<void>;
+  hydrateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({
-  children,
-  initialUser,
-}: {
-  children: ReactNode;
-  initialUser?: User | null;
-}) => {
-  const [user, setUser] = useState<User | null>(initialUser ?? null);
-  const [isAuthChecked, setIsAuthChecked] = useState(initialUser !== undefined);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isLoggedIn = !!user;
   const queryClient = useQueryClient();
 
@@ -49,6 +44,12 @@ export const AuthProvider = ({
   useEffect(() => {
     setApiAuthSession(isLoggedIn);
   }, [isLoggedIn]);
+
+  const hydrateUser = useCallback((nextUser: User) => {
+    setApiAuthSession(true);
+    setUser(nextUser);
+    setIsAuthChecked(true);
+  }, []);
 
   const login = async ({
     email,
@@ -61,9 +62,11 @@ export const AuthProvider = ({
       throw new Error('인증 확인 중입니다. 잠시 후 다시 시도해주세요.');
     }
 
-    const user = await loginApi(email, password);
+    await loginApi(email, password);
     setApiAuthSession(true);
-    setUser(user);
+    // soft nav는 새 쿠키를 proxy/RSC가 못 읽는 경우가 있어 hard navigation
+    // setUser 전에 이동해야 auth layout이 Loading...을 그리지 않음
+    window.location.assign('/products');
   };
 
   const clearClientSession = useCallback(() => {
@@ -115,9 +118,6 @@ export const AuthProvider = ({
   useEffect(() => {
     let cancelled = false;
 
-    if (initialUser !== undefined) {
-      return;
-    }
     const checkAuth = async () => {
       const path = window.location.pathname;
       const isAuthPage = path === '/login' || path.startsWith('/signup');
@@ -129,6 +129,12 @@ export const AuthProvider = ({
         if (!cancelled) {
           setIsAuthChecked(true);
         }
+        return;
+      }
+
+      // private 구간은 (private)/layout 서버 getUser + hydrateUser가 담당.
+      // 여기서 또 getUserApi 하면 이중 요청·레이스가 난다.
+      if (path !== '/') {
         return;
       }
 
@@ -151,11 +157,18 @@ export const AuthProvider = ({
     return () => {
       cancelled = true;
     };
-  }, [initialUser]);
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoggedIn, isAuthChecked, login, logout }}
+      value={{
+        user,
+        isLoggedIn,
+        isAuthChecked,
+        login,
+        logout,
+        hydrateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

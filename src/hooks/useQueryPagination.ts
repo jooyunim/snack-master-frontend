@@ -1,4 +1,4 @@
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
 //https://.../manage/members?page=2&search=홍길동 이면:
@@ -8,7 +8,6 @@ import { useCallback } from 'react';
 //searchParams.get('search') = 홍길동
 
 export const useQueryPagination = () => {
-  const router = useRouter();
   const pathname = usePathname(); // ? 앞 경로를 읽음
   const searchParams = useSearchParams(); // ? 뒤를 읽음
 
@@ -19,12 +18,15 @@ export const useQueryPagination = () => {
   const search = searchParams.get('search') ?? '';
   const sort = searchParams.get('sort') ?? '';
 
+  // router.replace는 하드 새로고침 후 초기 쿼리를 다시 붙이는 경우가 있어,
+  // 쿼리만 바꿀 때는 history.replaceState를 쓴다 (Next.js 권장, useSearchParams와 동기화됨).
   const replaceQuery = useCallback(
     (params: URLSearchParams) => {
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      const url = qs ? `${pathname}?${qs}` : pathname;
+      window.history.replaceState(null, '', url);
     },
-    [pathname, router]
+    [pathname]
   );
 
   //page 값을 변경하는 함수
@@ -44,11 +46,16 @@ export const useQueryPagination = () => {
   //search 값을 변경하는 함수. 검색이 바뀌면 1페이지로 돌아간다.
   const setSearch = useCallback(
     (nextSearch: string) => {
-      const params = new URLSearchParams(searchParams.toString());
       const trimmed = nextSearch.trim();
+      const currentRaw = searchParams.get('search') ?? '';
+      const current = currentRaw.trim();
+      // 값이 같으면 page를 지우지 않는다 (페이지 이동 직후 동기화 effect가 다시 호출해도 페이지가 리셋되지 않음)
+      if (trimmed === currentRaw) return;
+
+      const params = new URLSearchParams(searchParams.toString());
       if (trimmed) params.set('search', trimmed);
       else params.delete('search');
-      params.delete('page');
+      if (trimmed !== current) params.delete('page');
       replaceQuery(params);
     },
     [replaceQuery, searchParams]
@@ -56,6 +63,9 @@ export const useQueryPagination = () => {
 
   const setSort = useCallback(
     (nextSort: string) => {
+      const current = searchParams.get('sort') ?? '';
+      if (nextSort === current) return;
+
       const params = new URLSearchParams(searchParams.toString());
       if (nextSort) params.set('sort', nextSort);
       else params.delete('sort');
