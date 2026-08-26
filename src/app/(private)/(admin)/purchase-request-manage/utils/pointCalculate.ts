@@ -22,10 +22,10 @@ const pointCalculate = ({
   shippingFee,
   remainedBudget,
 }: PurchaseCalculationParams): PurchaseCalculationResult => {
-  const maxPoint = Math.min(pointBalance, requestAmount);
-  const safePointAmount = Number.isFinite(pointAmount)
-    ? Math.min(Math.max(pointAmount, 0), maxPoint)
-    : 0;
+  const maxPoint = pointBalance; // Math.min(pointBalance, requestAmount) → pointBalance만
+
+  const safePointAmount = Number.isFinite(pointAmount) ? pointAmount : 0;
+
   const previewPaidAmount = Math.max(requestAmount - safePointAmount, 0);
   const previewReward = Math.floor(
     Math.max(previewPaidAmount - shippingFee, 0) * 0.01

@@ -1,19 +1,22 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createPurchaseResultFormSchema,
   PurchaseResultFormValues,
 } from '../schemas/purchaseResultForm.schema';
-import { useMemo } from 'react';
 
-export function usePurchaseResultForm(maxPoint: number) {
+export function usePurchaseResultForm(maxPoint: number, requestAmount: number) {
   const resolver = useMemo(
-    () => zodResolver(createPurchaseResultFormSchema(maxPoint)),
-    [maxPoint]
+    () => zodResolver(createPurchaseResultFormSchema(maxPoint, requestAmount)),
+    [maxPoint, requestAmount]
   );
 
   return useForm<PurchaseResultFormValues>({
     resolver,
-    defaultValues: { resultMessage: '', pointAmount: 0 },
+    defaultValues: {
+      resultMessage: '',
+      pointAmount: 0,
+    },
   });
 }
