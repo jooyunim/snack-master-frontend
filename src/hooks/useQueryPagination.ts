@@ -47,14 +47,15 @@ export const useQueryPagination = () => {
   const setSearch = useCallback(
     (nextSearch: string) => {
       const trimmed = nextSearch.trim();
-      const current = (searchParams.get('search') ?? '').trim();
+      const currentRaw = searchParams.get('search') ?? '';
+      const current = currentRaw.trim();
       // 값이 같으면 page를 지우지 않는다 (페이지 이동 직후 동기화 effect가 다시 호출해도 페이지가 리셋되지 않음)
-      if (trimmed === current) return;
+      if (trimmed === currentRaw) return;
 
       const params = new URLSearchParams(searchParams.toString());
       if (trimmed) params.set('search', trimmed);
       else params.delete('search');
-      params.delete('page');
+      if (trimmed !== current) params.delete('page');
       replaceQuery(params);
     },
     [replaceQuery, searchParams]
