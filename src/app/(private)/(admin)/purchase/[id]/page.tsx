@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';

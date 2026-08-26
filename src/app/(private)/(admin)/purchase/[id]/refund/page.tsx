@@ -1,12 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
-import InfoSection from '@/components/InfoSection';
 import PaymentSummary from '@/components/PaymentSummary';
 import Button from '@/components/Button';
 import AlertModal from '@/components/AlertModal';
@@ -14,11 +13,10 @@ import icChevronUp from '@/assets/icons/ic_chevron_up.svg';
 import icAlert from '@/assets/icons/ic_!.svg';
 import { ApiError } from '@/lib/api';
 import type { OrderDetail } from '@/features/purchase/types/purchase.types';
-import { formatDate, formatWon } from '@/features/purchase/format';
+import { formatWon } from '@/features/purchase/format';
 import { useOrderDetail } from '@/features/purchase/hooks/useOrderDetail';
 import { useRefundOrder } from '@/features/purchase/hooks/useRefundOrder';
 import PurchaseDetailLoading from '../../components/PurchaseDetailLoading';
-import PurchaseDetailError from '../../components/PurchaseDetailError';
 
 const REFUND_REASON_MAX = 100;
 
@@ -58,7 +56,7 @@ export default function PurchaseRefundPage() {
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
 
   if (!isValidId) {
-    return <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />;
+    notFound();
   }
 
   if (isLoading || (order != null && order.id !== orderId)) {
@@ -66,13 +64,11 @@ export default function PurchaseRefundPage() {
   }
 
   if (isError || !order) {
-    return <PurchaseDetailError message="구매 내역을 불러오지 못했습니다." />;
+    notFound();
   }
 
   if (order.status !== 'APPROVED' && !successOpen) {
-    return (
-      <PurchaseDetailError message="승인 완료 상태인 구매만 환불할 수 있습니다." />
-    );
+    notFound();
   }
 
   const itemTotal = calcItemTotal(order);
