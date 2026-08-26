@@ -7,6 +7,7 @@ import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
+import { CardListSkeleton, TableSkeleton } from '@/components/TableRowSkeleton';
 import { useCancelPurchaseRequest } from '@/features/purchase-request/hooks/useCancelPurchaseRequest';
 import { useMyPurchaseRequests } from '@/features/purchase-request/hooks/useMyPurchaseRequests';
 import type { PurchaseRequestStatus } from '@/features/purchase-request/types/purchase-request.types';
@@ -20,6 +21,29 @@ const STATUS_BADGE = {
   CANCELED: { variant: 'rejected', label: '취소' },
   REFUNDED: { variant: 'rejected', label: '환불' },
 } as const;
+
+const PURCHASE_REQUEST_TABLE_COLUMNS = [
+  {
+    className: 'w-[180px] shrink-0 max-lg:w-[100px]',
+    bars: [{ className: 'h-4 w-28 max-lg:w-20' }],
+  },
+  {
+    className: 'w-[260px] shrink-0 max-lg:w-[140px]',
+    bars: [{ className: 'h-4 w-40 max-lg:w-24' }],
+  },
+  {
+    className: 'w-[180px] shrink-0 max-lg:w-[100px]',
+    bars: [{ className: 'h-4 w-24 max-lg:w-16' }],
+  },
+  {
+    className: 'w-[180px] shrink-0 max-lg:w-[100px]',
+    bars: [{ className: 'h-6 w-14 rounded' }],
+  },
+  {
+    className: 'w-[126px] shrink-0',
+    bars: [{ className: 'h-10 w-full rounded-[2px]' }],
+  },
+];
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('ko-KR', {
@@ -128,11 +152,17 @@ export default function PurchaseRequestPage() {
               비고
             </span>
           </div>
-          <ul className="flex w-full min-w-[696px] flex-col max-sm:hidden">
+          <ul
+            className="flex w-full min-w-[696px] flex-col max-sm:hidden"
+            aria-busy={isLoading || undefined}
+            aria-label={isLoading ? '구매 요청 내역 로딩 중' : undefined}
+          >
             {isLoading && (
-              <li className="py-20 text-center text-gray-500">
-                구매 요청 내역을 불러오는 중입니다.
-              </li>
+              <TableSkeleton
+                rows={pageSize}
+                columns={PURCHASE_REQUEST_TABLE_COLUMNS}
+                className="gap-20 px-10 max-lg:justify-between max-lg:gap-0 max-lg:px-0"
+              />
             )}
 
             {isError && (
@@ -198,12 +228,12 @@ export default function PurchaseRequestPage() {
           </ul>
 
           {/* Mobile card list */}
-          <ul className="hidden w-full flex-col max-sm:flex">
-            {isLoading && (
-              <li className="py-20 text-center text-gray-500">
-                구매 요청 내역을 불러오는 중입니다.
-              </li>
-            )}
+          <ul
+            className="hidden w-full flex-col max-sm:flex"
+            aria-busy={isLoading || undefined}
+            aria-label={isLoading ? '구매 요청 내역 로딩 중' : undefined}
+          >
+            {isLoading && <CardListSkeleton rows={pageSize} lines={2} />}
 
             {isError && (
               <li className="py-20 text-center text-red">
