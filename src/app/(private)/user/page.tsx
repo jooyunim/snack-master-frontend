@@ -19,7 +19,10 @@ const ROLE_LABEL: Record<Role, string> = {
 const PASSWORD_REGEX =
   /^(?=(?:.*[A-Za-z].*[0-9])|(?=.*[A-Za-z].*[@$!%*?&])|(?=.*[0-9].*[@$!%*?&]))[A-Za-z\d@$!%*?&]{8,}$/;
 
-const getNewPasswordError = (newPassword: string, newPasswordConfirm: string) => {
+const getNewPasswordError = (
+  newPassword: string,
+  newPasswordConfirm: string
+) => {
   if (newPassword !== newPasswordConfirm) {
     return '새 비밀번호와 확인이 일치하지 않습니다.';
   }
@@ -51,7 +54,10 @@ export default function UserProfilePage() {
       return;
     }
 
-    const validationError = getNewPasswordError(newPassword, newPasswordConfirm);
+    const validationError = getNewPasswordError(
+      newPassword,
+      newPasswordConfirm
+    );
     if (validationError) {
       setFieldError(validationError);
       return;
@@ -71,10 +77,10 @@ export default function UserProfilePage() {
           setFieldError(
             error instanceof ApiError
               ? error.message
-              : '비밀번호 변경에 실패했습니다.',
+              : '비밀번호 변경에 실패했습니다.'
           );
         },
-      },
+      }
     );
   };
 
@@ -86,7 +92,10 @@ export default function UserProfilePage() {
             내 프로필 변경
           </h1>
 
-          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-[30px]">
+          <form
+            onSubmit={handleSubmit}
+            className="flex w-full flex-col gap-[30px]"
+          >
             <div className="flex w-full flex-col gap-5">
               <Input
                 floatingLabel="기업명"

@@ -5,7 +5,7 @@ import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
 import InfoSection from '../../../../components/InfoSection';
-import { useParams, useRouter } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import { useMyPurchaseRequest } from '@/features/purchase-request/hooks/useMyPurchaseRequest';
 
 function formatPrice(price: number) {
@@ -40,6 +40,10 @@ export default function PurchaseRequestDetailPage() {
     REFUNDED: '환불',
   } as const;
 
+  if (!Number.isInteger(purchaseRequestId) || purchaseRequestId < 1) {
+    notFound();
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -50,20 +54,11 @@ export default function PurchaseRequestDetailPage() {
     );
   }
 
-  if (
-    isError ||
-    !data ||
-    !Number.isInteger(purchaseRequestId) ||
-    purchaseRequestId < 1
-  ) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">
-          구매 요청 상세 정보를 불러오지 못했습니다.
-        </p>
-      </div>
-    );
+  if (isError || !data) {
+    notFound();
   }
+
+  const isRefunded = data.resolutionInfo.status === 'REFUNDED';
 
   const detailItems: readonly RequestItem[] = data.items.map((item) => ({
     id: item.id,
@@ -115,28 +110,36 @@ export default function PurchaseRequestDetailPage() {
         />
 
         <InfoSection
-          title="승인 정보"
+          title={isRefunded ? '환불 정보' : '승인 정보'}
           rows={[
             {
               type: 'pair',
               left: {
                 label: '담당자',
-                value: data.resolutionInfo.resolver?.name ?? '-',
+                value: isRefunded
+                  ? (data.resolutionInfo.refundedBy?.name ?? '-')
+                  : (data.resolutionInfo.resolver?.name ?? '-'),
               },
               right: {
-                label: '승인 날짜',
-                value: formatDate(data.resolutionInfo.resolvedAt),
+                label: isRefunded ? '환불 날짜' : '승인 날짜',
+                value: formatDate(
+                  isRefunded
+                    ? (data.resolutionInfo.refundedAt ?? null)
+                    : data.resolutionInfo.resolvedAt
+                ),
               },
             },
             {
               type: 'pair',
               left: {
                 label: '상태',
-                value: STATUS_LABEL[data.resolutionInfo.status],
+                value: STATUS_LABEL[data.resolutionInfo.status], // REFUNDED → '환불'
               },
               right: {
-                label: '결과 메시지',
-                value: data.resolutionInfo.message ?? '-',
+                label: isRefunded ? '환불 사유' : '결과 메시지',
+                value: isRefunded
+                  ? data.resolutionInfo.refundReason?.trim() || '-'
+                  : (data.resolutionInfo.message ?? '-'),
               },
             },
           ]}

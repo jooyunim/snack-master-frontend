@@ -4,17 +4,15 @@ import { useRouter } from 'next/navigation';
 import { cartQueryKeys } from '../constants/query-keys';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const useCreatePurchaseRequest = (
-  selectedIds: number[],
-  requestMessage: string
-) => {
+export const useCreatePurchaseRequest = (selectedIds: number[]) => {
   const router = useRouter();
   const { user } = useAuth();
   const userId = user?.id ?? '';
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => createPurchaseRequest(selectedIds, requestMessage),
+    mutationFn: (requestMessage: string) =>
+      createPurchaseRequest(selectedIds, requestMessage),
     // POST /cart/purchase-request 응답의 id를 쿼리로 전달
     // 완료 페이지에서 GET /purchase-requests/mine/:id 로 실제 요청 내역 조회하도록
     onSuccess: (response) => {

@@ -16,10 +16,36 @@ import { useInviteUser } from '@/features/member/hooks/useInviteUser';
 import { useUpdateUserRole } from '@/features/member/hooks/useUpdateUserRole';
 import { useEffect, useRef, useState } from 'react';
 import EmptyState from '@/components/EmptyState';
+import { SkeletonBar, TableSkeleton } from '@/components/TableRowSkeleton';
 import { Member } from '@/features/member/types/members.type';
 import { useDeleteUser } from '@/features/member/hooks/useDeleteUser';
 import { useUsers } from '@/features/member/hooks/useUsers';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
+
+const MEMBER_TABLE_COLUMNS = [
+  {
+    className: 'shrink-0 gap-5 max-lg:gap-3',
+    bars: [
+      { className: 'size-8 shrink-0 rounded-full' },
+      { className: 'h-4 w-[90px] max-lg:w-20' },
+    ],
+  },
+  {
+    className: 'min-w-0 flex-1',
+    bars: [{ className: 'h-4 w-1/2 max-w-[240px]' }],
+  },
+  {
+    className: 'w-[72px] shrink-0 justify-center',
+    bars: [{ className: 'h-6 w-16 rounded' }],
+  },
+  {
+    className: 'w-[200px] shrink-0 gap-2',
+    bars: [
+      { className: 'h-10 w-[96px] rounded-[2px]' },
+      { className: 'h-10 w-[96px] rounded-[2px]' },
+    ],
+  },
+];
 
 //아바타용 이니셜 뽑는 함수
 const getInitials = (name: string) => name.trim().slice(0, 1) || '?';
@@ -32,7 +58,7 @@ const getMemberBadgeVariant = (role: Member['role']) => {
 export default function MembersPage() {
   const { page, setPage, search, setSearch } = useQueryPagination();
   const [searchInput, setSearchInput] = useState(search);
-  const [pageSize] = useState(15);
+  const pageSize = 10;
   const [modalMode, setModalMode] = useState<InviteMemberModalMode | null>(
     null
   );
@@ -165,31 +191,7 @@ export default function MembersPage() {
     setPage(nextPage);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-[16px] tracking-[-0.4px] text-gray-600">
-          회원을 불러오는 중입니다...
-        </p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-[16px] tracking-[-0.4px] text-gray-600">
-          회원 조회에 실패하였습니다. 다시 시도해주세요.
-        </p>
-        <button
-          onClick={() => refetch()}
-          className="text-[16px] tracking-[-0.4px] text-gray-600 underline max-sm:text-[14px] max-sm:tracking-[-0.35px] cursor-pointer"
-        >
-          다시 시도
-        </button>
-      </div>
-    );
-  }
+  const isEmpty = !isLoading && !isError && MEMBERS.length === 0;
 
   return (
     <main className="relative flex w-full max-w-[960px] flex-col gap-10 max-lg:max-w-none max-sm:gap-6 max-sm:pb-[112px]">
@@ -222,7 +224,73 @@ export default function MembersPage() {
       </section>
 
       <section className="flex w-full flex-col gap-6">
-        {MEMBERS.length === 0 ? (
+        {isError ? (
+          <div className="flex w-full flex-col items-center justify-center gap-3 py-20">
+            <p className="text-[16px] tracking-[-0.4px] text-gray-600">
+              회원 조회에 실패하였습니다. 다시 시도해주세요.
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="cursor-pointer text-[16px] tracking-[-0.4px] text-gray-600 underline max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : isLoading ? (
+          <>
+            <div className="flex w-full flex-col max-sm:hidden">
+              <div className="flex w-full items-center gap-20 border-y border-solid border-gray-100 p-5 max-lg:gap-8">
+                <div className="flex w-[142px] shrink-0 items-center px-[50px] max-lg:w-[132px] max-lg:px-[46px]">
+                  <span className="w-[90px] text-[16px] font-bold tracking-[-0.4px] text-gray-500 max-lg:w-20">
+                    이름
+                  </span>
+                </div>
+                <span className="min-w-0 flex-1 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                  메일
+                </span>
+                <span className="w-[72px] shrink-0 text-center text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                  권한
+                </span>
+                <span className="w-[200px] shrink-0 text-center text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                  비고
+                </span>
+              </div>
+              <ul
+                className="flex w-full flex-col"
+                aria-busy="true"
+                aria-label="회원 목록 로딩 중"
+              >
+                <TableSkeleton
+                  rows={pageSize}
+                  columns={MEMBER_TABLE_COLUMNS}
+                  className="gap-20 px-5 max-lg:gap-8"
+                />
+              </ul>
+            </div>
+            <ul
+              className="hidden w-full flex-col max-sm:flex"
+              aria-busy="true"
+              aria-label="회원 목록 로딩 중"
+            >
+              {Array.from({ length: pageSize }, (_, index) => (
+                <li
+                  key={index}
+                  className="flex w-full items-center gap-3 border-b border-solid border-gray-100 py-4"
+                  aria-hidden
+                >
+                  <SkeletonBar className="size-12 shrink-0 rounded-full" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <SkeletonBar className="h-4 w-20" />
+                      <SkeletonBar className="h-5 w-12 rounded" />
+                    </div>
+                    <SkeletonBar className="h-4 w-[172px]" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : isEmpty ? (
           <div className="flex w-full justify-center py-20 max-sm:py-10">
             {debouncedSearch ? (
               <EmptyState

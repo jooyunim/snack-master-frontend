@@ -9,7 +9,7 @@ import icLock from '@/assets/icons/ic_lock.svg';
 import icManager from '@/assets/icons/ic_manager.svg';
 import icCartBag from '@/assets/icons/Vector 2593.svg';
 import icCartHandle from '@/assets/icons/Rectangle 22732.svg';
-import icLike from '@/assets/icons/Property 1=normal-1.svg';
+import icLike from '@/assets/icons/ic_like_normal.svg';
 import icMenu from '@/assets/icons/ic_menu2.svg';
 import icChevronDown from '@/assets/icons/ic_chevron_down.svg';
 import SideMenu from '@/components/SideMenu';
@@ -72,6 +72,8 @@ type GnbProps = {
   userType?: Role | null;
   cartCount?: number;
   profileName?: string;
+  /** user 로딩 중 private 라우트용 — 오른쪽 액션 영역 레이아웃 시프트 방지 */
+  isAuthPending?: boolean;
 };
 
 function isNavActive(pathname: string, item: NavItem) {
@@ -89,6 +91,21 @@ function categoryHref(categorySlug: string) {
   return `/products?${params.toString()}`;
 }
 
+function AuthShellActions() {
+  return (
+    <div
+      className="flex h-11 shrink-0 items-center gap-5 max-lg:gap-8 xl:gap-[30px]"
+      aria-hidden="true"
+    >
+      <div className="size-6 shrink-0 rounded-sm bg-gray-100" />
+      <div className="size-6 shrink-0 rounded-full bg-gray-100 max-lg:hidden" />
+      <div className="size-6 shrink-0 rounded-full bg-gray-100 max-sm:hidden" />
+      <span className="h-2.5 w-px bg-gray-100 max-sm:hidden" />
+      <div className="h-4 w-12 rounded-sm bg-gray-100 max-sm:hidden" />
+    </div>
+  );
+}
+
 function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
   return (
     <>
@@ -98,7 +115,13 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icLock} alt="" fill className="object-contain" />
+            <Image
+              src={icLock}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           로그인
         </Link>
@@ -107,7 +130,13 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
           className="flex items-center gap-1 text-[16px] tracking-[-0.4px] text-gray-950"
         >
           <span className="relative size-6 shrink-0 overflow-hidden">
-            <Image src={icManager} alt="" fill className="object-contain" />
+            <Image
+              src={icManager}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           기업 담당자 회원가입
         </Link>
@@ -119,7 +148,7 @@ function GuestActions({ onOpenMenu }: { onOpenMenu: () => void }) {
         onClick={onOpenMenu}
         className="relative size-6 shrink-0 overflow-hidden sm:hidden"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image src={icMenu} alt="" fill priority className="object-contain" />
       </button>
     </>
   );
@@ -178,10 +207,22 @@ function AuthActions({
           className="relative size-6 shrink-0"
         >
           <span className="absolute left-1/2 top-[8.29px] h-[12.705px] w-[15.882px] -translate-x-1/2">
-            <Image src={icCartBag} alt="" fill className="object-contain" />
+            <Image
+              src={icCartBag}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           <span className="absolute left-1/2 top-[3px] h-[5.947px] w-[7.411px] -translate-x-1/2">
-            <Image src={icCartHandle} alt="" fill className="object-contain" />
+            <Image
+              src={icCartHandle}
+              alt=""
+              fill
+              priority
+              className="object-contain"
+            />
           </span>
           {cartCount > 0 ? (
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[9px] font-bold leading-none tracking-[-0.225px] text-white">
@@ -195,7 +236,7 @@ function AuthActions({
           aria-label="찜하기"
           className="relative size-6 shrink-0 overflow-hidden max-lg:hidden"
         >
-          <Image src={icLike} alt="" fill className="object-contain" />
+          <Image src={icLike} alt="" fill priority className="object-contain" />
         </Link>
 
         <Link
@@ -232,7 +273,7 @@ function AuthActions({
         onClick={onOpenMenu}
         className="relative hidden size-6 shrink-0 overflow-hidden max-xl:block"
       >
-        <Image src={icMenu} alt="" fill className="object-contain" />
+        <Image src={icMenu} alt="" fill priority className="object-contain" />
       </button>
     </div>
   );
@@ -299,6 +340,7 @@ export default function Gnb({
   userType = null,
   cartCount = 0,
   profileName = '',
+  isAuthPending = false,
 }: GnbProps) {
   const pathname = usePathname();
   const isLoggedIn = userType != null;
@@ -311,13 +353,14 @@ export default function Gnb({
       >
         <div className="flex min-w-0 flex-1 items-center gap-6 xl:gap-10">
           <Link
-            href={isLoggedIn ? '/products' : '/'}
+            href={isLoggedIn || isAuthPending ? '/products' : '/'}
             className="relative h-11 w-[102.746px] shrink-0 overflow-hidden"
           >
             <Image
               src={logo}
               alt="스낵마스터 로고"
               fill
+              priority
               className="object-contain"
             />
           </Link>
@@ -332,7 +375,9 @@ export default function Gnb({
           </Suspense>
         ) : null}
 
-        {isLoggedIn ? (
+        {isAuthPending ? (
+          <AuthShellActions />
+        ) : isLoggedIn ? (
           <AuthActions
             cartCount={cartCount}
             profileName={profileName}
@@ -343,7 +388,7 @@ export default function Gnb({
         )}
       </header>
 
-      {isSideMenuOpen ? (
+      {isSideMenuOpen && !isAuthPending ? (
         <div
           className={`fixed inset-0 z-40 ${isLoggedIn ? 'xl:hidden' : 'sm:hidden'}`}
         >

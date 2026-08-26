@@ -53,9 +53,11 @@ export default function BudgetPage() {
         onSuccess: () => setSuccessMessage('예산이 수정되었습니다.'),
         onError: (error) =>
           setFormError(
-            error instanceof ApiError ? error.message : '예산 수정에 실패했습니다.',
+            error instanceof ApiError
+              ? error.message
+              : '예산 수정에 실패했습니다.'
           ),
-      },
+      }
     );
   };
 

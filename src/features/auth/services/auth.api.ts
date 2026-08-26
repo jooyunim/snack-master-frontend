@@ -1,4 +1,3 @@
-import { apiFetch } from '@/lib/api';
 import { User } from '../types/auth.types';
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000';
@@ -21,53 +20,66 @@ export const loginApi = async (
   }
   const data = await res.json();
 
-  if (!data.user) {
+  if (!data.data?.user) {
     throw new Error('로그인에 실패하였습니다.');
   }
-  if (typeof data.accessToken !== 'string' || !data.accessToken) {
-    throw new Error('토큰이 없습니다.');
-  }
 
-  localStorage.setItem('accessToken', data.accessToken);
-  return data.user;
+  return data.data?.user;
 };
 
 export const logoutApi = async (): Promise<void> => {
-  try {
-    const res = await fetch(`${API_BASE}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => null);
-      throw new Error(error?.message || '로그아웃에 실패했습니다.');
-    }
-  } finally {
-    localStorage.removeItem('accessToken');
-  }
-};
-
-export const getUserApi = async (): Promise<User> => {
-  const res = await apiFetch<{ user: User }>('/auth/user', {
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',
   });
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '로그아웃에 실패했습니다.');
+  }
+};
 
-  if (!res?.user) {
+export const getUserApi = async (options?: {
+  tryRefresh?: boolean;
+}): Promise<User> => {
+  const tryRefresh = options?.tryRefresh ?? true;
+
+  let res = await fetch(`${API_BASE}/auth/user`, {
+    credentials: 'include',
+  });
+
+  // 초기 세션 체크: 401/refresh 실패는 비로그인으로만 처리.
+  // SESSION_EXPIRED는 apiFetch(로그인 중 API 호출)에서만 발생시킨다.
+  if (res.status === 401 && tryRefresh) {
+    try {
+      await refreshAccessToken();
+      res = await fetch(`${API_BASE}/auth/user`, {
+        credentials: 'include',
+      });
+    } catch {
+      throw new Error('세션이 만료되었습니다.');
+    }
+  }
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message || '유저 정보를 가져오는데 실패했습니다.');
+  }
+
+  const data = await res.json();
+
+  if (!data.data?.user) {
     throw new Error('유저 정보를 가져오는데 실패했습니다.');
   }
 
-  return res.user;
+  return data.data?.user;
 };
 
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<void> | null = null;
 
-export const refreshAccessToken = async (): Promise<string> => {
+export const refreshAccessToken = async (): Promise<void> => {
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -84,15 +96,6 @@ export const refreshAccessToken = async (): Promise<string> => {
     if (!res.ok) {
       throw new Error('access token 재발급에 실패했습니다.');
     }
-
-    const data = await res.json();
-    const accessToken = data?.data?.accessToken;
-    if (typeof accessToken !== 'string' || !accessToken) {
-      throw new Error('access token 재발급에 실패했습니다.');
-    }
-
-    localStorage.setItem('accessToken', accessToken);
-    return accessToken;
   })().finally(() => (refreshPromise = null));
   return refreshPromise;
 };

@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { inviteSignupApi } from '../services/auth.api';
+import { InviteSignupFormValues } from '../schemas/auth';
 
 export const useInviteSignup = ({
   onSuccess,
@@ -13,11 +14,8 @@ export const useInviteSignup = ({
       token,
       password,
       passwordConfirm,
-    }: {
-      token: string;
-      password: string;
-      passwordConfirm: string;
-    }) => inviteSignupApi(token, password, passwordConfirm),
+    }: InviteSignupFormValues & { token: string }) =>
+      inviteSignupApi(token, password, passwordConfirm),
     onSuccess,
     onError,
   });

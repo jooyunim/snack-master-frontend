@@ -4,21 +4,26 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import Pagination from '@/components/Pagination';
 import SortDropdown from '@/components/SortDropdown';
+import { SkeletonBar, TableSkeleton } from '@/components/TableRowSkeleton';
 import type {
   OrderListItem,
   OrderSort,
+  OrderStatus,
 } from '@/features/purchase/types/purchase.types';
 import {
   formatAmount,
   formatDate,
   formatProductName,
+  statusBadgeVariant,
+  statusLabel,
 } from '@/features/purchase/format';
 import BudgetSummaryCards from './components/BudgetSummaryCards';
 import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
 import { useOrders } from '@/features/purchase/hooks/useOrders';
 import { useDashboardSummary } from '@/features/purchase/hooks/useDashboardSummary';
-import { useQueryPagination } from '@/features/member/hooks/useQueryPagination';
+import { useQueryPagination } from '@/hooks/useQueryPagination';
+import Badge from '@/components/Badge';
 
 type PurchaseRow = {
   id: number;
@@ -29,10 +34,40 @@ type PurchaseRow = {
   quantityCompact: string;
   amount: string;
   approvedDate: string;
+  refundedDate: string;
   manager: string;
+  status: OrderStatus;
 };
 
+const PURCHASE_TABLE_COLUMNS = [
+  {
+    className: 'w-[130px] shrink-0',
+    bars: [{ className: 'h-4 w-24' }],
+  },
+  {
+    className: 'w-[122px] shrink-0',
+    bars: [{ className: 'h-4 w-16' }],
+  },
+  {
+    className: 'w-[220px] shrink-0 flex-col items-start gap-1',
+    bars: [{ className: 'h-4 w-40' }, { className: 'h-3.5 w-24' }],
+  },
+  {
+    className: 'w-[130px] shrink-0',
+    bars: [{ className: 'h-4 w-24' }],
+  },
+  {
+    className: 'w-[130px] shrink-0',
+    bars: [{ className: 'h-4 w-24' }],
+  },
+  {
+    className: 'w-[100px] shrink-0',
+    bars: [{ className: 'h-4 w-16' }],
+  },
+];
+
 function toRow(item: OrderListItem): PurchaseRow {
+  const isRefunded = item.status === 'REFUNDED';
   return {
     id: item.id,
     requestDate: formatDate(item.requestedAt),
@@ -42,7 +77,9 @@ function toRow(item: OrderListItem): PurchaseRow {
     quantityCompact: `총수량 ${item.totalQuantity}개`,
     amount: formatAmount(item.totalAmount),
     approvedDate: formatDate(item.resolvedAt),
-    manager: item.resolverName ?? '-',
+    refundedDate: formatDate(item.refundedAt ?? null),
+    manager: item.managerName ?? '-',
+    status: item.status,
   };
 }
 
@@ -55,7 +92,7 @@ export default function PurchasePage() {
   const router = useRouter();
 
   const { data: summary } = useDashboardSummary();
-  const { data, isLoading, isError } = useOrders(page, pageSize, sort);
+  const { data, isLoading, isError } = useOrders({ page, pageSize, sort });
 
   const rows = useMemo(() => (data?.orders ?? []).map(toRow), [data?.orders]);
   const total = data?.total ?? 0;
@@ -106,6 +143,78 @@ export default function PurchasePage() {
                 buttonLabel="구매 요청 내역으로 이동"
                 onButtonClick={() => router.push('/purchase-request-manage')}
               />
+            ) : isLoading ? (
+              <>
+                {/* PC table skeleton */}
+                <div
+                  className="flex w-full flex-col max-lg:hidden"
+                  aria-busy="true"
+                  aria-label="구매 내역 로딩 중"
+                >
+                  <div className="flex w-full items-center justify-between border-y border-solid border-gray-100 px-10 py-5">
+                    <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      구매 요청일
+                    </span>
+                    <span className="w-[122px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      요청인
+                    </span>
+                    <span className="w-[220px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      상품 정보
+                    </span>
+                    <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      주문 금액
+                    </span>
+                    <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      구매 승인일
+                    </span>
+                    <span className="w-[100px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      담당자
+                    </span>
+                  </div>
+                  <ul className="flex w-full flex-col">
+                    <TableSkeleton
+                      rows={pageSize}
+                      columns={PURCHASE_TABLE_COLUMNS}
+                      className="justify-between px-10"
+                    />
+                  </ul>
+                </div>
+
+                {/* Tablet / Mobile card skeleton */}
+                <ul
+                  className="hidden w-full flex-col max-lg:flex"
+                  aria-busy="true"
+                  aria-label="구매 내역 로딩 중"
+                >
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <li
+                      key={index}
+                      className="flex w-full flex-col pb-5 last:pb-0 max-sm:pb-2.5"
+                      aria-hidden
+                    >
+                      <div className="flex w-full items-center justify-between border-b border-solid border-gray-300 py-3.5">
+                        <SkeletonBar className="h-4 w-40" />
+                        <SkeletonBar className="h-4 w-20" />
+                      </div>
+                      <div className="flex w-full flex-col">
+                        {Array.from({ length: 4 }, (_, rowIndex) => (
+                          <div
+                            key={rowIndex}
+                            className="flex w-full items-center"
+                          >
+                            <div className="flex h-[50px] w-[140px] shrink-0 items-center border-b border-r border-solid border-gray-100 p-2">
+                              <SkeletonBar className="h-4 w-20" />
+                            </div>
+                            <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-solid border-gray-100 px-4 py-2">
+                              <SkeletonBar className="h-4 w-28" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : (
               <>
                 {/* PC table */}
@@ -126,8 +235,14 @@ export default function PurchasePage() {
                     <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       구매 승인일
                     </span>
+                    <span className="w-[130px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      환불일
+                    </span>
                     <span className="w-[100px] shrink-0 text-[16px] font-bold tracking-[-0.4px] text-gray-500">
                       담당자
+                    </span>
+                    <span className="w-[100px] shrink-0text-[16px] font-bold tracking-[-0.4px] text-gray-500">
+                      상태
                     </span>
                   </div>
 
@@ -162,8 +277,16 @@ export default function PurchasePage() {
                           <span className="w-[130px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
                             {item.approvedDate}
                           </span>
+                          <span className="w-[130px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
+                            {item.refundedDate}
+                          </span>
                           <span className="w-[100px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
                             {item.manager}
+                          </span>
+                          <span className="w-[100px] shrink-0 text-[16px] tracking-[-0.4px] text-gray-950">
+                            <Badge variant={statusBadgeVariant(item.status)}>
+                              {statusLabel(item.status)}
+                            </Badge>
                           </span>
                         </Link>
                       </li>
@@ -171,7 +294,7 @@ export default function PurchasePage() {
                   </ul>
                 </div>
 
-                {/* Tablet / Mobile */}
+                {/* Tablet */}
                 <ul className="hidden w-full flex-col max-lg:flex max-sm:hidden">
                   {rows.map((item) => (
                     <li
@@ -184,7 +307,7 @@ export default function PurchasePage() {
                       >
                         {/* 상단: 상품명 / 수량 / 금액 */}
                         <div className="flex w-full items-center justify-between border-b border-solid border-gray-300 py-3.5">
-                          <div className="flex items-center gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
                             <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-950">
                               {item.product}
                             </span>
@@ -252,6 +375,35 @@ export default function PurchasePage() {
                               <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-solid border-gray-100 px-5 py-2">
                                 <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-900">
                                   {item.manager}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* 상태 | 환불일 */}
+                          <div className="flex w-full items-center">
+                            <div className="flex min-w-0 flex-1 items-center">
+                              <div className="flex h-[50px] w-[140px] shrink-0 items-center border-b border-r border-solid border-gray-100 p-2">
+                                <span className="text-[16px] tracking-[-0.4px] text-gray-950">
+                                  상태
+                                </span>
+                              </div>
+                              <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-r border-solid border-gray-100 px-5 py-2">
+                                <Badge
+                                  variant={statusBadgeVariant(item.status)}
+                                >
+                                  {statusLabel(item.status)}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex min-w-0 flex-1 items-center">
+                              <div className="flex h-[50px] w-[140px] shrink-0 items-center border-b border-r border-solid border-gray-100 px-5 py-2">
+                                <span className="text-[16px] tracking-[-0.4px] text-gray-950">
+                                  환불일
+                                </span>
+                              </div>
+                              <div className="flex h-[50px] min-w-0 flex-1 items-center border-b border-solid border-gray-100 px-5 py-2">
+                                <span className="text-[16px] font-bold tracking-[-0.4px] text-gray-900">
+                                  {item.refundedDate}
                                 </span>
                               </div>
                             </div>
@@ -339,6 +491,35 @@ export default function PurchasePage() {
                             <div className="flex min-w-0 flex-1 items-center border-b border-solid border-gray-100 p-4">
                               <span className="text-[14px] font-bold leading-[1.6] tracking-[-0.35px] text-gray-900">
                                 {item.manager}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex w-full items-start">
+                            <div className="flex w-[140px] shrink-0 items-start border-b border-r border-solid border-gray-100 px-2 py-4">
+                              <span className="text-[14px] tracking-[-0.35px] text-gray-950">
+                                상태
+                              </span>
+                            </div>
+                            <div className="flex min-w-0 flex-1 items-start border-b border-solid border-gray-100 p-4">
+                              <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-900">
+                                <Badge
+                                  variant={statusBadgeVariant(item.status)}
+                                >
+                                  {statusLabel(item.status)}
+                                </Badge>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex w-full items-start">
+                            <div className="flex w-[140px] shrink-0 items-start border-b border-r border-solid border-gray-100 px-2 py-4">
+                              <span className="text-[14px] tracking-[-0.35px] text-gray-950">
+                                환불일
+                              </span>
+                            </div>
+                            <div className="flex min-w-0 flex-1 items-start border-b border-solid border-gray-100 p-4">
+                              <span className="text-[14px] font-bold tracking-[-0.35px] text-gray-900">
+                                {item.refundedDate}
                               </span>
                             </div>
                           </div>

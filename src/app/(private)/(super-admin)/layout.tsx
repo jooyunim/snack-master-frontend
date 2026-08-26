@@ -17,7 +17,7 @@ export default function SuperAdminLayout({
     return redirect('/login');
   }
   if (user.role !== 'SUPER_ADMIN') {
-    return redirect('/products');
+    return redirect('/unauthorized');
   }
   return <>{children}</>;
 }

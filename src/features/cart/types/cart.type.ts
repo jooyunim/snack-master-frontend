@@ -1,10 +1,12 @@
+import type { ComponentPropsWithoutRef } from 'react';
+
 export type RequestMessageProps = {
-  value?: string;
-  onChange?: (value: string) => void;
   placeholder?: string;
   readOnly?: boolean;
   error?: string | null;
-};
+  value?: string;
+  characterCount?: number;
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'placeholder' | 'readOnly'>;
 
 export type CartOrderContentProps = {
   selectedIds: number[];

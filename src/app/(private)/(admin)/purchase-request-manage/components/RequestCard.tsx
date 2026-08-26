@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDate } from '../utils/formatData';
+import { formatDate } from '../utils/formatDate';
 import Link from 'next/link';
 import { purchaseRequestManage } from '@/features/purchase-request-manage/types/purchase-request-manage.type';
 import Button from '@/components/Button';
@@ -12,10 +12,7 @@ type RequestCardProps = {
 
 const RequestCard = ({ request, onReject, onApprove }: RequestCardProps) => {
   return (
-    <li
-      key={request.id}
-      className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6"
-    >
+    <li className="flex w-full flex-col gap-5 border-b border-solid border-gray-100 py-6">
       <Link
         href={`/purchase-request-manage/${request.id}`}
         className="flex flex-1 items-center gap-20"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import RequestItemsSection, {
   type RequestItem,
 } from '@/components/RequestItemsSection';
@@ -11,9 +11,9 @@ import InfoSection from '@/components/InfoSection';
 import type { OrderDetail } from '@/features/purchase/types/purchase.types';
 import { formatDate, formatWon, statusLabel } from '@/features/purchase/format';
 import PurchaseDetailLoading from '../components/PurchaseDetailLoading';
-import PurchaseDetailError from '../components/PurchaseDetailError';
 import PaymentSummary from '@/components/PaymentSummary';
 import { useOrderDetail } from '@/features/purchase/hooks/useOrderDetail';
+import Button from '@/components/Button';
 
 function toRequestItems(order: OrderDetail): RequestItem[] {
   return order.items.map((item) => ({
@@ -36,20 +36,17 @@ function calcTotalQuantity(order: OrderDetail) {
 
 export default function PurchaseDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const orderId = Number(params.id);
   const isValidId = Number.isInteger(orderId) && orderId >= 1;
 
-  const {
-    data: order,
-    isLoading,
-    isError,
-  } = useOrderDetail(orderId, isValidId);
+  const { data: order, isLoading, isError } = useOrderDetail(orderId);
 
   const items = useMemo(() => (order ? toRequestItems(order) : []), [order]);
   const [itemsOpen, setItemsOpen] = useState(true);
 
   if (!isValidId) {
-    return <PurchaseDetailError message="유효하지 않은 구매 내역입니다." />;
+    notFound();
   }
 
   if (isLoading || (order != null && order.id !== orderId)) {
@@ -57,11 +54,14 @@ export default function PurchaseDetailPage() {
   }
 
   if (isError || !order) {
-    return <PurchaseDetailError message="구매 내역을 불러오지 못했습니다." />;
+    notFound();
   }
 
   const itemTotal = calcItemTotal(order);
   const totalQuantity = calcTotalQuantity(order);
+
+  const isApproved = order.status === 'APPROVED';
+  const isRefunded = order.status === 'REFUNDED';
 
   return (
     <div className="min-h-screen bg-white">
@@ -103,12 +103,23 @@ export default function PurchaseDetailPage() {
             </div>
           ) : null}
         </div>
+        <div className="flex w-full flex-col gap-5">
+          <PaymentSummary
+            variant="order"
+            pointsUsed={order.pointsUsed ?? 0}
+            pointsEarned={order.pointsEarned ?? 0}
+            paidAmount={order.paidAmount ?? 0}
+          />
 
-        <PaymentSummary
-          pointsUsed={order.pointsUsed ?? 0}
-          pointsEarned={order.pointsEarned ?? 0}
-          paidAmount={order.paidAmount ?? 0}
-        />
+          {isRefunded ? (
+            <PaymentSummary
+              variant="refund"
+              pointsUsed={order.pointsUsed ?? 0}
+              pointsEarned={order.pointsEarned ?? 0}
+              paidAmount={order.paidAmount ?? 0}
+            />
+          ) : null}
+        </div>
 
         <InfoSection
           title="요청 정보"
@@ -132,29 +143,70 @@ export default function PurchaseDetailPage() {
         />
 
         <InfoSection
-          title="승인 정보"
+          title={isRefunded ? '환불 정보' : '승인 정보'}
           rows={[
             {
               type: 'pair',
               left: {
                 label: '담당자',
-                value: order.resolver?.name ?? '-',
+                value: isRefunded
+                  ? (order.refundedBy?.name ?? '-')
+                  : (order.resolver?.name ?? '-'),
               },
               right: {
-                label: '승인 날짜',
-                value: formatDate(order.resolvedAt),
+                label: isRefunded ? '환불 날짜' : '승인 날짜',
+                value: formatDate(
+                  isRefunded ? (order.refundedAt ?? null) : order.resolvedAt
+                ),
               },
             },
             {
               type: 'pair',
               left: { label: '상태', value: statusLabel(order.status) },
               right: {
-                label: '결과 메시지',
-                value: order.resultMessage?.trim() || '-',
+                label: isRefunded ? '환불 사유' : '결과 메시지', // 라벨도 바꾸려면
+                value: isRefunded
+                  ? order.refundReason?.trim() || '-'
+                  : order.resultMessage?.trim() || '-',
               },
             },
           ]}
         />
+
+        <div className="mx-auto flex h-16 w-full max-w-[616px] items-center gap-5 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-10 max-sm:h-auto max-sm:max-w-none max-sm:gap-4 max-sm:bg-white max-sm:p-6">
+          {isApproved && (
+            <>
+              <Button
+                variant="line"
+                className="min-w-0 flex-1"
+                onClick={() => router.push(`/purchase/${order.id}/refund`)}
+              >
+                환불하기
+              </Button>
+              <div className="w-[300px] shrink-0 max-sm:w-auto max-sm:flex-1">
+                <Button
+                  variant="filled"
+                  className="w-full"
+                  onClick={() => router.push('/purchase')}
+                >
+                  목록으로
+                </Button>
+              </div>
+            </>
+          )}
+
+          {isRefunded && (
+            <div className="mx-auto w-full max-w-[300px]">
+              <Button
+                variant="filled"
+                className="w-full"
+                onClick={() => router.push('/purchase')}
+              >
+                목록으로
+              </Button>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

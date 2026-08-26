@@ -21,7 +21,7 @@ import {
   companyBalancePointQueryKeys,
   orderItemsQueryKeys,
 } from '@/features/cart/constants/query-keys';
-import { SESSION_EXPIRED_EVENT } from '@/lib/api';
+import { SESSION_EXPIRED_EVENT, setApiAuthSession } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +29,7 @@ interface AuthContextType {
   isAuthChecked: boolean;
   login: (data: LoginFormValues) => Promise<void>;
   logout: () => Promise<void>;
+  hydrateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -38,6 +39,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const isLoggedIn = !!user;
   const queryClient = useQueryClient();
+
+  // apiFetch가 401→refresh를 로그인 중에만 시도하도록 동기화
+  useEffect(() => {
+    setApiAuthSession(isLoggedIn);
+  }, [isLoggedIn]);
+
+  const hydrateUser = useCallback((nextUser: User) => {
+    setApiAuthSession(true);
+    setUser(nextUser);
+    setIsAuthChecked(true);
+  }, []);
 
   const login = async ({
     email,
@@ -50,14 +62,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error('인증 확인 중입니다. 잠시 후 다시 시도해주세요.');
     }
 
-    const user = await loginApi(email, password);
-
-    setUser(user);
+    await loginApi(email, password);
+    setApiAuthSession(true);
+    // soft nav는 새 쿠키를 proxy/RSC가 못 읽는 경우가 있어 hard navigation
+    // setUser 전에 이동해야 auth layout이 Loading...을 그리지 않음
+    window.location.assign('/products');
   };
 
   const clearClientSession = useCallback(() => {
+    setApiAuthSession(false);
     setUser(null);
-    localStorage.removeItem('accessToken');
     queryClient.removeQueries({ queryKey: cartQueryKeys.all });
     queryClient.removeQueries({ queryKey: orderItemsQueryKeys.all });
     queryClient.removeQueries({
@@ -78,7 +92,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const onSessionExpired = () => {
-      clearClientSession();
+      void (async () => {
+        try {
+          await logoutApi();
+        } catch {
+          //쿠키 삭제 실패해도 비로그인 처리
+        } finally {
+          clearClientSession();
+          const path = window.location.pathname;
+          // 공개 페이지는 강제 이동하지 않음. private 비로그인은 layout 가드가 처리.
+          const isPublicPage =
+            path === '/' || path === '/login' || path.startsWith('/signup');
+          if (!isPublicPage) {
+            window.location.replace('/login');
+          }
+        }
+      })();
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
     return () => {
@@ -90,23 +119,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let cancelled = false;
 
     const checkAuth = async () => {
-      try {
-        if (!localStorage.getItem('accessToken')) {
-          if (!cancelled) {
-            setUser(null);
-          }
-          return;
-        }
+      const path = window.location.pathname;
+      const isAuthPage = path === '/login' || path.startsWith('/signup');
 
-        const user = await getUserApi();
+      // 로그인/회원가입은 세션 체크 스킵.
+      // API 호스트에만 쿠키가 있어도 getUser는 성공하는데, 그때 /products로 보내면
+      // FE proxy가 쿠키를 못 보고 다시 /login으로 보내는 루프가 난다.
+      if (isAuthPage) {
         if (!cancelled) {
-          setUser(user);
+          setIsAuthChecked(true);
+        }
+        return;
+      }
+
+      // private 구간은 (private)/layout 서버 getUser + hydrateUser가 담당.
+      // 여기서 또 getUserApi 하면 이중 요청·레이스가 난다.
+      if (path !== '/') {
+        return;
+      }
+
+      try {
+        const nextUser = await getUserApi();
+        if (!cancelled) {
+          setUser(nextUser);
         }
       } catch {
-        // 로그인 직후 늦게 도착한 실패가 세션을 덮어쓰지 않도록 함
-        if (!cancelled && !localStorage.getItem('accessToken')) {
-          setUser(null);
-        }
+        // accessToken 쿠키 없음/만료 — user는 null 유지
       } finally {
         if (!cancelled) {
           setIsAuthChecked(true);
@@ -123,7 +161,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoggedIn, isAuthChecked, login, logout }}
+      value={{
+        user,
+        isLoggedIn,
+        isAuthChecked,
+        login,
+        logout,
+        hydrateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
