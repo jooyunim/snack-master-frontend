@@ -156,26 +156,31 @@ export default function ProductDetailContent({
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-[30px] max-sm:px-6">
       <div className="flex h-16 w-full items-center border-b border-solid border-gray-100 pb-5 max-lg:py-5 max-sm:h-auto max-sm:border-b-0 max-sm:p-0">
-        <nav
-          className="flex items-center gap-1 max-sm:w-full max-sm:pb-2.5 max-sm:pt-3.5"
-          aria-label="breadcrumb"
-        >
-          {parentCategory ? (
-            <span className="text-[16px] tracking-[-0.4px] text-gray-200 max-sm:text-[14px] max-sm:tracking-[-0.35px] max-sm:text-gray-300">
-              {parentCategory.name}
-            </span>
-          ) : null}
-          <span className="relative size-4 shrink-0 overflow-hidden">
-            <Image
-              src={icChevronRight}
-              alt=""
-              fill
-              className="object-contain"
-            />
-          </span>
-          <span className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]">
-            {product.category.name}
-          </span>
+        <nav aria-label="breadcrumb">
+          <ol className="flex items-center gap-1 max-sm:w-full max-sm:pb-2.5 max-sm:pt-3.5">
+            {parentCategory ? (
+              <li className="text-[16px] tracking-[-0.4px] text-gray-200 max-sm:text-[14px] max-sm:tracking-[-0.35px] max-sm:text-gray-300">
+                {parentCategory.name}
+              </li>
+            ) : null}
+            <li
+              aria-hidden="true"
+              className="relative size-4 shrink-0 overflow-hidden"
+            >
+              <Image
+                src={icChevronRight}
+                alt=""
+                fill
+                className="object-contain"
+              />
+            </li>
+            <li
+              aria-current="page"
+              className="text-[16px] tracking-[-0.4px] text-gray-950 max-sm:text-[14px] max-sm:tracking-[-0.35px]"
+            >
+              {product.category.name}
+            </li>
+          </ol>
         </nav>
       </div>
 
@@ -239,13 +244,9 @@ export default function ProductDetailContent({
                 <Image src={icMenu} alt="" fill className="object-contain" />
               </button>
               {isMenuOpen ? (
-                <div
-                  role="menu"
-                  className="absolute top-full right-0 z-10 flex w-[95px] flex-col items-start justify-center overflow-hidden border border-solid border-gray-100 bg-white shadow-sm"
-                >
+                <div className="absolute top-full right-0 z-10 flex w-[95px] flex-col items-start justify-center overflow-hidden border border-solid border-gray-100 bg-white shadow-sm">
                   <button
                     type="button"
-                    role="menuitem"
                     onClick={() => {
                       setIsMenuOpen(false);
                       setIsEditOpen(true);
@@ -258,7 +259,6 @@ export default function ProductDetailContent({
                   </button>
                   <button
                     type="button"
-                    role="menuitem"
                     onClick={() => {
                       setIsMenuOpen(false);
                       setIsDeleteConfirmOpen(true);

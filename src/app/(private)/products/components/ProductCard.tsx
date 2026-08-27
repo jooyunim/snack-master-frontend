@@ -39,11 +39,12 @@ export default function ProductCard({
           className="flex min-w-0 flex-1 flex-col gap-5 max-lg:gap-3.5"
         >
           <div className="relative aspect-square w-full overflow-hidden rounded-[2px] bg-gray-50 shadow-[4px_4px_10px_rgba(250,247,243,0.25)]">
-            {/* eslint-disable-next-line @next/next/no-img-element -- 외부(S3/picsum) 이미지라 next/image remotePatterns 설정 없이 바로 사용 */}
-            <img
+            <Image
               src={product.imageUrl}
               alt={product.name}
-              className="size-full object-cover"
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover"
             />
             <button
               type="button"
