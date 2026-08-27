@@ -39,8 +39,10 @@ const LoginPage = () => {
     },
   });
 
+  const isLoginInProgress = loginMutation.isPending || loginMutation.isSuccess;
+
   const onValid = (data: LoginFormValues) => {
-    if (loginMutation.isPending) return;
+    if (isLoginInProgress) return;
     setLoginError(null);
     loginMutation.mutate(data);
   };
@@ -112,9 +114,9 @@ const LoginPage = () => {
                 ) : null}
                 <Button
                   type="submit"
-                  disabled={!isAuthChecked || loginMutation.isPending}
+                  disabled={!isAuthChecked || isLoginInProgress}
                 >
-                  {loginMutation.isPending ? '로그인 중...' : '로그인'}
+                  {isLoginInProgress ? '로그인 중...' : '로그인'}
                 </Button>
               </div>
 
