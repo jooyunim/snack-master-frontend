@@ -56,16 +56,21 @@ function parseTokensFromSetCookie(setCookies: string[]): {
 
 //토큰 재발급
 async function refreshTokens(refreshToken: string) {
-  const response = await fetch(`${API_BASE}/auth/refresh`, {
-    method: 'POST',
-    headers: { Cookie: `refreshToken=${refreshToken}` },
-  });
+  try {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { Cookie: `refreshToken=${refreshToken}` },
+      signal: AbortSignal.timeout(5000),
+    });
 
-  if (!response.ok) return null;
+    if (!response.ok) return null;
 
-  const tokens = parseTokensFromSetCookie(response.headers.getSetCookie());
-  if (!tokens.accessToken || !tokens.refreshToken) return null;
-  return tokens as { accessToken: string; refreshToken: string };
+    const tokens = parseTokensFromSetCookie(response.headers.getSetCookie());
+    if (!tokens.accessToken || !tokens.refreshToken) return null;
+    return tokens as { accessToken: string; refreshToken: string };
+  } catch {
+    return null;
+  }
 }
 
 //쿠키 심기
@@ -103,15 +108,20 @@ function redirectToProducts(req: NextRequest) {
   return NextResponse.redirect(new URL('/products', req.url));
 }
 
-//같은 요청 RSC가 새 쿠키를 읽도록 Cookie 헤더도 갱신
+//같은 요청 RSC가 새 쿠키를 읽도록 Cookie 헤더 갱신(a.t, r.t만 갱신, 나머지는 유지)
 function nextWithAuthCookies(
   req: NextRequest,
   tokens: { accessToken: string; refreshToken: string }
 ) {
   const requestHeaders = new Headers(req.headers);
+  const merged = new Map(
+    req.cookies.getAll().map(({ name, value }) => [name, value])
+  );
+  merged.set('accessToken', tokens.accessToken);
+  merged.set('refreshToken', tokens.refreshToken);
   requestHeaders.set(
     'cookie',
-    `accessToken=${tokens.accessToken}; refreshToken=${tokens.refreshToken}`
+    Array.from(merged, ([name, value]) => `${name}=${value}`).join('; ')
   );
 
   return setAuthCookies(
